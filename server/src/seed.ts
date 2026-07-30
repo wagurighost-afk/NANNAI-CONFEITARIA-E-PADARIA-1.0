@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { config } from './config.js'
 import {
   countProductions,
+  countMonthlySchedules,
   countRecipes,
   countUsers,
   deleteProductionRecord,
@@ -15,8 +16,10 @@ import {
   loadProductionRecord,
   saveProductionRecord,
   saveRecipeRecord,
+  saveMonthlyScheduleRecord,
   setMeta,
 } from './db.js'
+import { MONTHLY_SCHEDULE_SEED } from './data/monthlyScheduleSeed.js'
 import { RECIPES_SEED } from './data/recipesSeed.js'
 import { SEED_ADMIN, SEED_EMPLOYEES } from './data/employees.js'
 import {
@@ -66,6 +69,12 @@ export function seedDatabase(): void {
   if (countRecipes() === 0) {
     for (const recipe of RECIPES_SEED) {
       saveRecipeRecord(recipe)
+    }
+  }
+
+  if (countMonthlySchedules() === 0) {
+    for (const schedule of MONTHLY_SCHEDULE_SEED) {
+      saveMonthlyScheduleRecord(schedule)
     }
   }
 }

@@ -32,6 +32,9 @@ export function useRealtimeSync(): void {
         if (payload.scope === 'recipes') {
           void queryClient.invalidateQueries({ queryKey: ['recipes'] })
         }
+        if (payload.scope === 'monthly-schedule') {
+          void queryClient.invalidateQueries({ queryKey: ['monthly-schedule'] })
+        }
       } catch {
         // Ignore malformed events.
       }

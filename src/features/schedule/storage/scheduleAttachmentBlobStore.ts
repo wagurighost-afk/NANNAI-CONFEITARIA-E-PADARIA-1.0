@@ -65,6 +65,10 @@ export async function resolveScheduleAttachmentUrl(
   if (fileUrl.startsWith('blob:') || fileUrl.startsWith('data:')) {
     return fileUrl
   }
+  if (fileUrl.startsWith('http') || fileUrl.startsWith('/')) {
+    return fileUrl.startsWith('/') ? `${window.location.origin}${fileUrl}` : fileUrl
+  }
+
   const blob = await getScheduleAttachmentBlob(attachmentId)
   if (!blob) {
     return null

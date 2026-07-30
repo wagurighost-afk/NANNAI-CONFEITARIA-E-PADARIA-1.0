@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { config } from './config.js'
-import type { AppUser, ProductionDay, Recipe } from './types.js'
+import type { AppUser, MonthlySchedule, ProductionDay, Recipe } from './types.js'
 
 export interface UserRow {
   id: string
@@ -22,6 +22,7 @@ interface DatabaseFile {
   users: UserRow[]
   productions: ProductionDay[]
   recipes: Recipe[]
+  monthly_schedules: MonthlySchedule[]
   refresh_tokens: RefreshTokenRow[]
   meta: Record<string, string>
 }
@@ -29,7 +30,7 @@ interface DatabaseFile {
 const dbPath = path.join(path.dirname(config.dbPath), 'nannai.json')
 
 function emptyDb(): DatabaseFile {
-  return { users: [], productions: [], recipes: [], refresh_tokens: [], meta: {} }
+  return { users: [], productions: [], recipes: [], monthly_schedules: [], refresh_tokens: [], meta: {} }
 }
 
 function normalizeDb(parsed: Partial<DatabaseFile>): DatabaseFile {
@@ -37,6 +38,7 @@ function normalizeDb(parsed: Partial<DatabaseFile>): DatabaseFile {
     users: parsed.users ?? [],
     productions: parsed.productions ?? [],
     recipes: parsed.recipes ?? [],
+    monthly_schedules: parsed.monthly_schedules ?? [],
     refresh_tokens: parsed.refresh_tokens ?? [],
     meta: parsed.meta ?? {},
   }
@@ -169,5 +171,28 @@ export function saveRecipeRecord(recipe: Recipe): void {
 export function deleteRecipeRecord(id: string): void {
   const db = readDb()
   db.recipes = db.recipes.filter((item) => item.id !== id)
+  writeDb(db)
+}
+
+export function countMonthlySchedules(): number {
+  return readDb().monthly_schedules.length
+}
+
+export function loadAllMonthlySchedules(): MonthlySchedule[] {
+  return readDb().monthly_schedules
+}
+
+export function loadMonthlyScheduleRecord(id: string): MonthlySchedule | null {
+  return readDb().monthly_schedules.find((schedule) => schedule.id === id) ?? null
+}
+
+export function saveMonthlyScheduleRecord(schedule: MonthlySchedule): void {
+  const db = readDb()
+  const index = db.monthly_schedules.findIndex((item) => item.id === schedule.id)
+  if (index >= 0) {
+    db.monthly_schedules[index] = schedule
+  } else {
+    db.monthly_schedules.push(schedule)
+  }
   writeDb(db)
 }

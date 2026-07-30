@@ -79,7 +79,7 @@ export class MockMonthlyScheduleRepository implements MonthlyScheduleRepository 
     return store.find((schedule) => schedule.id === id) ?? null
   }
 
-  async importSchedule(input: ImportMonthlyScheduleInput): Promise<MonthlySchedule> {
+  async importSchedule(input: ImportMonthlyScheduleInput, _file?: File): Promise<MonthlySchedule> {
     await ensureStore()
     await delay()
 
@@ -218,5 +218,3 @@ export class MockMonthlyScheduleRepository implements MonthlyScheduleRepository 
     })
   }
 }
-
-export const monthlyScheduleRepository = new MockMonthlyScheduleRepository()
