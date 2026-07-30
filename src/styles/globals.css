@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/**
+ * Design tokens (source of truth): src/styles/tokens/*
+ * CSS custom properties are applied at runtime via applyThemeCssVariables.
+ */
+@theme {
+  --font-display: "Fraunces", Georgia, serif;
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: var(--nannai-background);
+  --color-foreground: var(--nannai-foreground);
+  --color-surface: var(--nannai-surface);
+  --color-surface-elevated: var(--nannai-surface-elevated);
+  --color-muted: var(--nannai-muted);
+  --color-muted-foreground: var(--nannai-muted-foreground);
+  --color-border: var(--nannai-border);
+  --color-primary: var(--nannai-primary);
+  --color-primary-foreground: var(--nannai-primary-foreground);
+  --color-accent: var(--nannai-accent);
+  --color-accent-foreground: var(--nannai-accent-foreground);
+  --color-danger: var(--nannai-danger);
+  --color-danger-foreground: var(--nannai-danger-foreground);
+  --color-success: var(--nannai-success);
+  --color-ring: var(--nannai-ring);
+  --color-sidebar: var(--nannai-sidebar);
+  --color-sidebar-foreground: var(--nannai-sidebar-foreground);
+  --color-overlay: var(--nannai-overlay);
+
+  --radius-sm: var(--nannai-radius-sm);
+  --radius-md: var(--nannai-radius-md);
+  --radius-lg: var(--nannai-radius-lg);
+  --radius-xl: var(--nannai-radius-xl);
+  --radius-2xl: var(--nannai-radius-2xl);
+
+  --shadow-sm: var(--nannai-shadow-sm);
+  --shadow-md: var(--nannai-shadow-md);
+  --shadow-lg: var(--nannai-shadow-lg);
+  --shadow-xl: var(--nannai-shadow-xl);
+}
+
+/* Fallbacks before JS bootstrap (light palette) */
+:root {
+  --nannai-background: #f6f3ee;
+  --nannai-foreground: #2a1f1a;
+  --nannai-surface: #fffcf8;
+  --nannai-surface-elevated: #ffffff;
+  --nannai-muted: #ebe4d9;
+  --nannai-muted-foreground: #6b5b4f;
+  --nannai-border: #ddd2c4;
+  --nannai-primary: #3e2723;
+  --nannai-primary-foreground: #f8efe4;
+  --nannai-accent: #b8894a;
+  --nannai-accent-foreground: #1f160f;
+  --nannai-danger: #b42318;
+  --nannai-danger-foreground: #fff7f5;
+  --nannai-success: #2f6b4f;
+  --nannai-ring: #b8894a;
+  --nannai-sidebar: #3e2723;
+  --nannai-sidebar-foreground: #f3e8d8;
+  --nannai-overlay: rgb(42 31 26 / 0.45);
+  --nannai-radius-sm: 0.375rem;
+  --nannai-radius-md: 0.5rem;
+  --nannai-radius-lg: 0.75rem;
+  --nannai-radius-xl: 1rem;
+  --nannai-radius-2xl: 1rem;
+  --nannai-border-width: 1px;
+  --nannai-border-width-medium: 2px;
+  --nannai-shadow-sm: 0 1px 2px rgb(42 31 26 / 0.06);
+  --nannai-shadow-md: 0 4px 12px rgb(42 31 26 / 0.08);
+  --nannai-shadow-lg: 0 10px 24px rgb(42 31 26 / 0.12);
+  --nannai-shadow-xl: 0 20px 40px rgb(42 31 26 / 0.16);
+  --nannai-space-1: 0.25rem;
+  --nannai-space-2: 0.5rem;
+  --nannai-space-3: 0.75rem;
+  --nannai-space-4: 1rem;
+  --nannai-space-6: 1.5rem;
+  --nannai-space-8: 2rem;
+  --nannai-duration-fast: 150ms;
+  --nannai-duration-normal: 200ms;
+  --nannai-duration-moderate: 300ms;
+  --nannai-duration-slow: 500ms;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: var(--font-sans);
+    background-color: var(--nannai-background);
+    color: var(--nannai-foreground);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--nannai-ring);
+    outline-offset: 2px;
+  }
+}
