@@ -1,0 +1,22 @@
+# NANNAI — deploy na nuvem (Render.com)
+# Um único serviço: site + API + PWA instalável
+
+services:
+  - type: web
+    name: nannai-app
+    runtime: node
+    plan: free
+    buildCommand: npm install && VITE_API_BASE_URL=/api VITE_USE_MOCK=false npm run build && npm install --prefix server
+    startCommand: NODE_ENV=production npm run start --prefix server
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: DEFAULT_USER_PASSWORD
+        value: Nannai@2026
+      - key: CORS_ORIGIN
+        sync: false
