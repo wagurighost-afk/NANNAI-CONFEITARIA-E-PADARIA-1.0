@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { APP_ROUTES } from '@/core/constants'
 import { LoginPage } from '@/features/auth'
@@ -16,6 +16,11 @@ import { PermissionRoute } from '@/app/router/PermissionRoute'
 import { ProtectedRoute } from '@/app/router/ProtectedRoute'
 import { PublicOnlyRoute } from '@/app/router/PublicOnlyRoute'
 
+function LegacyRecipeRedirect() {
+  const { recipeId } = useParams()
+  return <Navigate to={recipeId ? `${APP_ROUTES.recipes}/${recipeId}` : APP_ROUTES.recipes} replace />
+}
+
 export function AppRouter() {
   return (
     <BrowserRouter>
@@ -32,6 +37,9 @@ export function AppRouter() {
             <Route path={APP_ROUTES.schedule} element={<SchedulePage />} />
             <Route path={APP_ROUTES.cleaningSchedule} element={<CleaningSchedulePage />} />
             <Route path={APP_ROUTES.recipes} element={<RecipesPage />} />
+            <Route path={`${APP_ROUTES.recipes}/:recipeId`} element={<RecipesPage />} />
+            <Route path="/recipes" element={<Navigate to={APP_ROUTES.recipes} replace />} />
+            <Route path="/recipes/:recipeId" element={<LegacyRecipeRedirect />} />
             <Route path={APP_ROUTES.pop} element={<PopPage />} />
             <Route element={<PermissionRoute permission="employees:view" />}>
               <Route path={APP_ROUTES.employees} element={<EmployeesPage />} />
@@ -39,6 +47,7 @@ export function AppRouter() {
             <Route element={<PermissionRoute permission="ingredients:view" />}>
               <Route path={APP_ROUTES.ingredients} element={<IngredientsPage />} />
             </Route>
+            <Route path="*" element={<Navigate to={APP_ROUTES.dashboard} replace />} />
           </Route>
         </Route>
 

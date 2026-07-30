@@ -76,16 +76,26 @@ export async function deleteAttachmentBlob(attachmentId: string): Promise<void> 
 }
 
 export function resolveAttachmentFileUrl(fileUrl: string): string | null {
-  if (fileUrl.startsWith('blob:') || fileUrl.startsWith('data:')) {
-    return fileUrl
+  const value = fileUrl.trim()
+  if (!value) {
+    return null
   }
-  if (fileUrl.startsWith('http')) {
-    return fileUrl
+  if (value.startsWith('blob:') || value.startsWith('data:')) {
+    return value
   }
-  if (fileUrl.startsWith('/')) {
-    return `${window.location.origin}${fileUrl}`
+  if (value.startsWith('http')) {
+    return value
   }
-  return null
+  if (value.startsWith('/api/uploads/')) {
+    return `${window.location.origin}${value}`
+  }
+  if (value.startsWith('/uploads/')) {
+    return `${window.location.origin}/api${value}`
+  }
+  if (value.startsWith('/')) {
+    return `${window.location.origin}${value}`
+  }
+  return `${window.location.origin}/api/uploads/${value}`
 }
 
 export async function resolveAttachmentPreviewUrl(

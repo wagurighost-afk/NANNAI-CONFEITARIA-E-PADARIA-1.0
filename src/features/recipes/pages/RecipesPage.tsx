@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FileText, Plus, ScrollText, Send } from 'lucide-react'
+import { useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Breadcrumb, EmptyState, PageHeader } from '@/components/common'
 import {
@@ -35,13 +36,17 @@ import { isRecipeDocumentPrimary } from '@/features/recipes/utils/isRecipeDocume
 import { resolveRecipeFormValues } from '@/features/recipes/utils/resolveRecipeFormValues'
 import { APP_ROUTES } from '@/core/constants'
 import { getErrorMessage } from '@/core/errors'
+import { canManageOperationalData } from '@/core/permissions/systemAccess'
 import { usePermission } from '@/hooks/usePermission'
+import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks'
 
 export function RecipesPage() {
+  const { recipeId: recipeIdParam } = useParams()
+  const { user } = useAuth()
   const { hasPermission } = usePermission()
-  const canManage = hasPermission('recipes:manage')
-  const canSendToProduction = hasPermission('production:manage')
+  const canManage = hasPermission('recipes:manage') || canManageOperationalData(user)
+  const canSendToProduction = canManageOperationalData(user)
   const { push } = useToast()
   const queryClient = useQueryClient()
   const [isSendDialogOpen, setIsSendDialogOpen] = useState(false)
@@ -88,6 +93,12 @@ export function RecipesPage() {
   } = useRecipeBatchSelection(recipes)
 
   const drawerOpen = Boolean(selectedRecipe) || isSelectedRecipeLoading
+
+  useEffect(() => {
+    if (recipeIdParam) {
+      selectRecipe(recipeIdParam)
+    }
+  }, [recipeIdParam, selectRecipe])
 
   const handleSubmit = async (payload: RecipeFormSubmitPayload) => {
     const hasExistingAttachment =
@@ -140,7 +151,11 @@ export function RecipesPage() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={selectionMode ? 'pb-28 md:pb-0' : undefined}
+    >
       <Breadcrumb items={[{ label: 'Início', href: APP_ROUTES.dashboard }, { label: 'Receitas' }]} />
       <PageHeader
         title="Receitas"
@@ -191,27 +206,29 @@ export function RecipesPage() {
         />
       </div>
       {selectionMode && canSendToProduction ? (
-        <div className="mb-4 flex flex-col gap-3 rounded-xl border border-border bg-surface-elevated p-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-muted-foreground">
-            {selectedCount > 0
-              ? `${selectedCount} receita(s) selecionada(s)`
-              : 'Marque as receitas que deseja enviar para a produção.'}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={selectAllVisible}>
-              Selecionar todas
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              disabled={selectedCount === 0}
-              onClick={() => {
-                setIsSendDialogOpen(true)
-              }}
-            >
-              <Send className="size-4" />
-              Enviar para produção
-            </Button>
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface-elevated p-4 shadow-lg md:static md:mb-4 md:rounded-xl md:border md:shadow-none">
+          <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground">
+              {selectedCount > 0
+                ? `${selectedCount} receita(s) selecionada(s)`
+                : 'Marque as receitas que deseja enviar para a produção.'}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={selectAllVisible}>
+                Selecionar todas
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                disabled={selectedCount === 0}
+                onClick={() => {
+                  setIsSendDialogOpen(true)
+                }}
+              >
+                <Send className="size-4" />
+                Enviar para produção
+              </Button>
+            </div>
           </div>
         </div>
       ) : null}
