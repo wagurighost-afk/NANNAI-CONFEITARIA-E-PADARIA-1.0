@@ -5,6 +5,7 @@ import {
   Factory,
   FileText,
   LayoutDashboard,
+  MessageSquare,
   PanelLeftClose,
   PanelLeftOpen,
   Sparkles,
@@ -21,6 +22,7 @@ import { cn } from '@/utils/cn'
 
 const NAV_ICONS: Record<string, LucideIcon> = {
   LayoutDashboard,
+  MessageSquare,
   Factory,
   CalendarDays,
   Sparkles,

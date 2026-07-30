@@ -23,6 +23,13 @@ export const MAIN_NAVIGATION: readonly AppNavItem[] = [
     permission: 'production:view',
   },
   {
+    id: 'comments',
+    label: 'Comentários',
+    href: APP_ROUTES.comments,
+    icon: 'MessageSquare',
+    permission: 'production:view',
+  },
+  {
     id: 'schedule',
     label: 'Escala',
     href: APP_ROUTES.schedule,

@@ -1,18 +1,36 @@
-import { Plus } from 'lucide-react'
+import { FileSpreadsheet, FileText, Plus, ScrollText } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Breadcrumb, EmptyState, PageHeader } from '@/components/common'
-import { Badge, Button, Card, CardContent, ConfirmDialog, Drawer, Modal, SearchInput, Select, Skeleton } from '@/components/ui'
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  ConfirmDialog,
+  Drawer,
+  Modal,
+  SearchInput,
+  Select,
+  Skeleton,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui'
 import { RecipeAttachmentsList } from '@/features/recipes/components/RecipeDocumentViewer'
 import { RecipeForm } from '@/features/recipes/components/RecipeForm'
 import { RecipeKpisSection } from '@/features/recipes/components/RecipeKpis'
 import { useRecipes } from '@/features/recipes/hooks/useRecipes'
-import { RECIPE_CATEGORIES, RECIPE_STATUSES } from '@/features/recipes/types/recipe.types'
+import { RECIPE_CATEGORIES, RECIPE_STATUSES, type Recipe } from '@/features/recipes/types/recipe.types'
 import type { RecipeFormSubmitPayload } from '@/features/recipes/types/recipe.types'
+import { getRecipeAttachmentBadge } from '@/features/recipes/utils/getRecipeAttachmentLabel'
+import { isRecipeDocumentPrimary } from '@/features/recipes/utils/isRecipeDocumentPrimary'
 import { resolveRecipeFormValues } from '@/features/recipes/utils/resolveRecipeFormValues'
 import { APP_ROUTES } from '@/core/constants'
 import { getErrorMessage } from '@/core/errors'
 import { usePermission } from '@/hooks/usePermission'
 import { useToast } from '@/hooks'
+import { formatDateTimeBr } from '@/utils/formatDate'
 
 export function RecipesPage() {
   const { hasPermission } = usePermission()
@@ -28,7 +46,11 @@ export function RecipesPage() {
     selectedRecipe,
     selectRecipe,
     isFormOpen,
+    isCreateChoiceOpen,
+    formMode,
     editingRecipe,
+    openCreateChoice,
+    closeCreateChoice,
     openCreateForm,
     openEditForm,
     closeForm,
@@ -44,6 +66,28 @@ export function RecipesPage() {
   } = useRecipes()
 
   const handleSubmit = async (payload: RecipeFormSubmitPayload) => {
+    const hasExistingAttachment =
+      Boolean(editingRecipe?.attachments.length) && !payload.removeExistingAttachment
+    const requiresAttachment = formMode === 'document' && !editingRecipe
+
+    if (requiresAttachment && !payload.attachment) {
+      push({
+        title: 'Documento obrigatório',
+        description: 'Anexe a ficha técnica em PDF, Excel ou Word.',
+        variant: 'danger',
+      })
+      return
+    }
+
+    if (formMode === 'document' && editingRecipe && !payload.attachment && !hasExistingAttachment) {
+      push({
+        title: 'Documento obrigatório',
+        description: 'Esta receita precisa de um documento anexado.',
+        variant: 'danger',
+      })
+      return
+    }
+
     const resolved = resolveRecipeFormValues(payload.values, payload.attachment)
     if (!resolved.success) {
       push({ title: 'Dados inválidos', description: resolved.error, variant: 'danger' })
@@ -61,9 +105,7 @@ export function RecipesPage() {
       })
       push({
         title: editingRecipe ? 'Receita atualizada' : 'Receita cadastrada',
-        description: payload.attachment
-          ? 'Documento anexado com sucesso.'
-          : undefined,
+        description: payload.attachment ? 'Documento anexado com sucesso.' : undefined,
         variant: 'success',
       })
       closeForm()
@@ -73,15 +115,17 @@ export function RecipesPage() {
     }
   }
 
+  const selectedIsDocumentPrimary = selectedRecipe ? isRecipeDocumentPrimary(selectedRecipe) : false
+
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
       <Breadcrumb items={[{ label: 'Início', href: APP_ROUTES.dashboard }, { label: 'Receitas' }]} />
       <PageHeader
         title="Receitas"
-        description="Fichas técnicas, modo de preparo e documentos anexos."
+        description="Consulte fichas técnicas anexadas ou receitas cadastradas manualmente."
         actions={
           canManage ? (
-            <Button onClick={openCreateForm} className="w-full sm:w-auto">
+            <Button onClick={openCreateChoice} className="w-full sm:w-auto">
               <Plus className="size-4" />
               Nova receita
             </Button>
@@ -117,31 +161,37 @@ export function RecipesPage() {
         <EmptyState title="Nenhuma receita encontrada" />
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {recipes.map((recipe) => (
-            <Card
-              key={recipe.id}
-              className="cursor-pointer hover:shadow-md"
-              onClick={() => selectRecipe(recipe.id)}
-            >
-              <CardContent className="space-y-2 pt-6">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="font-medium">{recipe.name}</p>
-                  <Badge variant={recipe.status === 'Ativa' ? 'success' : 'muted'}>{recipe.status}</Badge>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {recipe.category} · {recipe.prepTimeMinutes} min · {recipe.yield}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="muted">{recipe.recipeCode}</Badge>
-                  {recipe.attachments.length > 0 ? (
-                    <Badge variant="accent">Ver ficha anexa</Badge>
-                  ) : null}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {recipes.map((recipe) => {
+            const attachmentBadge = getRecipeAttachmentBadge(recipe)
+            const documentPrimary = isRecipeDocumentPrimary(recipe)
+
+            return (
+              <Card
+                key={recipe.id}
+                className="cursor-pointer hover:shadow-md"
+                onClick={() => selectRecipe(recipe.id)}
+              >
+                <CardContent className="space-y-2 pt-6">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-medium">{recipe.name}</p>
+                    <Badge variant={recipe.status === 'Ativa' ? 'success' : 'muted'}>{recipe.status}</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {recipe.category}
+                    {!documentPrimary ? ` · ${recipe.prepTimeMinutes} min · ${recipe.yield}` : ' · Ficha anexa'}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="muted">{recipe.recipeCode}</Badge>
+                    {attachmentBadge ? <Badge variant="accent">Ficha {attachmentBadge}</Badge> : null}
+                    {!attachmentBadge ? <Badge variant="muted">Cadastro manual</Badge> : null}
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
         </div>
       )}
+
       <Drawer
         open={Boolean(selectedRecipe)}
         onClose={() => selectRecipe(null)}
@@ -152,52 +202,34 @@ export function RecipesPage() {
         {selectedRecipe ? (
           <div className="space-y-6">
             {selectedRecipe.attachments.length > 0 ? (
-              <div>
-                <p className="mb-3 text-sm font-medium">Ficha técnica</p>
-                <RecipeAttachmentsList attachments={selectedRecipe.attachments} />
-              </div>
-            ) : null}
+              <Tabs defaultValue="document">
+                <TabsList>
+                  <TabsTrigger value="document">Documento</TabsTrigger>
+                  <TabsTrigger value="info">Informações</TabsTrigger>
+                </TabsList>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-xl border border-border p-3 text-sm">
-                <p className="text-muted-foreground">Categoria</p>
-                <p className="font-medium">{selectedRecipe.category}</p>
-              </div>
-              <div className="rounded-xl border border-border p-3 text-sm">
-                <p className="text-muted-foreground">Tempo · Rendimento</p>
-                <p className="font-medium">
-                  {selectedRecipe.prepTimeMinutes} min · {selectedRecipe.yield}
-                </p>
-              </div>
-            </div>
+                <TabsContent value="document">
+                  <RecipeAttachmentsList attachments={selectedRecipe.attachments} />
+                </TabsContent>
 
-            <div>
-              <p className="mb-2 text-sm font-medium">Modo de preparo</p>
-              <p className="whitespace-pre-wrap text-sm text-muted-foreground">
-                {selectedRecipe.preparationMethod}
-              </p>
-            </div>
+                <TabsContent value="info">
+                  <RecipeInfoPanel recipe={selectedRecipe} documentPrimary={selectedIsDocumentPrimary} />
+                </TabsContent>
+              </Tabs>
+            ) : (
+              <RecipeInfoPanel recipe={selectedRecipe} documentPrimary={false} />
+            )}
 
-            <div>
-              <p className="mb-2 text-sm font-medium">Ingredientes</p>
-              <ul className="space-y-1 text-sm">
-                {selectedRecipe.ingredients.map((ing, i) => (
-                  <li key={i} className="rounded-lg border border-border px-3 py-2">
-                    {ing.quantity} {ing.unit} — {ing.name}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {selectedRecipe.notes ? (
-              <div>
-                <p className="mb-2 text-sm font-medium">Observações</p>
-                <p className="text-sm text-muted-foreground">{selectedRecipe.notes}</p>
-              </div>
-            ) : null}
             {canManage ? (
               <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" onClick={() => openEditForm(selectedRecipe)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    selectRecipe(null)
+                    openEditForm(selectedRecipe)
+                  }}
+                >
                   Editar
                 </Button>
                 <Button
@@ -219,25 +251,62 @@ export function RecipesPage() {
           </div>
         ) : null}
       </Drawer>
+
+      <Modal
+        open={isCreateChoiceOpen}
+        onClose={closeCreateChoice}
+        title="Como deseja cadastrar?"
+        description="Escolha a forma mais simples para a sua receita."
+        size="md"
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            className="rounded-xl border border-border p-4 text-left transition hover:border-accent hover:bg-accent/5"
+            onClick={() => openCreateForm('document')}
+          >
+            <FileText className="mb-3 size-8 text-accent" />
+            <p className="font-medium">Anexar ficha técnica</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Ideal para PDF, Excel ou Word já prontos.
+            </p>
+          </button>
+          <button
+            type="button"
+            className="rounded-xl border border-border p-4 text-left transition hover:border-accent hover:bg-accent/5"
+            onClick={() => openCreateForm('manual')}
+          >
+            <ScrollText className="mb-3 size-8 text-accent" />
+            <p className="font-medium">Cadastrar manualmente</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Ingredientes e modo de preparo digitados no sistema.
+            </p>
+          </button>
+        </div>
+      </Modal>
+
       <Modal
         open={isFormOpen}
         onClose={closeForm}
-        title={editingRecipe ? 'Editar receita' : 'Nova receita'}
-        description={
-          canManage
-            ? 'Preencha os dados manualmente ou anexe PDF, Excel ou Word.'
-            : undefined
+        title={
+          editingRecipe
+            ? 'Editar receita'
+            : formMode === 'document'
+              ? 'Nova receita com documento'
+              : 'Nova receita manual'
         }
         size="lg"
       >
         <RecipeForm
           recipe={editingRecipe}
+          mode={formMode}
           canUploadDocument={canManage}
           onSubmit={handleSubmit}
           onCancel={closeForm}
           isSaving={isSaving}
         />
       </Modal>
+
       <ConfirmDialog
         open={Boolean(recipePendingDelete)}
         onClose={cancelDelete}
@@ -256,5 +325,77 @@ export function RecipesPage() {
         variant="danger"
       />
     </motion.div>
+  )
+}
+
+function RecipeInfoPanel({
+  recipe,
+  documentPrimary,
+}: {
+  recipe: Recipe
+  documentPrimary: boolean
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="rounded-xl border border-border p-3 text-sm">
+          <p className="text-muted-foreground">Categoria</p>
+          <p className="font-medium">{recipe.category}</p>
+        </div>
+        <div className="rounded-xl border border-border p-3 text-sm">
+          <p className="text-muted-foreground">Status</p>
+          <p className="font-medium">{recipe.status}</p>
+        </div>
+      </div>
+
+      {documentPrimary ? (
+        <div className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+          <div className="mb-2 flex items-center gap-2 font-medium text-foreground">
+            <FileSpreadsheet className="size-4" />
+            Conteúdo completo no documento
+          </div>
+          Ingredientes, rendimento e modo de preparo estão na ficha anexa. Abra a aba{' '}
+          <span className="font-medium text-foreground">Documento</span> para consultar.
+        </div>
+      ) : (
+        <>
+          <div className="rounded-xl border border-border p-3 text-sm">
+            <p className="text-muted-foreground">Tempo · Rendimento</p>
+            <p className="font-medium">
+              {recipe.prepTimeMinutes} min · {recipe.yield}
+            </p>
+          </div>
+
+          <div>
+            <p className="mb-2 text-sm font-medium">Modo de preparo</p>
+            <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+              {recipe.preparationMethod}
+            </p>
+          </div>
+
+          <div>
+            <p className="mb-2 text-sm font-medium">Ingredientes</p>
+            <ul className="space-y-1 text-sm">
+              {recipe.ingredients.map((ing, i) => (
+                <li key={i} className="rounded-lg border border-border px-3 py-2">
+                  {ing.quantity} {ing.unit} — {ing.name}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
+      )}
+
+      {recipe.notes ? (
+        <div>
+          <p className="mb-2 text-sm font-medium">Observações</p>
+          <p className="text-sm text-muted-foreground">{recipe.notes}</p>
+        </div>
+      ) : null}
+
+      <p className="text-xs text-muted-foreground">
+        Atualizado em {formatDateTimeBr(recipe.updatedAt)}
+      </p>
+    </div>
   )
 }

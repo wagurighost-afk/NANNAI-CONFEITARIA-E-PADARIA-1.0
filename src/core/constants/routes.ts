@@ -8,6 +8,7 @@ export const APP_ROUTES = {
   schedule: '/escala',
   cleaningSchedule: '/escala-limpeza',
   recipes: '/receitas',
+  comments: '/comentarios',
   pop: '/pop',
   notFound: '*',
 } as const

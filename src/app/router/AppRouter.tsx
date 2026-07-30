@@ -8,6 +8,7 @@ import { EmployeesPage } from '@/features/employees'
 import { IngredientsPage } from '@/features/ingredients'
 import { NotFoundPage } from '@/features/errors'
 import { PopPage } from '@/features/pop'
+import { CommentsPage } from '@/features/comments'
 import { ProductionPage } from '@/features/production'
 import { RecipesPage } from '@/features/recipes'
 import { SchedulePage } from '@/features/schedule'
@@ -27,6 +28,7 @@ export function AppRouter() {
           <Route element={<AppLayout />}>
             <Route path={APP_ROUTES.dashboard} element={<DashboardPage />} />
             <Route path={APP_ROUTES.production} element={<ProductionPage />} />
+            <Route path={APP_ROUTES.comments} element={<CommentsPage />} />
             <Route path={APP_ROUTES.schedule} element={<SchedulePage />} />
             <Route path={APP_ROUTES.cleaningSchedule} element={<CleaningSchedulePage />} />
             <Route path={APP_ROUTES.recipes} element={<RecipesPage />} />

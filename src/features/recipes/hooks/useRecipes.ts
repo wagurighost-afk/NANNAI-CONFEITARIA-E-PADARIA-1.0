@@ -8,6 +8,8 @@ import type {
   RecipeSavePayload,
   RecipeViewMode,
 } from '@/features/recipes/types/recipe.types'
+import type { RecipeFormMode } from '@/features/recipes/components/RecipeForm'
+import { isRecipeDocumentPrimary } from '@/features/recipes/utils/isRecipeDocumentPrimary'
 
 const QUERY_KEY = ['recipes'] as const
 
@@ -23,6 +25,8 @@ export function useRecipes() {
   const [viewMode, setViewMode] = useState<RecipeViewMode>('cards')
   const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [isCreateChoiceOpen, setIsCreateChoiceOpen] = useState(false)
+  const [formMode, setFormMode] = useState<RecipeFormMode>('document')
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null)
   const [recipePendingDelete, setRecipePendingDelete] = useState<Recipe | null>(null)
 
@@ -78,17 +82,29 @@ export function useRecipes() {
     selectedRecipe,
     selectRecipe: setSelectedRecipeId,
     isFormOpen,
+    isCreateChoiceOpen,
+    formMode,
     editingRecipe,
-    openCreateForm: () => {
+    openCreateChoice: () => {
+      setIsCreateChoiceOpen(true)
+    },
+    closeCreateChoice: () => {
+      setIsCreateChoiceOpen(false)
+    },
+    openCreateForm: (mode: RecipeFormMode) => {
+      setFormMode(mode)
       setEditingRecipe(null)
+      setIsCreateChoiceOpen(false)
       setIsFormOpen(true)
     },
     openEditForm: (recipe: Recipe) => {
+      setFormMode(isRecipeDocumentPrimary(recipe) ? 'document' : 'manual')
       setEditingRecipe(recipe)
       setIsFormOpen(true)
     },
     closeForm: () => {
       setIsFormOpen(false)
+      setIsCreateChoiceOpen(false)
       setEditingRecipe(null)
     },
     recipePendingDelete,
