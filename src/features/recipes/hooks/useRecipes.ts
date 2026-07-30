@@ -42,13 +42,22 @@ export function useRecipes() {
 
   const kpis = useMemo(() => computeRecipeKpis(allQuery.data ?? []), [allQuery.data])
 
+  const selectedRecipeQuery = useQuery({
+    queryKey: [...QUERY_KEY, 'detail', selectedRecipeId],
+    queryFn: () => recipesService.getById(selectedRecipeId!),
+    enabled: Boolean(selectedRecipeId),
+  })
+
   const selectedRecipe = useMemo(() => {
     if (!selectedRecipeId) {
       return null
     }
+    if (selectedRecipeQuery.data) {
+      return selectedRecipeQuery.data
+    }
     const source = allQuery.data ?? listQuery.data ?? []
     return source.find((recipe) => recipe.id === selectedRecipeId) ?? null
-  }, [allQuery.data, listQuery.data, selectedRecipeId])
+  }, [allQuery.data, listQuery.data, selectedRecipeId, selectedRecipeQuery.data])
 
   const invalidate = async () => {
     await queryClient.invalidateQueries({ queryKey: QUERY_KEY })
@@ -80,6 +89,7 @@ export function useRecipes() {
     viewMode,
     setViewMode,
     selectedRecipe,
+    isSelectedRecipeLoading: selectedRecipeQuery.isLoading,
     selectRecipe: setSelectedRecipeId,
     isFormOpen,
     isCreateChoiceOpen,

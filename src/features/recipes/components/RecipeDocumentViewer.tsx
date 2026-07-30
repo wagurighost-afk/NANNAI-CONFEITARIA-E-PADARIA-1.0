@@ -6,6 +6,7 @@ import { RecipeWordPreview } from '@/features/recipes/components/RecipeWordPrevi
 import { useRecipeAttachmentPreview } from '@/features/recipes/hooks/useRecipeAttachmentPreview'
 import { useRecipeExcelPreview } from '@/features/recipes/hooks/useRecipeExcelPreview'
 import { useRecipeWordPreview } from '@/features/recipes/hooks/useRecipeWordPreview'
+import { resolveAttachmentFileUrl } from '@/features/recipes/storage/recipeAttachmentBlobStore'
 import type { RecipeAttachment } from '@/features/recipes/types/recipe.types'
 import { formatRecipeFileSize, getRecipeFileExtensionLabel } from '@/features/recipes/utils/validateRecipeFile'
 import { formatDateTimeBr } from '@/utils/formatDate'
@@ -106,13 +107,7 @@ function RecipeAttachmentPreview({
 export function RecipeDocumentViewer({ attachment, compact = false }: RecipeDocumentViewerProps) {
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
   const { previewUrl } = useRecipeAttachmentPreview(attachment)
-
-  const openInNewTab = () => {
-    if (!previewUrl) {
-      return
-    }
-    window.open(previewUrl, '_blank', 'noopener,noreferrer')
-  }
+  const openUrl = previewUrl ?? resolveAttachmentFileUrl(attachment.fileUrl)
 
   return (
     <div className="space-y-3">
@@ -137,10 +132,22 @@ export function RecipeDocumentViewer({ attachment, compact = false }: RecipeDocu
               Tela cheia
             </Button>
           ) : null}
-          <Button type="button" variant="outline" size="sm" disabled={!previewUrl} onClick={openInNewTab}>
-            <ExternalLink className="size-4" />
-            Abrir arquivo
-          </Button>
+          {openUrl ? (
+            <a
+              href={openUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-transparent px-3 text-sm text-foreground hover:bg-muted"
+            >
+              <ExternalLink className="size-4" />
+              Abrir arquivo
+            </a>
+          ) : (
+            <Button type="button" variant="outline" size="sm" disabled>
+              <ExternalLink className="size-4" />
+              Abrir arquivo
+            </Button>
+          )}
         </div>
       </div>
 

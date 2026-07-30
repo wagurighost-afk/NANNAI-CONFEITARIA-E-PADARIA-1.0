@@ -1,4 +1,6 @@
-import { FileText, Plus, ScrollText } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import { FileText, Plus, ScrollText, Send } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Breadcrumb, EmptyState, PageHeader } from '@/components/common'
 import {
@@ -6,6 +8,7 @@ import {
   Button,
   Card,
   CardContent,
+  Checkbox,
   ConfirmDialog,
   Drawer,
   Modal,
@@ -20,8 +23,11 @@ import {
 import { RecipeAttachmentsList } from '@/features/recipes/components/RecipeDocumentViewer'
 import { RecipeForm } from '@/features/recipes/components/RecipeForm'
 import { RecipeReadableView } from '@/features/recipes/components/RecipeReadableView'
+import { SendRecipesToProductionDialog } from '@/features/recipes/components/SendRecipesToProductionDialog'
 import { RecipeKpisSection } from '@/features/recipes/components/RecipeKpis'
+import { useRecipeBatchSelection } from '@/features/recipes/hooks/useRecipeBatchSelection'
 import { useRecipes } from '@/features/recipes/hooks/useRecipes'
+import { sendRecipesToProduction } from '@/features/recipes/services/sendRecipesToProduction'
 import { RECIPE_CATEGORIES, RECIPE_STATUSES } from '@/features/recipes/types/recipe.types'
 import type { RecipeFormSubmitPayload } from '@/features/recipes/types/recipe.types'
 import { getRecipeAttachmentBadge } from '@/features/recipes/utils/getRecipeAttachmentLabel'
@@ -35,7 +41,11 @@ import { useToast } from '@/hooks'
 export function RecipesPage() {
   const { hasPermission } = usePermission()
   const canManage = hasPermission('recipes:manage')
+  const canSendToProduction = hasPermission('production:manage')
   const { push } = useToast()
+  const queryClient = useQueryClient()
+  const [isSendDialogOpen, setIsSendDialogOpen] = useState(false)
+  const [isSendingToProduction, setIsSendingToProduction] = useState(false)
   const {
     recipes,
     kpis,
@@ -44,6 +54,7 @@ export function RecipesPage() {
     filters,
     setFilters,
     selectedRecipe,
+    isSelectedRecipeLoading,
     selectRecipe,
     isFormOpen,
     isCreateChoiceOpen,
@@ -64,6 +75,19 @@ export function RecipesPage() {
     isDeleting,
     isArchiving,
   } = useRecipes()
+
+  const {
+    selectionMode,
+    setSelectionMode,
+    selectedRecipes,
+    selectedCount,
+    toggleRecipe,
+    clearSelection,
+    selectAllVisible,
+    isSelected,
+  } = useRecipeBatchSelection(recipes)
+
+  const drawerOpen = Boolean(selectedRecipe) || isSelectedRecipeLoading
 
   const handleSubmit = async (payload: RecipeFormSubmitPayload) => {
     const hasExistingAttachment =
@@ -122,12 +146,29 @@ export function RecipesPage() {
         title="Receitas"
         description="Consulte fichas técnicas anexadas ou receitas cadastradas manualmente."
         actions={
-          canManage ? (
-            <Button onClick={openCreateChoice} className="w-full sm:w-auto">
-              <Plus className="size-4" />
-              Nova receita
-            </Button>
-          ) : undefined
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            {canSendToProduction ? (
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={() => {
+                  if (selectionMode) {
+                    clearSelection()
+                    return
+                  }
+                  setSelectionMode(true)
+                }}
+              >
+                {selectionMode ? 'Cancelar seleção' : 'Selecionar receitas'}
+              </Button>
+            ) : null}
+            {canManage ? (
+              <Button onClick={openCreateChoice} className="w-full sm:w-auto">
+                <Plus className="size-4" />
+                Nova receita
+              </Button>
+            ) : null}
+          </div>
         }
       />
       <RecipeKpisSection kpis={kpis} isLoading={isKpisLoading} />
@@ -149,6 +190,31 @@ export function RecipesPage() {
           onChange={(e) => setFilters({ ...filters, status: e.target.value as typeof filters.status })}
         />
       </div>
+      {selectionMode && canSendToProduction ? (
+        <div className="mb-4 flex flex-col gap-3 rounded-xl border border-border bg-surface-elevated p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-muted-foreground">
+            {selectedCount > 0
+              ? `${selectedCount} receita(s) selecionada(s)`
+              : 'Marque as receitas que deseja enviar para a produção.'}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={selectAllVisible}>
+              Selecionar todas
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={selectedCount === 0}
+              onClick={() => {
+                setIsSendDialogOpen(true)
+              }}
+            >
+              <Send className="size-4" />
+              Enviar para produção
+            </Button>
+          </div>
+        </div>
+      ) : null}
       {isLoading ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -166,12 +232,35 @@ export function RecipesPage() {
             return (
               <Card
                 key={recipe.id}
-                className="cursor-pointer hover:shadow-md"
-                onClick={() => selectRecipe(recipe.id)}
+                className={`cursor-pointer hover:shadow-md ${isSelected(recipe.id) ? 'ring-2 ring-accent' : ''}`}
+                onClick={() => {
+                  if (selectionMode) {
+                    toggleRecipe(recipe.id)
+                    return
+                  }
+                  selectRecipe(recipe.id)
+                }}
               >
                 <CardContent className="space-y-2 pt-6">
                   <div className="flex items-start justify-between gap-2">
-                    <p className="font-medium">{recipe.name}</p>
+                    <div className="flex min-w-0 items-start gap-3">
+                      {selectionMode ? (
+                        <div
+                          onClick={(event) => {
+                            event.stopPropagation()
+                          }}
+                        >
+                          <Checkbox
+                            checked={isSelected(recipe.id)}
+                            onChange={() => {
+                              toggleRecipe(recipe.id)
+                            }}
+                            aria-label={`Selecionar ${recipe.name}`}
+                          />
+                        </div>
+                      ) : null}
+                      <p className="font-medium">{recipe.name}</p>
+                    </div>
                     <Badge variant={recipe.status === 'Ativa' ? 'success' : 'muted'}>{recipe.status}</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">
@@ -191,12 +280,18 @@ export function RecipesPage() {
       )}
 
       <Drawer
-        open={Boolean(selectedRecipe)}
+        open={drawerOpen}
         onClose={() => selectRecipe(null)}
-        title={selectedRecipe?.name ?? ''}
+        title={selectedRecipe?.name ?? 'Carregando receita...'}
         description={selectedRecipe?.recipeCode}
         size="lg"
       >
+        {isSelectedRecipeLoading && !selectedRecipe ? (
+          <div className="space-y-3">
+            <Skeleton variant="rectangular" height={120} />
+            <Skeleton variant="rectangular" height={280} />
+          </div>
+        ) : null}
         {selectedRecipe ? (
           <div className="space-y-6">
             {selectedRecipe.attachments.length > 0 ? (
@@ -317,6 +412,35 @@ export function RecipesPage() {
           isSaving={isSaving}
         />
       </Modal>
+
+      <SendRecipesToProductionDialog
+        open={isSendDialogOpen}
+        recipes={selectedRecipes}
+        isLoading={isSendingToProduction}
+        onClose={() => {
+          setIsSendDialogOpen(false)
+        }}
+        onConfirm={async (input) => {
+          try {
+            setIsSendingToProduction(true)
+            await sendRecipesToProduction({
+              recipes: selectedRecipes,
+              ...input,
+            })
+            await queryClient.invalidateQueries({ queryKey: ['production'] })
+            push({
+              title: 'Receitas enviadas',
+              description: `${selectedRecipes.length} receita(s) adicionada(s) à produção.`,
+              variant: 'success',
+            })
+            clearSelection()
+          } catch (error: unknown) {
+            push({ title: 'Erro', description: getErrorMessage(error), variant: 'danger' })
+          } finally {
+            setIsSendingToProduction(false)
+          }
+        }}
+      />
 
       <ConfirmDialog
         open={Boolean(recipePendingDelete)}

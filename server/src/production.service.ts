@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import { SEED_EMPLOYEES } from './data/employees.js'
 import { emitRealtime } from './events.js'
 import {
   deleteProduction,
@@ -7,7 +8,13 @@ import {
   rolloverProductionsIfNeeded,
   saveProduction,
 } from './seed.js'
-import type { ProductionDay, ProductionFilters, ProductionItem, ShiftComment } from './types.js'
+import type {
+  CreateProductionInput,
+  ProductionDay,
+  ProductionFilters,
+  ProductionItem,
+  ShiftComment,
+} from './types.js'
 
 function computeProgress(items: ProductionItem[]): number {
   if (items.length === 0) {
@@ -55,6 +62,66 @@ function notifyProduction(action: string, productionId: string): void {
   emitRealtime({ scope: 'production', action, productionId })
 }
 
+function resolveEmployeeName(employeeId: string): string {
+  return SEED_EMPLOYEES.find((employee) => employee.id === employeeId)?.name ?? 'Colaborador'
+}
+
+function getNextProductionCode(existingCodes: readonly string[]): string {
+  const max = existingCodes.reduce((acc, code) => {
+    const match = code.match(/PRD-(\d+)/)
+    if (!match?.[1]) {
+      return acc
+    }
+    return Math.max(acc, Number.parseInt(match[1], 10))
+  }, 0)
+
+  return `PRD-${String(max + 1).padStart(6, '0')}`
+}
+
+function buildItemsFromInput(
+  inputs: CreateProductionInput['items'],
+  existingItems?: ProductionItem[],
+): ProductionItem[] {
+  return inputs.map((item, index) => {
+    const existing = existingItems?.[index]
+    return {
+      id: existing?.id ?? `pi-${randomUUID()}`,
+      name: item.name,
+      status: item.status,
+      order: index + 1,
+      ...(item.recipeId ? { recipeId: item.recipeId } : {}),
+    }
+  })
+}
+
+function mergeItemsFromInput(
+  existingItems: ProductionItem[],
+  inputs: CreateProductionInput['items'],
+): ProductionItem[] {
+  const existingRecipeIds = new Set(
+    existingItems.map((item) => item.recipeId).filter((recipeId): recipeId is string => Boolean(recipeId)),
+  )
+  const nextItems = inputs.filter((item) => !item.recipeId || !existingRecipeIds.has(item.recipeId))
+  const startOrder = existingItems.length
+
+  const appended = nextItems.map((item, index) => ({
+    id: `pi-${randomUUID()}`,
+    name: item.name,
+    status: item.status,
+    order: startOrder + index + 1,
+    ...(item.recipeId ? { recipeId: item.recipeId } : {}),
+  }))
+
+  return [...existingItems, ...appended]
+}
+
+function isCreateProductionInput(input: unknown): input is CreateProductionInput {
+  if (!input || typeof input !== 'object') {
+    return false
+  }
+  return 'employeeId' in input && 'items' in input && !('productionCode' in input)
+}
+
 export function listProductions(filters: ProductionFilters = {}): ProductionDay[] {
   rolloverProductionsIfNeeded()
   return loadAllProductions()
@@ -83,6 +150,28 @@ export function createProduction(input: ProductionDay): ProductionDay {
   return production
 }
 
+export function createProductionFromInput(input: CreateProductionInput): ProductionDay {
+  const now = new Date().toISOString()
+  const production = withProgress({
+    id: `prd-${randomUUID()}`,
+    productionCode: getNextProductionCode(loadAllProductions().map((item) => item.productionCode)),
+    date: input.date,
+    shift: input.shift,
+    sector: input.sector,
+    employeeId: input.employeeId,
+    employeeName: resolveEmployeeName(input.employeeId),
+    items: buildItemsFromInput(input.items),
+    progress: 0,
+    comments: [],
+    notes: input.notes?.trim() ?? '',
+    createdAt: now,
+    updatedAt: now,
+  })
+  saveProduction(production)
+  notifyProduction('created', production.id)
+  return production
+}
+
 export function updateProduction(id: string, input: ProductionDay): ProductionDay {
   const existing = loadProductionById(id)
   if (!existing) {
@@ -99,6 +188,61 @@ export function updateProduction(id: string, input: ProductionDay): ProductionDa
   saveProduction(production)
   notifyProduction('updated', production.id)
   return production
+}
+
+export function updateProductionFromInput(id: string, input: CreateProductionInput): ProductionDay {
+  const existing = loadProductionById(id)
+  if (!existing) {
+    throw new Error('Produção não encontrada.')
+  }
+
+  const production = withProgress({
+    ...existing,
+    date: input.date,
+    shift: input.shift,
+    sector: input.sector,
+    employeeId: input.employeeId,
+    employeeName: resolveEmployeeName(input.employeeId),
+    items: buildItemsFromInput(input.items, existing.items),
+    notes: input.notes?.trim() ?? '',
+    updatedAt: new Date().toISOString(),
+  })
+  saveProduction(production)
+  notifyProduction('updated', production.id)
+  return production
+}
+
+export function appendRecipesToProduction(
+  productionId: string,
+  items: CreateProductionInput['items'],
+): ProductionDay {
+  const existing = loadProductionById(productionId)
+  if (!existing) {
+    throw new Error('Produção não encontrada.')
+  }
+
+  const production = withProgress({
+    ...existing,
+    items: mergeItemsFromInput(existing.items, items),
+    updatedAt: new Date().toISOString(),
+  })
+  saveProduction(production)
+  notifyProduction('updated', production.id)
+  return production
+}
+
+export function resolveCreateProductionInput(input: unknown): ProductionDay {
+  if (isCreateProductionInput(input)) {
+    return createProductionFromInput(input)
+  }
+  return createProduction(input as ProductionDay)
+}
+
+export function resolveUpdateProductionInput(id: string, input: unknown): ProductionDay {
+  if (isCreateProductionInput(input)) {
+    return updateProductionFromInput(id, input)
+  }
+  return updateProduction(id, input as ProductionDay)
 }
 
 export function removeProduction(id: string): void {

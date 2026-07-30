@@ -7,13 +7,15 @@ import type { AuthedRequest } from '../middleware.js'
 import { requireAuth } from '../middleware.js'
 import {
   addComment,
+  appendRecipesToProduction,
   createProduction,
   getProductionById,
   listProductions,
   removeProduction,
   reorderItems,
+  resolveCreateProductionInput,
+  resolveUpdateProductionInput,
   updateItemStatus,
-  updateProduction,
 } from '../production.service.js'
 
 const upload = multer({
@@ -48,16 +50,26 @@ productionRouter.get('/:id', (req, res) => {
 
 productionRouter.post('/', (req, res) => {
   try {
-    const production = createProduction(req.body)
+    const production = resolveCreateProductionInput(req.body)
     res.status(201).json(production)
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Dados inválidos.' })
   }
 })
 
+productionRouter.post('/:id/append-recipes', (req, res) => {
+  try {
+    const items = Array.isArray(req.body.items) ? req.body.items : []
+    const production = appendRecipesToProduction(req.params.id, items)
+    res.json(production)
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Erro ao adicionar receitas.' })
+  }
+})
+
 productionRouter.put('/:id', (req, res) => {
   try {
-    const production = updateProduction(req.params.id, req.body)
+    const production = resolveUpdateProductionInput(req.params.id, req.body)
     res.json(production)
   } catch (error) {
     res.status(404).json({ message: error instanceof Error ? error.message : 'Erro ao atualizar.' })

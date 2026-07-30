@@ -65,6 +65,21 @@ export interface ProductionFilters {
   status?: string
 }
 
+export interface ProductionItemInput {
+  name: string
+  status: ProductionItem['status']
+  recipeId?: string
+}
+
+export interface CreateProductionInput {
+  date: string
+  shift: string
+  sector: string
+  employeeId: string
+  items: ProductionItemInput[]
+  notes: string
+}
+
 export interface RealtimeEvent {
   scope: 'production' | 'auth' | 'recipes' | 'monthly-schedule'
   action: string

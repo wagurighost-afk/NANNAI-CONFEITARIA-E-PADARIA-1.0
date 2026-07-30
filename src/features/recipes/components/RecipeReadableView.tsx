@@ -1,10 +1,11 @@
 import { ExternalLink, FileText } from 'lucide-react'
-import { Badge, Button, Skeleton } from '@/components/ui'
+import { Badge, Skeleton } from '@/components/ui'
 import { RecipeWordPreview } from '@/features/recipes/components/RecipeWordPreview'
 import { useRecipeAttachmentPreview } from '@/features/recipes/hooks/useRecipeAttachmentPreview'
 import { useRecipeExcelPreview } from '@/features/recipes/hooks/useRecipeExcelPreview'
 import { useRecipeWordPreview } from '@/features/recipes/hooks/useRecipeWordPreview'
-import type { Recipe } from '@/features/recipes/types/recipe.types'
+import { resolveAttachmentFileUrl } from '@/features/recipes/storage/recipeAttachmentBlobStore'
+import type { Recipe, RecipeAttachment } from '@/features/recipes/types/recipe.types'
 import { getRecipeAttachmentBadge } from '@/features/recipes/utils/getRecipeAttachmentLabel'
 import { isRecipeDocumentPrimary } from '@/features/recipes/utils/isRecipeDocumentPrimary'
 import { parseRecipeFromExcelData } from '@/features/recipes/utils/parseRecipeFromSheet'
@@ -107,8 +108,8 @@ function ParsedSheetContent({ recipe }: { recipe: Recipe }) {
       return (
         <DocumentFallback
           recipe={recipe}
-          previewUrl={null}
-          message={excelPreview.error ?? 'Não foi possível ler a ficha.'}
+          attachment={attachment}
+          message={excelPreview.error ?? 'Não foi possível ler a ficha na tela. Abra o arquivo original.'}
         />
       )
     }
@@ -175,8 +176,8 @@ function ParsedSheetContent({ recipe }: { recipe: Recipe }) {
         ) : (
           <DocumentFallback
             recipe={recipe}
-            previewUrl={null}
-            message="Abra o documento original na outra aba."
+            attachment={attachment}
+            message="Abra o documento original no botão abaixo."
           />
         )}
 
@@ -200,8 +201,8 @@ function ParsedSheetContent({ recipe }: { recipe: Recipe }) {
       return (
         <DocumentFallback
           recipe={recipe}
-          previewUrl={null}
-          message={wordPreview.error ?? 'Documento indisponível.'}
+          attachment={attachment}
+          message={wordPreview.error ?? 'Documento indisponível na tela. Abra o arquivo original.'}
         />
       )
     }
@@ -223,6 +224,7 @@ function ParsedSheetContent({ recipe }: { recipe: Recipe }) {
   return (
     <DocumentFallback
       recipe={recipe}
+      attachment={attachment}
       previewUrl={pdfPreview.previewUrl}
       message="Toque no botão abaixo para abrir a ficha em tela cheia no celular."
     />
@@ -231,19 +233,18 @@ function ParsedSheetContent({ recipe }: { recipe: Recipe }) {
 
 function DocumentFallback({
   recipe,
-  previewUrl,
+  attachment,
+  previewUrl: previewUrlProp,
   message,
 }: {
   recipe: Recipe
-  previewUrl: string | null
+  attachment: RecipeAttachment
+  previewUrl?: string | null
   message: string
 }) {
-  const openDocument = () => {
-    if (!previewUrl) {
-      return
-    }
-    window.open(previewUrl, '_blank', 'noopener,noreferrer')
-  }
+  const pdfPreview = useRecipeAttachmentPreview(attachment.kind === 'pdf' ? attachment : null)
+  const previewUrl =
+    previewUrlProp ?? pdfPreview.previewUrl ?? resolveAttachmentFileUrl(attachment.fileUrl)
 
   return (
     <div className="space-y-4">
@@ -253,13 +254,18 @@ function DocumentFallback({
       </div>
       <div className="rounded-xl border border-dashed border-border bg-muted/30 p-6 text-center">
         <FileText className="mx-auto mb-3 size-10 text-muted-foreground" />
-        <p className="text-sm font-medium text-foreground">{recipe.attachments[0]?.fileName}</p>
+        <p className="text-sm font-medium text-foreground">{attachment.fileName}</p>
         <p className="mt-2 text-sm text-muted-foreground">{message}</p>
         {previewUrl ? (
-          <Button type="button" className="mt-4 w-full sm:w-auto" onClick={openDocument}>
+          <a
+            href={previewUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm hover:opacity-90 sm:w-auto"
+          >
             <ExternalLink className="size-4" />
             Abrir ficha completa
-          </Button>
+          </a>
         ) : null}
       </div>
     </div>

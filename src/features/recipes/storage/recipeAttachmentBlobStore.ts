@@ -75,6 +75,19 @@ export async function deleteAttachmentBlob(attachmentId: string): Promise<void> 
   }
 }
 
+export function resolveAttachmentFileUrl(fileUrl: string): string | null {
+  if (fileUrl.startsWith('blob:') || fileUrl.startsWith('data:')) {
+    return fileUrl
+  }
+  if (fileUrl.startsWith('http')) {
+    return fileUrl
+  }
+  if (fileUrl.startsWith('/')) {
+    return `${window.location.origin}${fileUrl}`
+  }
+  return null
+}
+
 export async function resolveAttachmentPreviewUrl(
   attachmentId: string,
   fileUrl: string,
@@ -83,8 +96,9 @@ export async function resolveAttachmentPreviewUrl(
     return fileUrl
   }
 
-  if (fileUrl.startsWith('http') || fileUrl.startsWith('/')) {
-    return fileUrl.startsWith('/') ? `${window.location.origin}${fileUrl}` : fileUrl
+  const directUrl = resolveAttachmentFileUrl(fileUrl)
+  if (directUrl) {
+    return directUrl
   }
 
   const blob = await getAttachmentBlob(attachmentId)
@@ -104,17 +118,13 @@ export async function fetchAttachmentBlob(attachment: {
     return localBlob
   }
 
-  const url = attachment.fileUrl.startsWith('http')
-    ? attachment.fileUrl
-    : attachment.fileUrl.startsWith('/')
-      ? `${window.location.origin}${attachment.fileUrl}`
-      : attachment.fileUrl
+  const url = resolveAttachmentFileUrl(attachment.fileUrl)
 
-  if (!url.startsWith('http')) {
+  if (!url) {
     return null
   }
 
-  const response = await fetch(url)
+  const response = await fetch(url, { cache: 'no-store' })
   if (!response.ok) {
     return null
   }
