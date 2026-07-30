@@ -1,4 +1,4 @@
-import { FileSpreadsheet, FileText, Plus, ScrollText } from 'lucide-react'
+import { FileText, Plus, ScrollText } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Breadcrumb, EmptyState, PageHeader } from '@/components/common'
 import {
@@ -19,9 +19,10 @@ import {
 } from '@/components/ui'
 import { RecipeAttachmentsList } from '@/features/recipes/components/RecipeDocumentViewer'
 import { RecipeForm } from '@/features/recipes/components/RecipeForm'
+import { RecipeReadableView } from '@/features/recipes/components/RecipeReadableView'
 import { RecipeKpisSection } from '@/features/recipes/components/RecipeKpis'
 import { useRecipes } from '@/features/recipes/hooks/useRecipes'
-import { RECIPE_CATEGORIES, RECIPE_STATUSES, type Recipe } from '@/features/recipes/types/recipe.types'
+import { RECIPE_CATEGORIES, RECIPE_STATUSES } from '@/features/recipes/types/recipe.types'
 import type { RecipeFormSubmitPayload } from '@/features/recipes/types/recipe.types'
 import { getRecipeAttachmentBadge } from '@/features/recipes/utils/getRecipeAttachmentLabel'
 import { isRecipeDocumentPrimary } from '@/features/recipes/utils/isRecipeDocumentPrimary'
@@ -30,7 +31,6 @@ import { APP_ROUTES } from '@/core/constants'
 import { getErrorMessage } from '@/core/errors'
 import { usePermission } from '@/hooks/usePermission'
 import { useToast } from '@/hooks'
-import { formatDateTimeBr } from '@/utils/formatDate'
 
 export function RecipesPage() {
   const { hasPermission } = usePermission()
@@ -115,8 +115,6 @@ export function RecipesPage() {
     }
   }
 
-  const selectedIsDocumentPrimary = selectedRecipe ? isRecipeDocumentPrimary(selectedRecipe) : false
-
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
       <Breadcrumb items={[{ label: 'Início', href: APP_ROUTES.dashboard }, { label: 'Receitas' }]} />
@@ -197,27 +195,40 @@ export function RecipesPage() {
         onClose={() => selectRecipe(null)}
         title={selectedRecipe?.name ?? ''}
         description={selectedRecipe?.recipeCode}
-        size={selectedRecipe?.attachments.length ? 'full' : 'lg'}
+        size="lg"
       >
         {selectedRecipe ? (
           <div className="space-y-6">
             {selectedRecipe.attachments.length > 0 ? (
-              <Tabs defaultValue="document">
-                <TabsList>
-                  <TabsTrigger value="document">Documento</TabsTrigger>
-                  <TabsTrigger value="info">Informações</TabsTrigger>
+              <Tabs defaultValue="sheet">
+                <TabsList className="w-full">
+                  <TabsTrigger value="sheet" className="flex-1">
+                    Ficha
+                  </TabsTrigger>
+                  <TabsTrigger value="document" className="flex-1">
+                    Documento original
+                  </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="document">
-                  <RecipeAttachmentsList attachments={selectedRecipe.attachments} />
+                <TabsContent value="sheet">
+                  <RecipeReadableView recipe={selectedRecipe} />
                 </TabsContent>
 
-                <TabsContent value="info">
-                  <RecipeInfoPanel recipe={selectedRecipe} documentPrimary={selectedIsDocumentPrimary} />
+                <TabsContent value="document">
+                  <p className="mb-3 text-sm text-muted-foreground md:hidden">
+                    No celular, use a aba Ficha para leitura fácil. Aqui você pode abrir o arquivo
+                    original em tela cheia.
+                  </p>
+                  <div className="hidden md:block">
+                    <RecipeAttachmentsList attachments={selectedRecipe.attachments} />
+                  </div>
+                  <div className="md:hidden">
+                    <RecipeAttachmentsList attachments={selectedRecipe.attachments} compact />
+                  </div>
                 </TabsContent>
               </Tabs>
             ) : (
-              <RecipeInfoPanel recipe={selectedRecipe} documentPrimary={false} />
+              <RecipeReadableView recipe={selectedRecipe} />
             )}
 
             {canManage ? (
@@ -325,77 +336,5 @@ export function RecipesPage() {
         variant="danger"
       />
     </motion.div>
-  )
-}
-
-function RecipeInfoPanel({
-  recipe,
-  documentPrimary,
-}: {
-  recipe: Recipe
-  documentPrimary: boolean
-}) {
-  return (
-    <div className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-xl border border-border p-3 text-sm">
-          <p className="text-muted-foreground">Categoria</p>
-          <p className="font-medium">{recipe.category}</p>
-        </div>
-        <div className="rounded-xl border border-border p-3 text-sm">
-          <p className="text-muted-foreground">Status</p>
-          <p className="font-medium">{recipe.status}</p>
-        </div>
-      </div>
-
-      {documentPrimary ? (
-        <div className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
-          <div className="mb-2 flex items-center gap-2 font-medium text-foreground">
-            <FileSpreadsheet className="size-4" />
-            Conteúdo completo no documento
-          </div>
-          Ingredientes, rendimento e modo de preparo estão na ficha anexa. Abra a aba{' '}
-          <span className="font-medium text-foreground">Documento</span> para consultar.
-        </div>
-      ) : (
-        <>
-          <div className="rounded-xl border border-border p-3 text-sm">
-            <p className="text-muted-foreground">Tempo · Rendimento</p>
-            <p className="font-medium">
-              {recipe.prepTimeMinutes} min · {recipe.yield}
-            </p>
-          </div>
-
-          <div>
-            <p className="mb-2 text-sm font-medium">Modo de preparo</p>
-            <p className="whitespace-pre-wrap text-sm text-muted-foreground">
-              {recipe.preparationMethod}
-            </p>
-          </div>
-
-          <div>
-            <p className="mb-2 text-sm font-medium">Ingredientes</p>
-            <ul className="space-y-1 text-sm">
-              {recipe.ingredients.map((ing, i) => (
-                <li key={i} className="rounded-lg border border-border px-3 py-2">
-                  {ing.quantity} {ing.unit} — {ing.name}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </>
-      )}
-
-      {recipe.notes ? (
-        <div>
-          <p className="mb-2 text-sm font-medium">Observações</p>
-          <p className="text-sm text-muted-foreground">{recipe.notes}</p>
-        </div>
-      ) : null}
-
-      <p className="text-xs text-muted-foreground">
-        Atualizado em {formatDateTimeBr(recipe.updatedAt)}
-      </p>
-    </div>
   )
 }

@@ -18,7 +18,7 @@ import {
 
 const upload = multer({
   dest: config.uploadsDir,
-  limits: { fileSize: 10 * 1024 * 1024, files: 4 },
+  limits: { fileSize: 500 * 1024 * 1024, files: 4 },
 })
 
 export const productionRouter = Router()

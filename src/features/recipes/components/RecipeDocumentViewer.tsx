@@ -25,6 +25,7 @@ function AttachmentIcon({ kind }: { kind: RecipeAttachment['kind'] }) {
 
 export interface RecipeDocumentViewerProps {
   attachment: RecipeAttachment
+  compact?: boolean
 }
 
 function PdfPreview({ previewUrl, fileName, className }: { previewUrl: string; fileName: string; className?: string }) {
@@ -102,7 +103,7 @@ function RecipeAttachmentPreview({
   )
 }
 
-export function RecipeDocumentViewer({ attachment }: RecipeDocumentViewerProps) {
+export function RecipeDocumentViewer({ attachment, compact = false }: RecipeDocumentViewerProps) {
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
   const { previewUrl } = useRecipeAttachmentPreview(attachment)
 
@@ -131,21 +132,23 @@ export function RecipeDocumentViewer({ attachment }: RecipeDocumentViewerProps) 
         </div>
         <div className="flex flex-wrap gap-2">
           <Badge variant="accent">Ficha anexa</Badge>
-          <Button type="button" variant="outline" size="sm" onClick={() => setIsFullscreenOpen(true)}>
-            Tela cheia
-          </Button>
-          {attachment.kind === 'pdf' ? (
-            <Button type="button" variant="ghost" size="sm" disabled={!previewUrl} onClick={openInNewTab}>
-              <ExternalLink className="size-4" />
-              Nova aba
+          {!compact ? (
+            <Button type="button" variant="outline" size="sm" onClick={() => setIsFullscreenOpen(true)}>
+              Tela cheia
             </Button>
           ) : null}
+          <Button type="button" variant="outline" size="sm" disabled={!previewUrl} onClick={openInNewTab}>
+            <ExternalLink className="size-4" />
+            Abrir arquivo
+          </Button>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-border bg-muted/20">
-        <RecipeAttachmentPreview attachment={attachment} />
-      </div>
+      {!compact ? (
+        <div className="overflow-hidden rounded-xl border border-border bg-muted/20">
+          <RecipeAttachmentPreview attachment={attachment} />
+        </div>
+      ) : null}
 
       <Modal
         open={isFullscreenOpen}
@@ -164,9 +167,10 @@ export function RecipeDocumentViewer({ attachment }: RecipeDocumentViewerProps) 
 
 export interface RecipeAttachmentsListProps {
   attachments: RecipeAttachment[]
+  compact?: boolean
 }
 
-export function RecipeAttachmentsList({ attachments }: RecipeAttachmentsListProps) {
+export function RecipeAttachmentsList({ attachments, compact = false }: RecipeAttachmentsListProps) {
   if (attachments.length === 0) {
     return <p className="text-sm text-muted-foreground">Nenhum documento anexado.</p>
   }
@@ -174,7 +178,7 @@ export function RecipeAttachmentsList({ attachments }: RecipeAttachmentsListProp
   return (
     <div className="space-y-6">
       {attachments.map((attachment) => (
-        <RecipeDocumentViewer key={attachment.id} attachment={attachment} />
+        <RecipeDocumentViewer key={attachment.id} attachment={attachment} compact={compact} />
       ))}
     </div>
   )
