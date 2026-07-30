@@ -1,10 +1,6 @@
-import { readFileSync } from 'node:fs'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { SEED_EMPLOYEES } from './employees.js'
+import julySeedData from './monthlySchedule.july2026.json' with { type: 'json' }
 import type { MonthlyDayStatus, MonthlySchedule, MonthlyScheduleRow } from '../types.js'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 interface SeedEmployee {
   employeeName: string
@@ -84,8 +80,7 @@ function toRows(employees: SeedEmployee[]): MonthlyScheduleRow[] {
 }
 
 function loadJulySeed(): SeedFile {
-  const filePath = path.join(__dirname, 'monthlySchedule.july2026.json')
-  return JSON.parse(readFileSync(filePath, 'utf8')) as SeedFile
+  return julySeedData as SeedFile
 }
 
 export function buildJuly2026MonthlySchedule(): MonthlySchedule {
