@@ -2,6 +2,7 @@ import { ExternalLink, FileSpreadsheet, FileText, FileType } from 'lucide-react'
 import { useState } from 'react'
 import { Badge, Button, Modal, Skeleton } from '@/components/ui'
 import { RecipeExcelPreview } from '@/features/recipes/components/RecipeExcelPreview'
+import { OfficeOnlineDocPreview } from '@/features/recipes/components/OfficeOnlineDocPreview'
 import { RecipeWordPreview } from '@/features/recipes/components/RecipeWordPreview'
 import { useRecipeAttachmentPreview } from '@/features/recipes/hooks/useRecipeAttachmentPreview'
 import { useRecipeExcelPreview } from '@/features/recipes/hooks/useRecipeExcelPreview'
@@ -9,6 +10,7 @@ import { useRecipeWordPreview } from '@/features/recipes/hooks/useRecipeWordPrev
 import { resolveAttachmentFileUrl } from '@/features/recipes/storage/recipeAttachmentBlobStore'
 import type { RecipeAttachment } from '@/features/recipes/types/recipe.types'
 import { formatRecipeFileSize, getRecipeFileExtensionLabel } from '@/features/recipes/utils/validateRecipeFile'
+import { isLegacyWordDoc } from '@/features/recipes/utils/isLegacyWordDoc'
 import { formatDateTimeBr } from '@/utils/formatDate'
 
 const PREVIEW_HEIGHT = 'h-[min(70vh,720px)]'
@@ -42,11 +44,31 @@ function PdfPreview({ previewUrl, fileName, className }: { previewUrl: string; f
   )
 }
 
-function PreviewError({ message }: { message: string }) {
+function PreviewError({
+  message,
+  fileUrl,
+  fileName,
+}: {
+  message: string
+  fileUrl?: string | null
+  fileName?: string
+}) {
   return (
-    <div className="flex h-[min(40vh,360px)] flex-col items-center justify-center gap-2 p-6 text-center">
-      <p className="text-sm font-medium text-foreground">Não foi possível exibir a ficha</p>
+    <div className="flex h-[min(40vh,360px)] flex-col items-center justify-center gap-3 p-6 text-center">
+      <p className="text-sm font-medium text-foreground">Não foi possível exibir a ficha na tela</p>
       <p className="text-xs text-muted-foreground">{message}</p>
+      {fileUrl ? (
+        <a
+          href={fileUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          {...(fileName ? { download: fileName } : {})}
+          className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm hover:opacity-90"
+        >
+          <ExternalLink className="size-4" />
+          Abrir arquivo no celular
+        </a>
+      ) : null}
     </div>
   )
 }
@@ -60,7 +82,10 @@ function RecipeAttachmentPreview({
 }) {
   const pdfPreview = useRecipeAttachmentPreview(attachment.kind === 'pdf' ? attachment : null)
   const excelPreview = useRecipeExcelPreview(attachment.kind === 'excel' ? attachment : null)
-  const wordPreview = useRecipeWordPreview(attachment.kind === 'word' ? attachment : null)
+  const wordPreview = useRecipeWordPreview(
+    attachment.kind === 'word' && !isLegacyWordDoc(attachment.fileName) ? attachment : null,
+  )
+  const fileUrl = resolveAttachmentFileUrl(attachment.fileUrl)
 
   if (attachment.kind === 'excel') {
     if (excelPreview.isLoading) {
@@ -74,17 +99,48 @@ function RecipeAttachmentPreview({
       )
     }
     if (excelPreview.error || !excelPreview.data) {
-      return <PreviewError message={excelPreview.error ?? 'Planilha indisponível.'} />
+      return (
+        <PreviewError
+          message={excelPreview.error ?? 'Planilha indisponível.'}
+          fileUrl={fileUrl}
+          fileName={attachment.fileName}
+        />
+      )
     }
     return <RecipeExcelPreview data={excelPreview.data} className={className ?? PREVIEW_HEIGHT} />
   }
 
   if (attachment.kind === 'word') {
+    if (isLegacyWordDoc(attachment.fileName) && fileUrl) {
+      return (
+        <OfficeOnlineDocPreview
+          fileUrl={fileUrl}
+          fileName={attachment.fileName}
+          className={className ?? PREVIEW_HEIGHT}
+        />
+      )
+    }
+
     if (wordPreview.isLoading) {
       return <Skeleton variant="rectangular" className={className ?? PREVIEW_HEIGHT} />
     }
     if (wordPreview.error || !wordPreview.data) {
-      return <PreviewError message={wordPreview.error ?? 'Documento indisponível.'} />
+      if (fileUrl) {
+        return (
+          <OfficeOnlineDocPreview
+            fileUrl={fileUrl}
+            fileName={attachment.fileName}
+            className={className ?? PREVIEW_HEIGHT}
+          />
+        )
+      }
+      return (
+        <PreviewError
+          message={wordPreview.error ?? 'Documento indisponível.'}
+          fileUrl={fileUrl}
+          fileName={attachment.fileName}
+        />
+      )
     }
     return <RecipeWordPreview html={wordPreview.data.html} className={className ?? PREVIEW_HEIGHT} />
   }
@@ -93,7 +149,13 @@ function RecipeAttachmentPreview({
     return <Skeleton variant="rectangular" className={className ?? PREVIEW_HEIGHT} />
   }
   if (pdfPreview.error || !pdfPreview.previewUrl) {
-    return <PreviewError message={pdfPreview.error ?? 'PDF indisponível.'} />
+    return (
+      <PreviewError
+        message={pdfPreview.error ?? 'PDF indisponível.'}
+        fileUrl={fileUrl ?? pdfPreview.previewUrl}
+        fileName={attachment.fileName}
+      />
+    )
   }
   return (
     <PdfPreview
@@ -113,7 +175,14 @@ export function RecipeDocumentViewer({ attachment, compact = false }: RecipeDocu
     if (!openUrl) {
       return
     }
-    window.open(openUrl, '_blank', 'noopener,noreferrer')
+    const link = document.createElement('a')
+    link.href = openUrl
+    link.target = '_blank'
+    link.rel = 'noopener noreferrer'
+    link.download = attachment.fileName
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   return (

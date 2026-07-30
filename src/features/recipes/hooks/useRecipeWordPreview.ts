@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { fetchAttachmentBlob, getAttachmentBlob } from '@/features/recipes/storage/recipeAttachmentBlobStore'
 import type { RecipeAttachment } from '@/features/recipes/types/recipe.types'
+import { isLegacyWordDoc } from '@/features/recipes/utils/isLegacyWordDoc'
 import {
   parseWordBlob,
   type WordPreviewData,
@@ -20,9 +21,8 @@ async function loadWordPreview(attachment: RecipeAttachment): Promise<WordPrevie
     throw new Error('Arquivo do documento não encontrado. Envie o documento novamente.')
   }
 
-  const isLegacyDoc = attachment.fileName.toLowerCase().endsWith('.doc')
-  if (isLegacyDoc) {
-    throw new Error('Arquivos .doc antigos não são suportados. Salve como .docx para visualizar aqui.')
+  if (isLegacyWordDoc(attachment.fileName)) {
+    throw new Error('legacy-doc')
   }
 
   const data = await parseWordBlob(resolvedBlob)

@@ -28,7 +28,10 @@ app.use(
   }),
 )
 app.use(express.json({ limit: '2mb' }))
-app.use('/api/uploads', express.static(config.uploadsDir))
+app.use('/api/uploads', (_req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  next()
+}, express.static(config.uploadsDir))
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', service: 'nannai-api', mode: isProduction ? 'production' : 'development' })
