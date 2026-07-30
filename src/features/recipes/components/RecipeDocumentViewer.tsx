@@ -109,6 +109,13 @@ export function RecipeDocumentViewer({ attachment, compact = false }: RecipeDocu
   const { previewUrl } = useRecipeAttachmentPreview(attachment)
   const openUrl = previewUrl ?? resolveAttachmentFileUrl(attachment.fileUrl)
 
+  const openInNewTab = () => {
+    if (!openUrl) {
+      return
+    }
+    window.open(openUrl, '_blank', 'noopener,noreferrer')
+  }
+
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -132,22 +139,10 @@ export function RecipeDocumentViewer({ attachment, compact = false }: RecipeDocu
               Tela cheia
             </Button>
           ) : null}
-          {openUrl ? (
-            <a
-              href={openUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-transparent px-3 text-sm text-foreground hover:bg-muted"
-            >
-              <ExternalLink className="size-4" />
-              Abrir arquivo
-            </a>
-          ) : (
-            <Button type="button" variant="outline" size="sm" disabled>
-              <ExternalLink className="size-4" />
-              Abrir arquivo
-            </Button>
-          )}
+          <Button type="button" variant="outline" size="sm" disabled={!openUrl} onClick={openInNewTab}>
+            <ExternalLink className="size-4" />
+            Abrir arquivo
+          </Button>
         </div>
       </div>
 

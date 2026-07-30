@@ -16,10 +16,6 @@ import {
   SearchInput,
   Select,
   Skeleton,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
 } from '@/components/ui'
 import { RecipeAttachmentsList } from '@/features/recipes/components/RecipeDocumentViewer'
 import { RecipeForm } from '@/features/recipes/components/RecipeForm'
@@ -301,7 +297,7 @@ export function RecipesPage() {
         onClose={() => selectRecipe(null)}
         title={selectedRecipe?.name ?? 'Carregando receita...'}
         description={selectedRecipe?.recipeCode}
-        size="lg"
+        size={selectedRecipe?.attachments.length ? 'full' : 'lg'}
       >
         {isSelectedRecipeLoading && !selectedRecipe ? (
           <div className="space-y-3">
@@ -312,36 +308,57 @@ export function RecipesPage() {
         {selectedRecipe ? (
           <div className="space-y-6">
             {selectedRecipe.attachments.length > 0 ? (
-              <Tabs defaultValue="sheet">
-                <TabsList className="w-full">
-                  <TabsTrigger value="sheet" className="flex-1">
-                    Ficha
-                  </TabsTrigger>
-                  <TabsTrigger value="document" className="flex-1">
-                    Documento original
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="sheet">
-                  <RecipeReadableView recipe={selectedRecipe} />
-                </TabsContent>
-
-                <TabsContent value="document">
-                  <p className="mb-3 text-sm text-muted-foreground md:hidden">
-                    No celular, use a aba Ficha para leitura fácil. Aqui você pode abrir o arquivo
-                    original em tela cheia.
-                  </p>
-                  <div className="hidden md:block">
-                    <RecipeAttachmentsList attachments={selectedRecipe.attachments} />
-                  </div>
-                  <div className="md:hidden">
-                    <RecipeAttachmentsList attachments={selectedRecipe.attachments} compact />
-                  </div>
-                </TabsContent>
-              </Tabs>
+              <div>
+                <p className="mb-3 text-sm font-medium">Ficha técnica</p>
+                <RecipeAttachmentsList attachments={selectedRecipe.attachments} />
+              </div>
             ) : (
               <RecipeReadableView recipe={selectedRecipe} />
             )}
+
+            {selectedRecipe.attachments.length > 0 ? (
+              <>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="rounded-xl border border-border p-3 text-sm">
+                    <p className="text-muted-foreground">Categoria</p>
+                    <p className="font-medium">{selectedRecipe.category}</p>
+                  </div>
+                  <div className="rounded-xl border border-border p-3 text-sm">
+                    <p className="text-muted-foreground">Status</p>
+                    <p className="font-medium">{selectedRecipe.status}</p>
+                  </div>
+                </div>
+
+                {selectedRecipe.preparationMethod ? (
+                  <div>
+                    <p className="mb-2 text-sm font-medium">Modo de preparo</p>
+                    <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                      {selectedRecipe.preparationMethod}
+                    </p>
+                  </div>
+                ) : null}
+
+                {selectedRecipe.ingredients.length > 0 ? (
+                  <div>
+                    <p className="mb-2 text-sm font-medium">Ingredientes</p>
+                    <ul className="space-y-1 text-sm">
+                      {selectedRecipe.ingredients.map((ingredient, index) => (
+                        <li key={index} className="rounded-lg border border-border px-3 py-2">
+                          {ingredient.quantity} {ingredient.unit} — {ingredient.name}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
+                {selectedRecipe.notes ? (
+                  <div>
+                    <p className="mb-2 text-sm font-medium">Observações</p>
+                    <p className="text-sm text-muted-foreground">{selectedRecipe.notes}</p>
+                  </div>
+                ) : null}
+              </>
+            ) : null}
 
             {canManage ? (
               <div className="flex flex-wrap gap-2">
