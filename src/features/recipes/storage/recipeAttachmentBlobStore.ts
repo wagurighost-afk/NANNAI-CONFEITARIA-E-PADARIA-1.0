@@ -83,10 +83,41 @@ export async function resolveAttachmentPreviewUrl(
     return fileUrl
   }
 
+  if (fileUrl.startsWith('http') || fileUrl.startsWith('/')) {
+    return fileUrl.startsWith('/') ? `${window.location.origin}${fileUrl}` : fileUrl
+  }
+
   const blob = await getAttachmentBlob(attachmentId)
   if (!blob) {
     return null
   }
 
   return getOrCreateObjectUrl(attachmentId, blob)
+}
+
+export async function fetchAttachmentBlob(attachment: {
+  id: string
+  fileUrl: string
+}): Promise<Blob | null> {
+  const localBlob = await getAttachmentBlob(attachment.id)
+  if (localBlob) {
+    return localBlob
+  }
+
+  const url = attachment.fileUrl.startsWith('http')
+    ? attachment.fileUrl
+    : attachment.fileUrl.startsWith('/')
+      ? `${window.location.origin}${attachment.fileUrl}`
+      : attachment.fileUrl
+
+  if (!url.startsWith('http')) {
+    return null
+  }
+
+  const response = await fetch(url)
+  if (!response.ok) {
+    return null
+  }
+
+  return response.blob()
 }

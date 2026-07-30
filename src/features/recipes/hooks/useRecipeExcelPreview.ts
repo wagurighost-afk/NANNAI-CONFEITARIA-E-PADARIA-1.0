@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getAttachmentBlob } from '@/features/recipes/storage/recipeAttachmentBlobStore'
+import { getAttachmentBlob, fetchAttachmentBlob } from '@/features/recipes/storage/recipeAttachmentBlobStore'
 import type { RecipeAttachment } from '@/features/recipes/types/recipe.types'
 import {
   parseExcelBlob,
@@ -15,11 +15,12 @@ async function loadExcelPreview(attachment: RecipeAttachment): Promise<ExcelPrev
   }
 
   const blob = await getAttachmentBlob(attachment.id)
-  if (!blob) {
+  const resolvedBlob = blob ?? (await fetchAttachmentBlob(attachment))
+  if (!resolvedBlob) {
     throw new Error('Arquivo da planilha não encontrado. Envie o documento novamente.')
   }
 
-  const data = await parseExcelBlob(blob)
+  const data = await parseExcelBlob(resolvedBlob)
   excelPreviewCache.set(attachment.id, data)
   return data
 }

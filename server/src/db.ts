@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { config } from './config.js'
-import type { AppUser, ProductionDay } from './types.js'
+import type { AppUser, ProductionDay, Recipe } from './types.js'
 
 export interface UserRow {
   id: string
@@ -21,6 +21,7 @@ interface RefreshTokenRow {
 interface DatabaseFile {
   users: UserRow[]
   productions: ProductionDay[]
+  recipes: Recipe[]
   refresh_tokens: RefreshTokenRow[]
   meta: Record<string, string>
 }
@@ -28,7 +29,17 @@ interface DatabaseFile {
 const dbPath = path.join(path.dirname(config.dbPath), 'nannai.json')
 
 function emptyDb(): DatabaseFile {
-  return { users: [], productions: [], refresh_tokens: [], meta: {} }
+  return { users: [], productions: [], recipes: [], refresh_tokens: [], meta: {} }
+}
+
+function normalizeDb(parsed: Partial<DatabaseFile>): DatabaseFile {
+  return {
+    users: parsed.users ?? [],
+    productions: parsed.productions ?? [],
+    recipes: parsed.recipes ?? [],
+    refresh_tokens: parsed.refresh_tokens ?? [],
+    meta: parsed.meta ?? {},
+  }
 }
 
 function readDb(): DatabaseFile {
@@ -40,7 +51,7 @@ function readDb(): DatabaseFile {
   }
 
   try {
-    return JSON.parse(fs.readFileSync(dbPath, 'utf8')) as DatabaseFile
+    return normalizeDb(JSON.parse(fs.readFileSync(dbPath, 'utf8')) as Partial<DatabaseFile>)
   } catch {
     return emptyDb()
   }
@@ -130,4 +141,33 @@ export function findUserById(id: string): UserRow | undefined {
 
 export function ensureUploadsDir(): void {
   fs.mkdirSync(config.uploadsDir, { recursive: true })
+}
+
+export function countRecipes(): number {
+  return readDb().recipes.length
+}
+
+export function loadAllRecipes(): Recipe[] {
+  return readDb().recipes
+}
+
+export function loadRecipeRecord(id: string): Recipe | null {
+  return readDb().recipes.find((recipe) => recipe.id === id) ?? null
+}
+
+export function saveRecipeRecord(recipe: Recipe): void {
+  const db = readDb()
+  const index = db.recipes.findIndex((item) => item.id === recipe.id)
+  if (index >= 0) {
+    db.recipes[index] = recipe
+  } else {
+    db.recipes.push(recipe)
+  }
+  writeDb(db)
+}
+
+export function deleteRecipeRecord(id: string): void {
+  const db = readDb()
+  db.recipes = db.recipes.filter((item) => item.id !== id)
+  writeDb(db)
 }

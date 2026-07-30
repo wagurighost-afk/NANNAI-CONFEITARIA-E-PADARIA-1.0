@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getAttachmentBlob } from '@/features/recipes/storage/recipeAttachmentBlobStore'
+import { fetchAttachmentBlob, getAttachmentBlob } from '@/features/recipes/storage/recipeAttachmentBlobStore'
 import type { RecipeAttachment } from '@/features/recipes/types/recipe.types'
 import {
   parseWordBlob,
@@ -15,7 +15,8 @@ async function loadWordPreview(attachment: RecipeAttachment): Promise<WordPrevie
   }
 
   const blob = await getAttachmentBlob(attachment.id)
-  if (!blob) {
+  const resolvedBlob = blob ?? (await fetchAttachmentBlob(attachment))
+  if (!resolvedBlob) {
     throw new Error('Arquivo do documento não encontrado. Envie o documento novamente.')
   }
 
@@ -24,7 +25,7 @@ async function loadWordPreview(attachment: RecipeAttachment): Promise<WordPrevie
     throw new Error('Arquivos .doc antigos não são suportados. Salve como .docx para visualizar aqui.')
   }
 
-  const data = await parseWordBlob(blob)
+  const data = await parseWordBlob(resolvedBlob)
   wordPreviewCache.set(attachment.id, data)
   return data
 }

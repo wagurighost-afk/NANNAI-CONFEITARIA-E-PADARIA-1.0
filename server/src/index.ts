@@ -9,6 +9,7 @@ import { seedDatabase } from './seed.js'
 import { authRouter } from './routes/auth.routes.js'
 import { eventsRouter } from './routes/events.routes.js'
 import { productionRouter } from './routes/production.routes.js'
+import { recipesRouter } from './routes/recipes.routes.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const distPath = path.join(__dirname, '..', '..', 'dist')
@@ -34,6 +35,7 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/auth', authRouter)
 app.use('/api/production', productionRouter)
+app.use('/api/recipes', recipesRouter)
 app.use('/api/events', eventsRouter)
 
 if (isProduction && fs.existsSync(distPath)) {

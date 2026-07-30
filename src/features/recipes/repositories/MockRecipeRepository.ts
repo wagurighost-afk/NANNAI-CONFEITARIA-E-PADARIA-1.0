@@ -211,27 +211,3 @@ export class MockRecipeRepository implements RecipeRepository {
     return store[index]
   }
 }
-
-export class ApiRecipeRepository implements RecipeRepository {
-  async list(): Promise<never> {
-    throw new Error('ApiRecipeRepository não implementado.')
-  }
-  async getById(): Promise<never> {
-    throw new Error('ApiRecipeRepository não implementado.')
-  }
-  async create(): Promise<never> {
-    throw new Error('ApiRecipeRepository não implementado.')
-  }
-  async update(): Promise<never> {
-    throw new Error('ApiRecipeRepository não implementado.')
-  }
-  async remove(): Promise<never> {
-    throw new Error('ApiRecipeRepository não implementado.')
-  }
-  async archive(): Promise<never> {
-    throw new Error('ApiRecipeRepository não implementado.')
-  }
-  async addAttachment(): Promise<never> {
-    throw new Error('ApiRecipeRepository não implementado.')
-  }
-}

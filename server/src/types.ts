@@ -66,7 +66,61 @@ export interface ProductionFilters {
 }
 
 export interface RealtimeEvent {
-  scope: 'production' | 'auth'
+  scope: 'production' | 'auth' | 'recipes'
   action: string
   productionId?: string
+  recipeId?: string
+}
+
+export type RecipeCategory =
+  | 'Bolos'
+  | 'Tortas'
+  | 'Doces'
+  | 'Sobremesas'
+  | 'Pães'
+  | 'Salgados'
+  | 'Outros'
+
+export type RecipeStatus = 'Ativa' | 'Arquivada'
+
+export type RecipeAttachmentKind = 'pdf' | 'excel' | 'word'
+
+export interface RecipeIngredient {
+  ingredientId?: string
+  name: string
+  quantity: number
+  unit: string
+}
+
+export interface RecipeAttachment {
+  id: string
+  fileName: string
+  mimeType: string
+  sizeBytes: number
+  kind: RecipeAttachmentKind
+  fileUrl: string
+  uploadedAt: string
+}
+
+export interface Recipe {
+  id: string
+  recipeCode: string
+  name: string
+  category: RecipeCategory
+  ingredients: RecipeIngredient[]
+  preparationMethod: string
+  notes: string
+  prepTimeMinutes: number
+  yield: string
+  photoUrl?: string
+  attachments: RecipeAttachment[]
+  status: RecipeStatus
+  createdAt: string
+  updatedAt: string
+}
+
+export interface RecipeFilters {
+  search?: string
+  category?: string
+  status?: string
 }

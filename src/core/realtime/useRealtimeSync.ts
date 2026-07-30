@@ -27,6 +27,10 @@ export function useRealtimeSync(): void {
         if (payload.scope === 'production') {
           void queryClient.invalidateQueries({ queryKey: ['production'] })
           void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+          void queryClient.invalidateQueries({ queryKey: ['comments-feed'] })
+        }
+        if (payload.scope === 'recipes') {
+          void queryClient.invalidateQueries({ queryKey: ['recipes'] })
         }
       } catch {
         // Ignore malformed events.

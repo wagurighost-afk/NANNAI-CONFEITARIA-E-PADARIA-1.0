@@ -25,3 +25,17 @@ export function requireAuth(req: AuthedRequest, res: Response, next: NextFunctio
     res.status(401).json({ message: 'Sessão inválida ou expirada.' })
   }
 }
+
+export function requireManager(req: AuthedRequest, res: Response, next: NextFunction): void {
+  if (!req.user) {
+    res.status(401).json({ message: 'Não autenticado.' })
+    return
+  }
+
+  if (req.user.role !== 'admin' && req.user.role !== 'manager') {
+    res.status(403).json({ message: 'Sem permissão para alterar receitas.' })
+    return
+  }
+
+  next()
+}

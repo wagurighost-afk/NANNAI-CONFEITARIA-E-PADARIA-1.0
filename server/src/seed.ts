@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { config } from './config.js'
 import {
   countProductions,
+  countRecipes,
   countUsers,
   deleteProductionRecord,
   deleteRefreshToken,
@@ -13,8 +14,10 @@ import {
   loadAllProductionRecords,
   loadProductionRecord,
   saveProductionRecord,
+  saveRecipeRecord,
   setMeta,
 } from './db.js'
+import { RECIPES_SEED } from './data/recipesSeed.js'
 import { SEED_ADMIN, SEED_EMPLOYEES } from './data/employees.js'
 import {
   ACTIVE_PRODUCTION_IDS,
@@ -58,6 +61,12 @@ export function seedDatabase(): void {
     setMeta(ROLLOVER_META_KEY, getTodayIso())
   } else {
     rolloverProductionsIfNeeded()
+  }
+
+  if (countRecipes() === 0) {
+    for (const recipe of RECIPES_SEED) {
+      saveRecipeRecord(recipe)
+    }
   }
 }
 
