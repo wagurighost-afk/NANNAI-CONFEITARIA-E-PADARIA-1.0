@@ -36,14 +36,14 @@ export const SEED_EMPLOYEES: SeedEmployee[] = [
   employee('emp-helena', 'Maria Helena', 'Confeiteiro', 'staff'),
   employee('emp-matheus', 'Mateus da Silva', 'Confeiteiro', 'staff'),
   employee('emp-rafaela', 'Jessica Rafaela', 'Confeiteiro', 'staff'),
-  employee('emp-mauro', 'Mauro José', 'Confeiteiro', 'staff'),
+  employee('emp-mauro', 'Mauro José', 'Auxiliar de Confeitaria', 'staff'),
   employee('emp-thayse', 'Thayse Brunele', 'Confeiteiro', 'staff'),
-  employee('emp-vinicius', 'Glaydson Vinicius', 'Confeiteiro', 'staff'),
-  employee('emp-williamys', 'Wiliamys Monteiro', 'Confeiteiro', 'staff'),
-  employee('emp-romario', 'Romario Tributino', 'Confeiteiro', 'staff'),
-  employee('emp-luciano', 'Luciano Marcelino', 'Confeiteiro', 'staff'),
-  employee('emp-paulo', 'Paulo Ricardo', 'Confeiteiro', 'staff'),
-  employee('emp-elenilson', 'Elenilson', 'Confeiteiro', 'staff'),
+  employee('emp-vinicius', 'Glaydson Vinicius', 'Auxiliar de Padaria', 'staff'),
+  employee('emp-williamys', 'Wiliamys Monteiro', 'Padeiro', 'staff'),
+  employee('emp-romario', 'Romario Tributino', 'Padeiro', 'staff'),
+  employee('emp-luciano', 'Luciano Marcelino', 'Padeiro', 'staff'),
+  employee('emp-paulo', 'Paulo Ricardo', 'Padeiro', 'staff'),
+  employee('emp-elenilson', 'Elenilson', 'Padeiro', 'staff'),
 ]
 
 export const SEED_ADMIN: SeedEmployee = {
