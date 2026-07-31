@@ -1,154 +1,40 @@
 {
   "products": [
-    {
-      "section": "PÃES SALGADOS",
-      "name": "Mini Pão Francês",
-      "unitPrice": 0.4
-    },
-    {
-      "section": "PÃES SALGADOS",
-      "name": "Mini Pão Integral",
-      "unitPrice": 0.6
-    },
-    {
-      "section": "PÃES SALGADOS",
-      "name": "Mini Australiano",
-      "unitPrice": 0.8
-    },
-    {
-      "section": "PÃES SALGADOS",
-      "name": "Mini Pão Gergilim",
-      "unitPrice": 0.45
-    },
-    {
-      "section": "PÃES SALGADOS",
-      "name": "Mini Pão Calabresa",
-      "unitPrice": 0.8
-    },
-    {
-      "section": "PÃES SALGADOS",
-      "name": "Mini Pão Delicia recheado",
-      "unitPrice": 0.7
-    },
-    {
-      "section": "PÃES SALGADOS",
-      "name": "Focaccia recheada",
-      "unitPrice": 1.55
-    },
-    {
-      "section": "PÃES SALGADOS",
-      "name": "Mini Tiger",
-      "unitPrice": 0.4
-    },
-    {
-      "section": "PÃES SALGADOS",
-      "name": "Mini Pão de Frios",
-      "unitPrice": 0.8
-    },
-    {
-      "section": "PÃES SALGADOS",
-      "name": "Pão de Forma integral",
-      "unitPrice": 3.0
-    },
-    {
-      "section": "PÃES SALGADOS",
-      "name": "Pão de forma Tradicional",
-      "unitPrice": 2.8
-    },
-    {
-      "section": "PÃES SALGADOS",
-      "name": "Pão de Forma Maritoso",
-      "unitPrice": 3.0
-    },
-    {
-      "section": "PÃES SALGADOS",
-      "name": "Baguete Francesa 300g",
-      "unitPrice": 2.6
-    },
-    {
-      "section": "PÃES SALGADOS",
-      "name": "Pães de Decoração Rustico",
-      "unitPrice": 3.8
-    },
-    {
-      "section": "PÃES DOCES",
-      "name": "Mini Brioche ou Pão de Açucar",
-      "unitPrice": 0.6
-    },
-    {
-      "section": "PÃES DOCES",
-      "name": "Mini Bisnaguinha",
-      "unitPrice": 0.5
-    },
-    {
-      "section": "PÃES DOCES",
-      "name": "Mini Pão de coco",
-      "unitPrice": 0.75
-    },
-    {
-      "section": "PÃES DOCES",
-      "name": "Mini Pão doce",
-      "unitPrice": 0.6
-    },
-    {
-      "section": "PÃES DOCES",
-      "name": "Mini Donuts",
-      "unitPrice": 0.8
-    },
-    {
-      "section": "PÃES DOCES",
-      "name": "Mini Sonho",
-      "unitPrice": 0.8
-    },
-    {
-      "section": "PÃES DOCES",
-      "name": "Mini cookies",
-      "unitPrice": 0.85
-    },
-    {
-      "section": "FOLHADOS",
-      "name": "Mini Croissant",
-      "unitPrice": 1.6
-    },
-    {
-      "section": "FOLHADOS",
-      "name": "Mini Pão de Chocolate",
-      "unitPrice": 1.8
-    },
-    {
-      "section": "FOLHADOS",
-      "name": "Mini Folhado Salgado",
-      "unitPrice": 0.95
-    },
-    {
-      "section": "FOLHADOS",
-      "name": "Pão de queijo",
-      "unitPrice": 0.63
-    },
-    {
-      "section": "FOLHADOS",
-      "name": "Folhado Salgado",
-      "unitPrice": 0.95
-    },
-    {
-      "section": "FOLHADOS",
-      "name": "Doce do Dia verificar cardápio",
-      "unitPrice": 0.95
-    },
-    {
-      "section": "PÃES SALGADOS",
-      "name": "Pão Francês 50g",
-      "unitPrice": 0.65
-    },
-    {
-      "section": "PÃES SALGADOS",
-      "name": "Pão de leite 50g",
-      "unitPrice": 0.8
-    }
+    { "section": "PÃES SALGADOS", "name": "Mini Pão Francês", "unitPrice": 0.4, "paxMultiplier": 0.9 },
+    { "section": "PÃES SALGADOS", "name": "Mini Pão Integral", "unitPrice": 0.6, "paxMultiplier": 0.2 },
+    { "section": "PÃES SALGADOS", "name": "Mini Australiano", "unitPrice": 0.8, "paxMultiplier": 0.2 },
+    { "section": "PÃES SALGADOS", "name": "Mini Pão Gergilim", "unitPrice": 0.45, "paxMultiplier": 0.2 },
+    { "section": "PÃES SALGADOS", "name": "Mini Pão Calabresa", "unitPrice": 0.8, "paxMultiplier": 0.2 },
+    { "section": "PÃES SALGADOS", "name": "Mini Pão Delicia recheado", "unitPrice": 0.7, "paxMultiplier": 0.2 },
+    { "section": "PÃES SALGADOS", "name": "Focaccia recheada", "unitPrice": 1.55, "paxMultiplier": 0.01 },
+    { "section": "PÃES SALGADOS", "name": "Mini Tiger", "unitPrice": 0.4, "paxMultiplier": 0.3 },
+    { "section": "PÃES SALGADOS", "name": "Mini Pão de Frios", "unitPrice": 0.8, "paxMultiplier": 0.2 },
+    { "section": "PÃES SALGADOS", "name": "Pão de Forma integral", "unitPrice": 3.0, "paxMultiplier": 0.004 },
+    { "section": "PÃES SALGADOS", "name": "Pão de forma Tradicional", "unitPrice": 2.8, "paxMultiplier": 0.009 },
+    { "section": "PÃES SALGADOS", "name": "Pão de Forma Maritoso", "unitPrice": 3.0, "paxMultiplier": 0.004 },
+    { "section": "PÃES SALGADOS", "name": "Baguete Francesa 300g", "unitPrice": 2.6, "paxMultiplier": 0.04 },
+    { "section": "PÃES SALGADOS", "name": "Pães de Decoração Rustico", "unitPrice": 3.8, "paxMultiplier": 0.04 },
+    { "section": "PÃES DOCES", "name": "Mini Brioche ou Pão de Açucar", "unitPrice": 0.6, "paxMultiplier": 0.2 },
+    { "section": "PÃES DOCES", "name": "Mini Bisnaguinha", "unitPrice": 0.5, "paxMultiplier": 0.2 },
+    { "section": "PÃES DOCES", "name": "Mini Pão de coco", "unitPrice": 0.75, "paxMultiplier": 0.1 },
+    { "section": "PÃES DOCES", "name": "Mini Pão doce", "unitPrice": 0.6, "paxMultiplier": 0.1 },
+    { "section": "PÃES DOCES", "name": "Mini Donuts", "unitPrice": 0.8, "paxMultiplier": 0.2 },
+    { "section": "PÃES DOCES", "name": "Mini Sonho", "unitPrice": 0.8, "paxMultiplier": 0.2 },
+    { "section": "PÃES DOCES", "name": "Mini cookies", "unitPrice": 0.85, "paxMultiplier": 0.2 },
+    { "section": "FOLHADOS", "name": "Mini Croissant", "unitPrice": 1.6, "paxMultiplier": 0.7 },
+    { "section": "FOLHADOS", "name": "Mini Pão de Chocolate", "unitPrice": 1.8, "paxMultiplier": 0.5 },
+    { "section": "FOLHADOS", "name": "Mini Folhado Salgado", "unitPrice": 0.95, "paxMultiplier": 0.5 },
+    { "section": "PROD. VOLANTES", "name": "Pão de queijo", "unitPrice": 0.63, "paxMultiplier": 0.7 },
+    { "section": "PROD. VOLANTES", "name": "Folhado Salgado", "unitPrice": 0.95, "paxMultiplier": 0.3 },
+    { "section": "PROD. VOLANTES", "name": "Doce do Dia verificar cardápio", "unitPrice": 0.95, "paxMultiplier": 0.6 },
+    { "section": "REFEITÓRIO", "name": "Pão Francês 50g", "unitPrice": 0.65, "paxMultiplier": 0.9 },
+    { "section": "REFEITÓRIO", "name": "Pão de leite 50g", "unitPrice": 0.8, "paxMultiplier": 0.6 }
   ],
   "sections": [
-    "FOLHADOS",
+    "PÃES SALGADOS",
     "PÃES DOCES",
-    "PÃES SALGADOS"
+    "FOLHADOS",
+    "PROD. VOLANTES",
+    "REFEITÓRIO"
   ]
 }

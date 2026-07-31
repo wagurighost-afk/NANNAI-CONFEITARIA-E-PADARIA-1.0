@@ -16,6 +16,8 @@ export type Permission =
   | 'recipes:view'
   | 'recipes:manage'
   | 'pop:view'
+  | 'bread-control:view'
+  | 'bread-control:summary'
   | 'inventory:view'
   | 'inventory:manage'
   | 'purchases:view'

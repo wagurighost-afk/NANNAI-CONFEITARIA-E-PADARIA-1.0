@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Breadcrumb, PageHeader } from '@/components/common'
 import { ProgressBar } from '@/components/common/ProgressBar/ProgressBar'
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, KpiCard, Skeleton } from '@/components/ui'
+import { ChefBreadMonthlySummaryCard } from '@/features/bread-control/components/ChefBreadMonthlySummaryCard'
 import { useChefDashboard } from '@/features/dashboard/hooks/useChefDashboard'
 import { APP_ROUTES, formatAppReferenceDateBr } from '@/core/constants'
 import { formatDateTimeBr } from '@/utils/formatDate'
@@ -116,6 +117,8 @@ export function ChefDashboardPage() {
             ))}
           </CardContent>
         </Card>
+
+        <ChefBreadMonthlySummaryCard />
 
         <Card className="lg:col-span-2">
           <CardHeader>

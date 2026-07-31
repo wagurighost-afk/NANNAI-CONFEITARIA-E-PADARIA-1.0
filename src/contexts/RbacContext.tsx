@@ -2,6 +2,7 @@ import { createContext, useCallback, useMemo, type ReactNode } from 'react'
 import type { Permission, RbacContextValue } from '@/types/rbac.types'
 import type { UserRole } from '@/types/auth.types'
 import { getPermissionsForRole } from '@/core/permissions'
+import { canAccessBreadControl, canViewBreadMonthlySummary } from '@/core/permissions/breadControlAccess'
 import { hasFullSystemAccess } from '@/core/permissions/systemAccess'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -31,6 +32,12 @@ export function RbacProvider({ children }: RbacProviderProps) {
           base.push(permission)
         }
       }
+    }
+    if (canAccessBreadControl(user) && !base.includes('bread-control:view')) {
+      base.push('bread-control:view')
+    }
+    if (canViewBreadMonthlySummary(user) && !base.includes('bread-control:summary')) {
+      base.push('bread-control:summary')
     }
     return base
   }, [role, user])

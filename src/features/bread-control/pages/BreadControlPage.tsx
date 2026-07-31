@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { ExternalLink, Save } from 'lucide-react'
+import { Calculator, ExternalLink, Save } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Breadcrumb, EmptyState, PageHeader } from '@/components/common'
 import { Badge, Button, Card, CardContent, Input, Skeleton, Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui'
@@ -11,8 +11,10 @@ import {
 } from '@/features/bread-control/hooks/useBreadControl'
 import type { BreadControlProduct } from '@/features/bread-control/types/breadControl.types'
 import { formatBreadMoney, roundBreadMoney, toIsoDate } from '@/features/bread-control/utils/breadControlFormat'
+import { buildUnitsMapFromPax } from '@/features/bread-control/utils/breadPaxCalculator'
 import { APP_ROUTES } from '@/core/constants'
 import { useToast } from '@/hooks'
+import { usePermission } from '@/hooks/usePermission'
 import { formatDateBr } from '@/utils/formatDate'
 
 function groupProductsBySection(products: BreadControlProduct[], sections: string[]) {
@@ -193,6 +195,8 @@ export function BreadControlPage() {
   const [unitsMap, setUnitsMap] = useState<Record<string, number>>({})
   const [activeTab, setActiveTab] = useState('daily')
   const { push } = useToast()
+  const { hasPermission } = usePermission()
+  const canViewSummary = hasPermission('bread-control:summary')
 
   const { data: catalog, isLoading: catalogLoading } = useBreadCatalog()
   const { data: savedDay, isLoading: dayLoading } = useBreadControlDay(selectedDate)
@@ -230,6 +234,23 @@ export function BreadControlPage() {
 
   const [year = new Date().getFullYear(), month = new Date().getMonth() + 1] = selectedDate.split('-').map(Number)
 
+  function handleCalculateFromPax() {
+    if (!products.length || pax <= 0) {
+      push({
+        title: 'Informe o PAX',
+        description: 'Digite o número de hóspedes para calcular as quantidades de pães.',
+        variant: 'danger',
+      })
+      return
+    }
+    setUnitsMap(buildUnitsMapFromPax(products, pax))
+    push({
+      title: 'Quantidades calculadas',
+      description: `Produção sugerida para ${pax} hóspedes.`,
+      variant: 'success',
+    })
+  }
+
   async function handleSave() {
     try {
       await saveMutation.mutateAsync({
@@ -256,7 +277,7 @@ export function BreadControlPage() {
       />
       <PageHeader
         title="Controle de Produção de Pães"
-        description="Planilha diária com cálculo automático e resumo mensal para comparação de custos."
+        description="Informe o PAX (hóspedes) e o sistema calcula as quantidades de pães do dia, como na planilha."
         actions={
           <a
             href="/documents/planilha-producao-paes-2026.xlsx"
@@ -272,7 +293,7 @@ export function BreadControlPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
           <TabsTrigger value="daily">Diário</TabsTrigger>
-          <TabsTrigger value="summary">Resumo mensal</TabsTrigger>
+          {canViewSummary ? <TabsTrigger value="summary">Resumo mensal</TabsTrigger> : null}
         </TabsList>
 
         <TabsContent value="daily" className="space-y-4">
@@ -292,7 +313,7 @@ export function BreadControlPage() {
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-foreground" htmlFor="bread-pax">
-                  PAX
+                  PAX (hóspedes)
                 </label>
                 <Input
                   id="bread-pax"
@@ -306,8 +327,13 @@ export function BreadControlPage() {
                     setPax(Number.isFinite(value) ? Math.max(0, value) : 0)
                   }}
                 />
+                <p className="text-xs text-muted-foreground">Ex.: 200 hóspedes → quantidades automáticas</p>
               </div>
               <div className="flex flex-1 flex-wrap items-center justify-end gap-3">
+                <Button type="button" variant="outline" onClick={handleCalculateFromPax} disabled={catalogLoading}>
+                  <Calculator className="size-4" />
+                  Calcular quantidades
+                </Button>
                 <Badge variant="muted">Total do dia: {formatBreadMoney(dayTotal)}</Badge>
                 <Button onClick={handleSave} disabled={saveMutation.isPending || catalogLoading}>
                   <Save className="size-4" />
@@ -333,9 +359,11 @@ export function BreadControlPage() {
           )}
         </TabsContent>
 
-        <TabsContent value="summary">
-          <BreadMonthlySummary year={year} month={month} sections={sections} />
-        </TabsContent>
+        {canViewSummary ? (
+          <TabsContent value="summary">
+            <BreadMonthlySummary year={year} month={month} sections={sections} />
+          </TabsContent>
+        ) : null}
       </Tabs>
     </motion.div>
   )

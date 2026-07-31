@@ -3,6 +3,7 @@ export interface BreadControlProduct {
   section: string
   name: string
   unitPrice: number
+  paxMultiplier: number
 }
 
 export interface BreadControlLineItem {

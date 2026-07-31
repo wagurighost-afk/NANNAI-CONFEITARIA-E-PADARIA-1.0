@@ -27,7 +27,7 @@ export const MAIN_NAVIGATION: readonly AppNavItem[] = [
     label: 'Controle de Pães',
     href: APP_ROUTES.breadControl,
     icon: 'ClipboardList',
-    permission: 'production:view',
+    permission: 'bread-control:view',
   },
   {
     id: 'comments',

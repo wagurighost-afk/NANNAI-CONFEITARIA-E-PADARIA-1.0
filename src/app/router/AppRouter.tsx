@@ -34,7 +34,9 @@ export function AppRouter() {
           <Route element={<AppLayout />}>
             <Route path={APP_ROUTES.dashboard} element={<DashboardPage />} />
             <Route path={APP_ROUTES.production} element={<ProductionPage />} />
-            <Route path={APP_ROUTES.breadControl} element={<BreadControlPage />} />
+            <Route element={<PermissionRoute permission="bread-control:view" />}>
+              <Route path={APP_ROUTES.breadControl} element={<BreadControlPage />} />
+            </Route>
             <Route path={APP_ROUTES.comments} element={<CommentsPage />} />
             <Route path={APP_ROUTES.schedule} element={<SchedulePage />} />
             <Route path={APP_ROUTES.cleaningSchedule} element={<CleaningSchedulePage />} />
