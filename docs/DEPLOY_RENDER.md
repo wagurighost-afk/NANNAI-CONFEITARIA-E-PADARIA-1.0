@@ -106,7 +106,7 @@ Troque a senha padrão depois que todos testarem.
 |------|----------------|
 | Servidor dorme | Após ~15 min sem uso, a 1ª abertura pode demorar ~30 s |
 | **Dados (produção, receitas, escala, pães)** | Salvos no **PostgreSQL** — **não somem** após deploy ou reinício |
-| **Fotos e anexos enviados** | Ficam no disco `/var/data/uploads` (disco persistente no `render.yaml`) |
+| **Fotos e anexos enviados** | No plano free, podem sumir em novo deploy (sem disco persistente). Dados de texto ficam no PostgreSQL. |
 | HTTPS | Incluído automaticamente |
 
 ### Banco PostgreSQL no Render
