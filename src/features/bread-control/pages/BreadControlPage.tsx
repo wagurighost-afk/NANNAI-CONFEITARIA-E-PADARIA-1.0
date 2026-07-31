@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Save } from 'lucide-react'
+import { ExternalLink, Save } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Breadcrumb, EmptyState, PageHeader } from '@/components/common'
 import { Badge, Button, Card, CardContent, Input, Skeleton, Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui'
@@ -257,6 +257,16 @@ export function BreadControlPage() {
       <PageHeader
         title="Controle de Produção de Pães"
         description="Planilha diária com cálculo automático e resumo mensal para comparação de custos."
+        actions={
+          <a
+            href="/documents/planilha-producao-paes-2026.xlsx"
+            download="planilha-producao-paes-2026.xlsx"
+            className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium hover:bg-muted"
+          >
+            <ExternalLink className="size-4" />
+            Baixar planilha original
+          </a>
+        }
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>

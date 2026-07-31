@@ -8,14 +8,13 @@ import '@/styles/globals.css'
 applyDocumentTheme(resolveInitialTheme())
 
 if ('serviceWorker' in navigator) {
-  registerSW({
+  const updateSW = registerSW({
     immediate: true,
+    onNeedRefresh() {
+      void updateSW(true)
+    },
     onRegisteredSW(_url, registration) {
-      if (registration) {
-        setInterval(() => {
-          void registration.update()
-        }, 60 * 60 * 1000)
-      }
+      void registration?.update()
     },
   })
 }

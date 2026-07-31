@@ -16,8 +16,9 @@ export default defineConfig({
         short_name: 'NANNAI',
         description: 'Gestão operacional da confeitaria e padaria NANNAI',
         lang: 'pt-BR',
-        start_url: '/',
+        start_url: '/?v=1.1.0',
         scope: '/',
+        id: '/?v=1.1.0',
         display: 'standalone',
         orientation: 'portrait-primary',
         theme_color: '#3E2723',
@@ -43,10 +44,30 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        skipWaiting: true,
+        clientsClaim: true,
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,docx,xlsx}'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'nannai-pages',
+              networkTimeoutSeconds: 5,
+              expiration: { maxEntries: 8, maxAgeSeconds: 60 * 60 * 24 },
+            },
+          },
+          {
+            urlPattern: /\/documents\//,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'nannai-documents',
+              networkTimeoutSeconds: 10,
+              expiration: { maxEntries: 32, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            },
+          },
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
