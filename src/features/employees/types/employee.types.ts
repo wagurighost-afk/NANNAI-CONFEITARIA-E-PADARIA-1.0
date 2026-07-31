@@ -86,5 +86,10 @@ export type EmployeeFormInput = {
   notes: string
 }
 
-export type CreateEmployeeInput = EmployeeFormInput
-export type UpdateEmployeeInput = EmployeeFormInput
+export type EmployeePhotoInput = {
+  photoFile?: File | null
+  removePhoto?: boolean
+}
+
+export type CreateEmployeeInput = EmployeeFormInput & EmployeePhotoInput
+export type UpdateEmployeeInput = EmployeeFormInput & EmployeePhotoInput

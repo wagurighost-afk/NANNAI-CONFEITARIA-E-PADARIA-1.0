@@ -9,7 +9,7 @@ import { EmployeeKpisSection } from '@/features/employees/components/EmployeeKpi
 import { EmployeeProfileDrawer } from '@/features/employees/components/EmployeeProfileDrawer'
 import { EmployeeTable } from '@/features/employees/components/EmployeeTable'
 import { useEmployees } from '@/features/employees/hooks/useEmployees'
-import type { EmployeeFormSchema } from '@/features/employees/schemas/employee.schema'
+import type { EmployeeFormSubmitPayload } from '@/features/employees/components/EmployeeForm'
 import type { Employee } from '@/features/employees/types/employee.types'
 import { useToast } from '@/hooks'
 import { getErrorMessage } from '@/core/errors'
@@ -40,11 +40,13 @@ export function EmployeesPage() {
     cancelDelete,
     confirmDelete,
     isDeleting,
+    updateEmployeePhoto,
+    isUpdatingPhoto,
   } = useEmployees()
 
   const { push } = useToast()
 
-  const handleFormSubmit = async (values: EmployeeFormSchema) => {
+  const handleFormSubmit = async (values: EmployeeFormSubmitPayload) => {
     try {
       if (editingEmployee) {
         await updateEmployee({ id: editingEmployee.id, input: values })
@@ -191,6 +193,15 @@ export function EmployeesPage() {
         onDelete={(employee) => {
           requestDelete(employee)
         }}
+        onPhotoChange={async (employeeId, file) => {
+          await updateEmployeePhoto({ id: employeeId, file })
+          push({
+            title: 'Foto atualizada',
+            description: selectedEmployee?.name,
+            variant: 'success',
+          })
+        }}
+        isUpdatingPhoto={isUpdatingPhoto}
       />
 
       <Modal

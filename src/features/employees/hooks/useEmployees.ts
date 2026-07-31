@@ -72,6 +72,13 @@ export function useEmployees() {
     },
   })
 
+  const updatePhotoMutation = useMutation({
+    mutationFn: ({ id, file }: { id: string; file: File }) => employeesService.updatePhoto(id, file),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: EMPLOYEES_QUERY_KEY })
+    },
+  })
+
   return {
     employees: employeesQuery.data ?? [],
     kpis,
@@ -124,7 +131,9 @@ export function useEmployees() {
     },
     createEmployee: createMutation.mutateAsync,
     updateEmployee: updateMutation.mutateAsync,
+    updateEmployeePhoto: updatePhotoMutation.mutateAsync,
     isSaving: createMutation.isPending || updateMutation.isPending,
+    isUpdatingPhoto: updatePhotoMutation.isPending,
     isDeleting: deleteMutation.isPending,
     refetch: employeesQuery.refetch,
   }

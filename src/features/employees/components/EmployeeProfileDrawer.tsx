@@ -1,10 +1,18 @@
+import { useRef, useState } from 'react'
+import { Camera } from 'lucide-react'
 import { Badge, Button, Drawer, Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui'
 import { EmployeeAvatar } from '@/features/employees/components/EmployeeAvatar'
 import { EmployeeStatusBadge } from '@/features/employees/components/EmployeeStatusBadge'
 import { EmployeeDaysOffPanel } from '@/features/schedule/components/EmployeeDaysOffPanel'
 import { monthlyScheduleService } from '@/features/schedule/services/monthlySchedule.service'
+import {
+  EMPLOYEE_PHOTO_ACCEPT,
+  EMPLOYEE_PHOTO_MAX_SIZE,
+  EMPLOYEE_PHOTO_MAX_SIZE_LABEL,
+} from '@/features/employees/constants/employeePhoto.constants'
 import type { Employee } from '@/features/employees/types/employee.types'
 import { useQuery } from '@tanstack/react-query'
+import { cn } from '@/utils/cn'
 
 export interface EmployeeProfileDrawerProps {
   employee: Employee | null
@@ -12,6 +20,8 @@ export interface EmployeeProfileDrawerProps {
   onClose: () => void
   onEdit: (employee: Employee) => void
   onDelete: (employee: Employee) => void
+  onPhotoChange?: (employeeId: string, file: File) => Promise<void>
+  isUpdatingPhoto?: boolean
 }
 
 export function EmployeeProfileDrawer({
@@ -20,7 +30,12 @@ export function EmployeeProfileDrawer({
   onClose,
   onEdit,
   onDelete,
+  onPhotoChange,
+  isUpdatingPhoto = false,
 }: EmployeeProfileDrawerProps) {
+  const photoInputRef = useRef<HTMLInputElement>(null)
+  const [photoError, setPhotoError] = useState<string | null>(null)
+
   const monthlyScheduleQuery = useQuery({
     queryKey: ['monthly-schedule', 2026, 7],
     queryFn: () => monthlyScheduleService.getByYearMonth(2026, 7),
@@ -35,6 +50,34 @@ export function EmployeeProfileDrawer({
         </p>
       </Drawer>
     )
+  }
+
+  const handlePhotoPick = async (file: File | null) => {
+    if (!file || !onPhotoChange) {
+      return
+    }
+
+    if (!file.type.startsWith('image/')) {
+      setPhotoError('Selecione apenas imagens (JPG, PNG ou WebP).')
+      return
+    }
+
+    if (file.size > EMPLOYEE_PHOTO_MAX_SIZE) {
+      setPhotoError(`A foto deve ter no máximo ${EMPLOYEE_PHOTO_MAX_SIZE_LABEL}.`)
+      return
+    }
+
+    setPhotoError(null)
+
+    try {
+      await onPhotoChange(employee.id, file)
+    } catch {
+      setPhotoError('Não foi possível atualizar a foto.')
+    } finally {
+      if (photoInputRef.current) {
+        photoInputRef.current.value = ''
+      }
+    }
   }
 
   return (
@@ -67,7 +110,44 @@ export function EmployeeProfileDrawer({
       }
     >
       <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center">
-        <EmployeeAvatar employee={employee} size="lg" />
+        <div className="flex flex-col items-center gap-2 sm:items-start">
+          <button
+            type="button"
+            disabled={!onPhotoChange || isUpdatingPhoto}
+            onClick={() => {
+              photoInputRef.current?.click()
+            }}
+            className={cn(
+              'group relative rounded-full outline-none transition focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2',
+              onPhotoChange && !isUpdatingPhoto ? 'cursor-pointer' : 'cursor-default',
+            )}
+            aria-label="Alterar foto do colaborador"
+          >
+            <EmployeeAvatar employee={employee} size="lg" className="size-20 text-xl" />
+            {onPhotoChange && !isUpdatingPhoto ? (
+              <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/0 transition group-hover:bg-black/35">
+                <Camera className="size-5 text-white opacity-0 transition group-hover:opacity-100" />
+              </span>
+            ) : null}
+          </button>
+          {onPhotoChange ? (
+            <p className="text-center text-xs text-muted-foreground sm:text-left">
+              Toque na foto para alterar
+            </p>
+          ) : null}
+          {photoError ? <p className="text-xs text-danger">{photoError}</p> : null}
+          <input
+            ref={photoInputRef}
+            type="file"
+            accept={EMPLOYEE_PHOTO_ACCEPT}
+            capture="environment"
+            className="sr-only"
+            disabled={!onPhotoChange || isUpdatingPhoto}
+            onChange={(event) => {
+              void handlePhotoPick(event.target.files?.[0] ?? null)
+            }}
+          />
+        </div>
         <div className="min-w-0 space-y-2">
           <EmployeeStatusBadge status={employee.status} />
           <p className="truncate text-sm text-muted-foreground">{employee.email}</p>

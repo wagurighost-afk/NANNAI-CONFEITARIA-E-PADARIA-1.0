@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react'
 import { Button, Input, Select, TextArea } from '@/components/ui'
+import { EmployeePhotoUpload } from '@/features/employees/components/EmployeePhotoUpload'
 import {
   POSITION_OPTIONS,
   SECTOR_OPTIONS,
@@ -7,12 +9,14 @@ import {
 } from '@/features/employees/constants/employeeOptions'
 import { useEmployeeForm } from '@/features/employees/hooks/useEmployeeForm'
 import type { EmployeeFormSchema } from '@/features/employees/schemas/employee.schema'
-import type { Employee } from '@/features/employees/types/employee.types'
+import type { Employee, EmployeePhotoInput } from '@/features/employees/types/employee.types'
 import { getEmailDomainForPosition } from '@/features/employees/utils/employeeEmail'
+
+export interface EmployeeFormSubmitPayload extends EmployeeFormSchema, EmployeePhotoInput {}
 
 export interface EmployeeFormProps {
   employee: Employee | null
-  onSubmit: (values: EmployeeFormSchema) => Promise<void>
+  onSubmit: (values: EmployeeFormSubmitPayload) => Promise<void>
   onCancel: () => void
   isSaving?: boolean
 }
@@ -23,10 +27,24 @@ export function EmployeeForm({
   onCancel,
   isSaving = false,
 }: EmployeeFormProps) {
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [removePhoto, setRemovePhoto] = useState(false)
+
   const { form, handleSubmit, isSubmitting } = useEmployeeForm({
     employee,
-    onSubmit,
+    onSubmit: async (values) => {
+      await onSubmit({
+        ...values,
+        photoFile,
+        removePhoto,
+      })
+    },
   })
+
+  useEffect(() => {
+    setPhotoFile(null)
+    setRemovePhoto(false)
+  }, [employee])
 
   const {
     register,
@@ -35,15 +53,19 @@ export function EmployeeForm({
   } = form
 
   const position = watch('position')
+  const name = watch('name')
   const emailDomainHint = getEmailDomainForPosition(position)
 
   return (
     <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
-      <Input
-        label="Foto (URL)"
-        placeholder="https://..."
-        error={errors.photoUrl?.message}
-        {...register('photoUrl')}
+      <EmployeePhotoUpload
+        employeeName={name || employee?.name || 'Colaborador'}
+        existingPhotoUrl={employee?.photoUrl}
+        disabled={isSubmitting || isSaving}
+        onPhotoChange={({ file, removeExisting }) => {
+          setPhotoFile(file)
+          setRemovePhoto(removeExisting)
+        }}
       />
 
       <Input

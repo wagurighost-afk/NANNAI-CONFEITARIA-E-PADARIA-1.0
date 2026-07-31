@@ -4,18 +4,53 @@ import type {
   EmployeeFilters,
   UpdateEmployeeInput,
 } from '@/features/employees/types/employee.types'
-import { EMPLOYEES_MOCK } from '@/features/employees/mocks/employees.mock'
 import { assertEmployeeEmailDomain } from '@/features/employees/utils/employeeEmail'
+import {
+  deleteEmployeePhotoBlob,
+  storeEmployeePhotoFile,
+} from '@/features/employees/storage/employeePhotoBlobStore'
+import {
+  loadPersistedEmployees,
+  persistEmployees,
+} from '@/features/employees/storage/employeesStorePersistence'
+import { toEmployeePhotoRef } from '@/features/employees/utils/employeePhoto'
 import { logger } from '@/core/logger'
 
 const USE_MOCK = true
 
-let employeesStore: Employee[] = structuredClone(EMPLOYEES_MOCK)
+let employeesStore: Employee[] = loadPersistedEmployees()
 
 function delay(ms = 280): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(resolve, ms)
   })
+}
+
+function saveStore(): void {
+  persistEmployees(employeesStore)
+}
+
+async function applyPhotoChanges(
+  employeeId: string,
+  input: Pick<CreateEmployeeInput, 'photoFile' | 'removePhoto' | 'photoUrl'>,
+  currentPhotoUrl?: string,
+): Promise<string | undefined> {
+  if (input.removePhoto) {
+    await deleteEmployeePhotoBlob(employeeId)
+    return undefined
+  }
+
+  if (input.photoFile) {
+    await storeEmployeePhotoFile(employeeId, input.photoFile)
+    return toEmployeePhotoRef(employeeId)
+  }
+
+  const trimmed = input.photoUrl.trim()
+  if (trimmed) {
+    return trimmed
+  }
+
+  return currentPhotoUrl
 }
 
 function matchesFilters(employee: Employee, filters: EmployeeFilters): boolean {
@@ -43,7 +78,11 @@ function matchesFilters(employee: Employee, filters: EmployeeFilters): boolean {
   return true
 }
 
-function toEmployeeEntity(input: CreateEmployeeInput, id: string): Employee {
+function toEmployeeEntity(
+  input: CreateEmployeeInput,
+  id: string,
+  photoUrl?: string,
+): Employee {
   if (!assertEmployeeEmailDomain(input.email, input.position)) {
     throw new Error('O domínio do e-mail não corresponde ao cargo informado.')
   }
@@ -68,7 +107,7 @@ function toEmployeeEntity(input: CreateEmployeeInput, id: string): Employee {
         description: 'Colaborador adicionado ao sistema.',
       },
     ],
-    ...(input.photoUrl.trim() ? { photoUrl: input.photoUrl.trim() } : {}),
+    ...(photoUrl ? { photoUrl } : {}),
     ...(input.notes.trim() ? { notes: input.notes.trim() } : {}),
   }
 }
@@ -108,8 +147,11 @@ export const employeesService = {
   async create(input: CreateEmployeeInput): Promise<Employee> {
     await delay()
 
-    const employee = toEmployeeEntity(input, `emp-${Date.now()}`)
+    const id = `emp-${Date.now()}`
+    const photoUrl = await applyPhotoChanges(id, input)
+    const employee = toEmployeeEntity(input, id, photoUrl)
     employeesStore = [employee, ...employeesStore]
+    saveStore()
     logger.info('Colaborador criado (mock).', { id: employee.id })
     return structuredClone(employee)
   },
@@ -127,7 +169,8 @@ export const employeesService = {
       throw new Error('Colaborador não encontrado.')
     }
 
-    const updated = toEmployeeEntity(input, id)
+    const photoUrl = await applyPhotoChanges(id, input, current.photoUrl)
+    const updated = toEmployeeEntity(input, id, photoUrl)
     const merged: Employee = {
       ...updated,
       productions: current.productions,
@@ -144,7 +187,41 @@ export const employeesService = {
     }
 
     employeesStore = employeesStore.map((item) => (item.id === id ? merged : item))
+    saveStore()
     logger.info('Colaborador atualizado (mock).', { id })
+    return structuredClone(merged)
+  },
+
+  async updatePhoto(id: string, file: File): Promise<Employee> {
+    await delay()
+
+    const index = employeesStore.findIndex((item) => item.id === id)
+    if (index < 0) {
+      throw new Error('Colaborador não encontrado.')
+    }
+
+    const current = employeesStore[index]
+    if (!current) {
+      throw new Error('Colaborador não encontrado.')
+    }
+
+    await storeEmployeePhotoFile(id, file)
+    const merged: Employee = {
+      ...current,
+      photoUrl: toEmployeePhotoRef(id),
+      history: [
+        {
+          id: `hist-${Date.now()}`,
+          date: new Date().toISOString().slice(0, 10),
+          title: 'Foto atualizada',
+          description: 'Foto do colaborador foi alterada.',
+        },
+        ...current.history,
+      ],
+    }
+
+    employeesStore = employeesStore.map((item) => (item.id === id ? merged : item))
+    saveStore()
     return structuredClone(merged)
   },
 
@@ -156,7 +233,9 @@ export const employeesService = {
       throw new Error('Colaborador não encontrado.')
     }
 
+    await deleteEmployeePhotoBlob(id)
     employeesStore = employeesStore.filter((item) => item.id !== id)
+    saveStore()
     logger.info('Colaborador removido (mock).', { id })
   },
 }
