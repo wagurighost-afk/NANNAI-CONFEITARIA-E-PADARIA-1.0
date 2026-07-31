@@ -10,6 +10,7 @@ import { NotFoundPage } from '@/features/errors'
 import { PopPage } from '@/features/pop'
 import { CommentsPage } from '@/features/comments'
 import { ProductionPage } from '@/features/production'
+import { BreadControlPage } from '@/features/bread-control'
 import { RecipesPage } from '@/features/recipes'
 import { SchedulePage } from '@/features/schedule'
 import { PermissionRoute } from '@/app/router/PermissionRoute'
@@ -33,6 +34,7 @@ export function AppRouter() {
           <Route element={<AppLayout />}>
             <Route path={APP_ROUTES.dashboard} element={<DashboardPage />} />
             <Route path={APP_ROUTES.production} element={<ProductionPage />} />
+            <Route path={APP_ROUTES.breadControl} element={<BreadControlPage />} />
             <Route path={APP_ROUTES.comments} element={<CommentsPage />} />
             <Route path={APP_ROUTES.schedule} element={<SchedulePage />} />
             <Route path={APP_ROUTES.cleaningSchedule} element={<CleaningSchedulePage />} />

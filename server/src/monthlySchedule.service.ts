@@ -7,7 +7,7 @@ import {
   loadAllMonthlySchedules,
   loadMonthlyScheduleRecord,
   saveMonthlyScheduleRecord,
-} from './db.js'
+} from './db/index.js'
 import { emitRealtime } from './events.js'
 import type {
   ImportMonthlyScheduleInput,
@@ -83,30 +83,32 @@ function mapImportRows(rows: ImportMonthlyScheduleInput['rows']): MonthlySchedul
   }))
 }
 
-function saveSchedule(schedule: MonthlySchedule): MonthlySchedule {
-  saveMonthlyScheduleRecord(schedule)
+async function saveSchedule(schedule: MonthlySchedule): Promise<MonthlySchedule> {
+  await saveMonthlyScheduleRecord(schedule)
   emitRealtime({ scope: 'monthly-schedule', action: 'updated', scheduleId: schedule.id })
   return schedule
 }
 
-export function listMonthlySchedules(): MonthlySchedule[] {
-  return loadAllMonthlySchedules().sort((a, b) => b.year - a.year || b.month - a.month)
+export async function listMonthlySchedules(): Promise<MonthlySchedule[]> {
+  const schedules = await loadAllMonthlySchedules()
+  return schedules.sort((a, b) => b.year - a.year || b.month - a.month)
 }
 
-export function getMonthlyScheduleById(id: string): MonthlySchedule | null {
+export async function getMonthlyScheduleById(id: string): Promise<MonthlySchedule | null> {
   return loadMonthlyScheduleRecord(id)
 }
 
-export function getMonthlyScheduleByYearMonth(year: number, month: number): MonthlySchedule | null {
-  return loadAllMonthlySchedules().find((schedule) => schedule.year === year && schedule.month === month) ?? null
+export async function getMonthlyScheduleByYearMonth(year: number, month: number): Promise<MonthlySchedule | null> {
+  const schedules = await loadAllMonthlySchedules()
+  return schedules.find((schedule) => schedule.year === year && schedule.month === month) ?? null
 }
 
-export function importMonthlySchedule(
+export async function importMonthlySchedule(
   input: ImportMonthlyScheduleInput,
   file?: Express.Multer.File,
-): MonthlySchedule {
+): Promise<MonthlySchedule> {
   const id = scheduleKey(input.year, input.month)
-  const existing = loadMonthlyScheduleRecord(id)
+  const existing = await loadMonthlyScheduleRecord(id)
   const now = new Date().toISOString()
 
   let attachment = input.attachment ?? null
@@ -132,8 +134,8 @@ export function importMonthlySchedule(
   return saveSchedule(schedule)
 }
 
-export function updateMonthlyDay(input: UpdateMonthlyDayInput): MonthlySchedule {
-  const schedule = loadMonthlyScheduleRecord(input.scheduleId)
+export async function updateMonthlyDay(input: UpdateMonthlyDayInput): Promise<MonthlySchedule> {
+  const schedule = await loadMonthlyScheduleRecord(input.scheduleId)
   if (!schedule) {
     throw new Error('Escala mensal não encontrada.')
   }
@@ -166,8 +168,8 @@ export function updateMonthlyDay(input: UpdateMonthlyDayInput): MonthlySchedule 
   return saveSchedule(schedule)
 }
 
-export function swapMonthlyDays(input: SwapMonthlyDaysInput): MonthlySchedule {
-  const schedule = loadMonthlyScheduleRecord(input.scheduleId)
+export async function swapMonthlyDays(input: SwapMonthlyDaysInput): Promise<MonthlySchedule> {
+  const schedule = await loadMonthlyScheduleRecord(input.scheduleId)
   if (!schedule) {
     throw new Error('Escala mensal não encontrada.')
   }
@@ -197,8 +199,8 @@ export function swapMonthlyDays(input: SwapMonthlyDaysInput): MonthlySchedule {
   return saveSchedule(schedule)
 }
 
-export function toggleMonthlyDay(scheduleId: string, rowId: string, day: number): MonthlySchedule {
-  const schedule = loadMonthlyScheduleRecord(scheduleId)
+export async function toggleMonthlyDay(scheduleId: string, rowId: string, day: number): Promise<MonthlySchedule> {
+  const schedule = await loadMonthlyScheduleRecord(scheduleId)
   const row = schedule?.rows.find((item) => item.id === rowId)
   const dayCell = row?.days.find((item) => item.day === day)
   if (!schedule || !dayCell) {

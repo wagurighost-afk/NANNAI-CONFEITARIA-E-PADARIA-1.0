@@ -23,14 +23,14 @@ export const monthlyScheduleRouter = Router()
 
 monthlyScheduleRouter.use(requireAuth)
 
-monthlyScheduleRouter.get('/', (_req, res) => {
-  res.json(listMonthlySchedules())
+monthlyScheduleRouter.get('/', async (_req, res) => {
+  res.json(await listMonthlySchedules())
 })
 
-monthlyScheduleRouter.get('/by-date', (req, res) => {
+monthlyScheduleRouter.get('/by-date', async (req, res) => {
   const year = Number(req.query.year)
   const month = Number(req.query.month)
-  const schedule = getMonthlyScheduleByYearMonth(year, month)
+  const schedule = await getMonthlyScheduleByYearMonth(year, month)
   if (!schedule) {
     res.status(404).json({ message: 'Escala não encontrada para este mês.' })
     return
@@ -38,8 +38,8 @@ monthlyScheduleRouter.get('/by-date', (req, res) => {
   res.json(schedule)
 })
 
-monthlyScheduleRouter.get('/:id', (req, res) => {
-  const schedule = getMonthlyScheduleById(req.params.id)
+monthlyScheduleRouter.get('/:id', async (req, res) => {
+  const schedule = await getMonthlyScheduleById(req.params.id)
   if (!schedule) {
     res.status(404).json({ message: 'Escala mensal não encontrada.' })
     return
@@ -47,20 +47,20 @@ monthlyScheduleRouter.get('/:id', (req, res) => {
   res.json(schedule)
 })
 
-monthlyScheduleRouter.post('/import', requireManager, upload.single('file'), (req: AuthedRequest, res) => {
+monthlyScheduleRouter.post('/import', requireManager, upload.single('file'), async (req: AuthedRequest, res) => {
   try {
     const input = JSON.parse(String(req.body.data ?? '{}')) as ImportMonthlyScheduleInput
-    const schedule = importMonthlySchedule(input, req.file)
+    const schedule = await importMonthlySchedule(input, req.file)
     res.status(201).json(schedule)
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Dados inválidos.' })
   }
 })
 
-monthlyScheduleRouter.patch('/:id/day', requireManager, (req, res) => {
+monthlyScheduleRouter.patch('/:id/day', requireManager, async (req, res) => {
   try {
     const input = req.body as UpdateMonthlyDayInput
-    const schedule = updateMonthlyDay({
+    const schedule = await updateMonthlyDay({
       scheduleId: req.params.id,
       rowId: input.rowId,
       day: input.day,
@@ -72,10 +72,10 @@ monthlyScheduleRouter.patch('/:id/day', requireManager, (req, res) => {
   }
 })
 
-monthlyScheduleRouter.patch('/:id/swap', requireManager, (req, res) => {
+monthlyScheduleRouter.patch('/:id/swap', requireManager, async (req, res) => {
   try {
     const input = req.body as SwapMonthlyDaysInput
-    const schedule = swapMonthlyDays({
+    const schedule = await swapMonthlyDays({
       scheduleId: req.params.id,
       sourceRowId: input.sourceRowId,
       sourceDay: input.sourceDay,
@@ -88,9 +88,9 @@ monthlyScheduleRouter.patch('/:id/swap', requireManager, (req, res) => {
   }
 })
 
-monthlyScheduleRouter.patch('/:id/toggle', requireManager, (req, res) => {
+monthlyScheduleRouter.patch('/:id/toggle', requireManager, async (req, res) => {
   try {
-    const schedule = toggleMonthlyDay(
+    const schedule = await toggleMonthlyDay(
       req.params.id,
       String(req.body.rowId),
       Number(req.body.day),

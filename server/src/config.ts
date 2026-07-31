@@ -17,6 +17,8 @@ function resolveCorsOrigins(): string[] | boolean {
   return defaultOrigins
 }
 
+const dataDir = process.env.DATA_DIR ?? path.join(__dirname, '..', 'data')
+
 export const config = {
   port: Number(process.env.PORT ?? 3333),
   jwtSecret: process.env.JWT_SECRET ?? 'nannai-dev-secret-change-me',
@@ -25,6 +27,8 @@ export const config = {
   refreshTokenTtlDays: 14,
   defaultPassword: process.env.DEFAULT_USER_PASSWORD ?? 'Nannai@2026',
   corsOrigins: resolveCorsOrigins(),
-  dbPath: path.join(__dirname, '..', 'data', 'nannai.db'),
-  uploadsDir: path.join(__dirname, '..', 'uploads'),
+  databaseUrl: process.env.DATABASE_URL ?? null,
+  dataDir,
+  dbPath: path.join(dataDir, 'nannai.db'),
+  uploadsDir: process.env.UPLOADS_DIR ?? path.join(dataDir, 'uploads'),
 }

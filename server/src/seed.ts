@@ -2,8 +2,8 @@ import bcrypt from 'bcryptjs'
 import { randomUUID } from 'node:crypto'
 import { config } from './config.js'
 import {
-  countProductions,
   countMonthlySchedules,
+  countProductions,
   countRecipes,
   countUsers,
   deleteProductionRecord,
@@ -14,11 +14,11 @@ import {
   insertUser,
   loadAllProductionRecords,
   loadProductionRecord,
+  saveMonthlyScheduleRecord,
   saveProductionRecord,
   saveRecipeRecord,
-  saveMonthlyScheduleRecord,
   setMeta,
-} from './db.js'
+} from './db/index.js'
 import { MONTHLY_SCHEDULE_SEED } from './data/monthlyScheduleSeed.js'
 import { RECIPES_SEED } from './data/recipesSeed.js'
 import { SEED_ADMIN, SEED_EMPLOYEES } from './data/employees.js'
@@ -32,11 +32,11 @@ import type { ProductionDay } from './types.js'
 
 const ROLLOVER_META_KEY = 'production_rollover_date'
 
-export function seedDatabase(): void {
-  if (countUsers() === 0) {
+export async function seedDatabase(): Promise<void> {
+  if ((await countUsers()) === 0) {
     const passwordHash = bcrypt.hashSync(config.defaultPassword, 12)
 
-    insertUser({
+    await insertUser({
       id: SEED_ADMIN.id,
       email: SEED_ADMIN.email.toLowerCase(),
       password_hash: passwordHash,
@@ -46,7 +46,7 @@ export function seedDatabase(): void {
     })
 
     for (const employee of SEED_EMPLOYEES) {
-      insertUser({
+      await insertUser({
         id: `usr-${employee.id}`,
         email: employee.email.toLowerCase(),
         password_hash: passwordHash,
@@ -57,37 +57,37 @@ export function seedDatabase(): void {
     }
   }
 
-  if (countProductions() === 0) {
+  if ((await countProductions()) === 0) {
     for (const production of buildSeedProductions()) {
-      saveProduction(production)
+      await saveProduction(production)
     }
-    setMeta(ROLLOVER_META_KEY, getTodayIso())
+    await setMeta(ROLLOVER_META_KEY, getTodayIso())
   } else {
-    rolloverProductionsIfNeeded()
+    await rolloverProductionsIfNeeded()
   }
 
-  if (countRecipes() === 0) {
+  if ((await countRecipes()) === 0) {
     for (const recipe of RECIPES_SEED) {
-      saveRecipeRecord(recipe)
+      await saveRecipeRecord(recipe)
     }
   }
 
-  if (countMonthlySchedules() === 0) {
+  if ((await countMonthlySchedules()) === 0) {
     for (const schedule of MONTHLY_SCHEDULE_SEED) {
-      saveMonthlyScheduleRecord(schedule)
+      await saveMonthlyScheduleRecord(schedule)
     }
   }
 }
 
-export function rolloverProductionsIfNeeded(): boolean {
+export async function rolloverProductionsIfNeeded(): Promise<boolean> {
   const today = getTodayIso()
-  const lastRollover = getMeta(ROLLOVER_META_KEY)
+  const lastRollover = await getMeta(ROLLOVER_META_KEY)
 
   if (lastRollover === today) {
     return false
   }
 
-  const all = loadAllProductions()
+  const all = await loadAllProductions()
   const byId = new Map(all.map((production) => [production.id, production]))
   let changed = false
 
@@ -103,45 +103,45 @@ export function rolloverProductionsIfNeeded(): boolean {
 
     const existing = byId.get(meta.id)
     const refreshed = buildDailyProduction(entry, meta.id, meta.code, today, existing)
-    saveProduction(refreshed)
+    await saveProduction(refreshed)
     changed = true
   }
 
-  setMeta(ROLLOVER_META_KEY, today)
+  await setMeta(ROLLOVER_META_KEY, today)
   return changed
 }
 
-export function saveProduction(production: ProductionDay): ProductionDay {
-  saveProductionRecord(production)
+export async function saveProduction(production: ProductionDay): Promise<ProductionDay> {
+  await saveProductionRecord(production)
   return production
 }
 
-export function loadProductionById(id: string): ProductionDay | null {
+export async function loadProductionById(id: string): Promise<ProductionDay | null> {
   return loadProductionRecord(id)
 }
 
-export function loadAllProductions(): ProductionDay[] {
+export async function loadAllProductions(): Promise<ProductionDay[]> {
   return loadAllProductionRecords()
 }
 
-export function deleteProduction(id: string): void {
-  deleteProductionRecord(id)
+export async function deleteProduction(id: string): Promise<void> {
+  await deleteProductionRecord(id)
 }
 
-export function createRefreshToken(userId: string): string {
+export async function createRefreshToken(userId: string): Promise<string> {
   const token = randomUUID()
   const expiresAt = new Date()
   expiresAt.setDate(expiresAt.getDate() + 14)
-  insertRefreshToken(token, userId, expiresAt.toISOString())
+  await insertRefreshToken(token, userId, expiresAt.toISOString())
   return token
 }
 
-export function revokeRefreshToken(token: string): void {
-  deleteRefreshToken(token)
+export async function revokeRefreshToken(token: string): Promise<void> {
+  await deleteRefreshToken(token)
 }
 
-export function isRefreshTokenValid(token: string, userId: string): boolean {
-  const row = findRefreshToken(token, userId)
+export async function isRefreshTokenValid(token: string, userId: string): Promise<boolean> {
+  const row = await findRefreshToken(token, userId)
   if (!row) {
     return false
   }

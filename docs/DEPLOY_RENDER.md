@@ -105,8 +105,20 @@ Troque a senha padrão depois que todos testarem.
 | Item | Comportamento |
 |------|----------------|
 | Servidor dorme | Após ~15 min sem uso, a 1ª abertura pode demorar ~30 s |
-| Dados | No plano free, dados podem resetar em deploys grandes — para produção séria, use disco persistente no Render (pago) |
+| **Dados (produção, receitas, escala, pães)** | Salvos no **PostgreSQL** — **não somem** após deploy ou reinício |
+| **Fotos e anexos enviados** | Ficam no disco `/var/data/uploads` (disco persistente no `render.yaml`) |
 | HTTPS | Incluído automaticamente |
+
+### Banco PostgreSQL no Render
+
+O `render.yaml` já cria:
+
+- Banco `nannai-db` (PostgreSQL free)
+- Variável `DATABASE_URL` ligada ao app automaticamente
+
+Após o deploy, confira em `/api/health` se aparece `"database": "postgresql"`.
+
+Se o banco ainda não existir no painel, use **Blueprint → Sync** ou crie manualmente um PostgreSQL e cole a `DATABASE_URL` nas variáveis do serviço `nannai-app`.
 
 ---
 

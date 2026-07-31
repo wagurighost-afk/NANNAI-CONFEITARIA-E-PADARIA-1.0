@@ -7,7 +7,7 @@ import {
   loadAllRecipes,
   loadRecipeRecord,
   saveRecipeRecord,
-} from './db.js'
+} from './db/index.js'
 import { emitRealtime } from './events.js'
 import type {
   Recipe,
@@ -132,19 +132,20 @@ export function buildAttachmentFromUpload(file: Express.Multer.File): RecipeAtta
   }
 }
 
-export function listRecipes(filters: RecipeFilters = {}): Recipe[] {
-  return loadAllRecipes()
+export async function listRecipes(filters: RecipeFilters = {}): Promise<Recipe[]> {
+  const recipes = await loadAllRecipes()
+  return recipes
     .filter((recipe) => matchesFilters(recipe, filters))
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
 }
 
-export function getRecipeById(id: string): Recipe | null {
+export async function getRecipeById(id: string): Promise<Recipe | null> {
   return loadRecipeRecord(id)
 }
 
-export function createRecipe(input: RecipeInput, file?: Express.Multer.File): Recipe {
+export async function createRecipe(input: RecipeInput, file?: Express.Multer.File): Promise<Recipe> {
   const normalized = normalizeInput(input)
-  const recipes = loadAllRecipes()
+  const recipes = await loadAllRecipes()
   const now = new Date().toISOString()
   const attachments = file ? [buildAttachmentFromUpload(file)] : []
 
@@ -156,17 +157,17 @@ export function createRecipe(input: RecipeInput, file?: Express.Multer.File): Re
     attachments,
   )
 
-  saveRecipeRecord(recipe)
+  await saveRecipeRecord(recipe)
   emitRealtime({ scope: 'recipes', action: 'created', recipeId: recipe.id })
   return recipe
 }
 
-export function updateRecipe(
+export async function updateRecipe(
   id: string,
   input: RecipeInput,
   options: { file?: Express.Multer.File; removeAttachment?: boolean } = {},
-): Recipe {
-  const existing = loadRecipeRecord(id)
+): Promise<Recipe> {
+  const existing = await loadRecipeRecord(id)
   if (!existing) {
     throw new Error('Receita não encontrada.')
   }
@@ -192,24 +193,24 @@ export function updateRecipe(
     attachments,
   )
 
-  saveRecipeRecord(recipe)
+  await saveRecipeRecord(recipe)
   emitRealtime({ scope: 'recipes', action: 'updated', recipeId: recipe.id })
   return recipe
 }
 
-export function removeRecipe(id: string): void {
-  const existing = loadRecipeRecord(id)
+export async function removeRecipe(id: string): Promise<void> {
+  const existing = await loadRecipeRecord(id)
   if (!existing) {
     throw new Error('Receita não encontrada.')
   }
 
   removeAttachmentFiles(existing.attachments)
-  deleteRecipeRecord(id)
+  await deleteRecipeRecord(id)
   emitRealtime({ scope: 'recipes', action: 'deleted', recipeId: id })
 }
 
-export function archiveRecipe(id: string): Recipe {
-  const existing = loadRecipeRecord(id)
+export async function archiveRecipe(id: string): Promise<Recipe> {
+  const existing = await loadRecipeRecord(id)
   if (!existing) {
     throw new Error('Receita não encontrada.')
   }
@@ -220,7 +221,7 @@ export function archiveRecipe(id: string): Recipe {
     updatedAt: new Date().toISOString(),
   }
 
-  saveRecipeRecord(recipe)
+  await saveRecipeRecord(recipe)
   emitRealtime({ scope: 'recipes', action: 'archived', recipeId: recipe.id })
   return recipe
 }

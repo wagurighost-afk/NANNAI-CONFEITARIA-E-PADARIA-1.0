@@ -1,0 +1,215 @@
+{
+  "paxCell": "C6",
+  "products": [
+    {
+      "row": 9,
+      "name": "Mini Pão Francês",
+      "unitsFormula": "$C$6*0.9",
+      "priceFormula": "IFERROR(VLOOKUP(D9,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 10,
+      "name": "Mini Pão Integral",
+      "unitsFormula": "$C$6*0.2",
+      "priceFormula": "IFERROR(VLOOKUP(D10,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 11,
+      "name": "Mini Australiano",
+      "unitsFormula": "$C$6*0.2",
+      "priceFormula": "IFERROR(VLOOKUP(D11,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 12,
+      "name": "Mini Pão Gergilim",
+      "unitsFormula": "$C$6*0.2",
+      "priceFormula": "IFERROR(VLOOKUP(D12,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 13,
+      "name": "Mini Pão de Milho ou ",
+      "unitsFormula": "$C$6*0.2",
+      "priceFormula": "IFERROR(VLOOKUP(D13,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 14,
+      "name": "Mini Baguete Rustica ",
+      "unitsFormula": "$C$6*0.1",
+      "priceFormula": "IFERROR(VLOOKUP(D14,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 15,
+      "name": "Mini Pão Calabresa",
+      "unitsFormula": "$C$6*0.2",
+      "priceFormula": "IFERROR(VLOOKUP(D15,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 16,
+      "name": "Mini Pão Delicia recheado",
+      "unitsFormula": "$C$6*0.2",
+      "priceFormula": "IFERROR(VLOOKUP(D16,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 17,
+      "name": "Focaccia recheada",
+      "unitsFormula": "$C$6*0.01",
+      "priceFormula": "IFERROR(VLOOKUP(D17,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 18,
+      "name": "Mini Tiger",
+      "unitsFormula": "$C$6*0.3",
+      "priceFormula": "IFERROR(VLOOKUP(D18,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 19,
+      "name": "Mini Pão de Frios",
+      "unitsFormula": "$C$6*0.2",
+      "priceFormula": "IFERROR(VLOOKUP(D19,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 20,
+      "name": "Pão de Forma integral",
+      "unitsFormula": "$C$6*0.004",
+      "priceFormula": "IFERROR(VLOOKUP(D20,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 21,
+      "name": "Pão de forma Tradicional",
+      "unitsFormula": "$C$6*0.009",
+      "priceFormula": "IFERROR(VLOOKUP(D21,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 22,
+      "name": "Pão de Forma Maritoso",
+      "unitsFormula": "$C$6*0.004",
+      "priceFormula": "IFERROR(VLOOKUP(D22,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 23,
+      "name": "Baguete Francesa 300g",
+      "unitsFormula": "$C$6*0.04",
+      "priceFormula": "IFERROR(VLOOKUP(D23,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 24,
+      "name": "Pães de Decoração Rustico",
+      "unitsFormula": "$C$6*0.04",
+      "priceFormula": "IFERROR(VLOOKUP(D24,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 25,
+      "name": "PÃES DOCES "
+    },
+    {
+      "row": 26,
+      "name": "Mini Brioche ou Pão de Açucar",
+      "unitsFormula": "$C$6*0.2",
+      "priceFormula": "IFERROR(VLOOKUP(D26,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 27,
+      "name": "Mini Bisnaguinha",
+      "unitsFormula": "$C$6*0.2",
+      "priceFormula": "IFERROR(VLOOKUP(D27,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 28,
+      "name": "Mini Pão de coco",
+      "unitsFormula": "$C$6*0.1",
+      "priceFormula": "IFERROR(VLOOKUP(D28,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 29,
+      "name": "Mini Pão doce",
+      "unitsFormula": "$C$6*0.1",
+      "priceFormula": "IFERROR(VLOOKUP(D29,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 30,
+      "name": "Mini Donuts",
+      "unitsFormula": "$C$6*0.2",
+      "priceFormula": "IFERROR(VLOOKUP(D30,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 31,
+      "name": "Mini Sonho",
+      "unitsFormula": "$C$6*0.2",
+      "priceFormula": "IFERROR(VLOOKUP(D31,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 32,
+      "name": "Mini cookies",
+      "unitsFormula": "$C$6*0.2",
+      "priceFormula": "IFERROR(VLOOKUP(D32,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 33,
+      "name": "FOLHADOS"
+    },
+    {
+      "row": 34,
+      "name": "Mini Croissant",
+      "unitsFormula": "$C$6*0.7",
+      "priceFormula": "IFERROR(VLOOKUP(D34,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 35,
+      "name": "Mini Pão de Chocolate",
+      "unitsFormula": "$C$6*0.5",
+      "priceFormula": "IFERROR(VLOOKUP(D35,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 36,
+      "name": "Mini Folhado Salgado",
+      "unitsFormula": "$C$6*0.5",
+      "priceFormula": "IFERROR(VLOOKUP(D36,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 41,
+      "name": "PADARIA "
+    },
+    {
+      "row": 42,
+      "name": "Pães salgados e doces"
+    },
+    {
+      "row": 43,
+      "name": "Pão de queijo",
+      "unitsFormula": "$C$41*0.7",
+      "priceFormula": "IFERROR(VLOOKUP(D43,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 44,
+      "name": "Folhado Salgado",
+      "unitsFormula": "$C$41*0.3",
+      "priceFormula": "IFERROR(VLOOKUP(D44,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 45,
+      "name": "Doce do Dia verificar cardápio",
+      "unitsFormula": "$C$41*0.6",
+      "priceFormula": "IFERROR(VLOOKUP(D45,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 52,
+      "name": "PADARIA "
+    },
+    {
+      "row": 53,
+      "name": "PÃES SALGADOS"
+    },
+    {
+      "row": 54,
+      "name": "Pão Francês 50g",
+      "unitsFormula": "$C$52*0.9",
+      "priceFormula": "IFERROR(VLOOKUP(D54,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    },
+    {
+      "row": 55,
+      "name": "Pão de leite 50g",
+      "unitsFormula": "$C$52*0.6",
+      "priceFormula": "IFERROR(VLOOKUP(D55,PREÇOS!$B$2:$C$32,2,FALSE),0)"
+    }
+  ]
+}

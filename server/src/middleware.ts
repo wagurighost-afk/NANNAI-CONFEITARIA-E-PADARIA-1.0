@@ -19,8 +19,14 @@ export function requireAuth(req: AuthedRequest, res: Response, next: NextFunctio
 
   try {
     const payload = verifyAccessToken(token)
-    req.user = getUserById(payload.sub)
-    next()
+    getUserById(payload.sub)
+      .then((user) => {
+        req.user = user
+        next()
+      })
+      .catch(() => {
+        res.status(401).json({ message: 'Sessão inválida ou expirada.' })
+      })
   } catch {
     res.status(401).json({ message: 'Sessão inválida ou expirada.' })
   }

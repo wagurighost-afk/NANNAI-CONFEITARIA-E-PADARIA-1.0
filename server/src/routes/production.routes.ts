@@ -27,8 +27,8 @@ export const productionRouter = Router()
 
 productionRouter.use(requireAuth)
 
-productionRouter.get('/', (req, res) => {
-  const productions = listProductions({
+productionRouter.get('/', async (req, res) => {
+  const productions = await listProductions({
     search: String(req.query.search ?? ''),
     date: String(req.query.date ?? ''),
     shift: String(req.query.shift ?? 'all'),
@@ -39,8 +39,8 @@ productionRouter.get('/', (req, res) => {
   res.json(productions)
 })
 
-productionRouter.get('/:id', (req, res) => {
-  const production = getProductionById(req.params.id)
+productionRouter.get('/:id', async (req, res) => {
+  const production = await getProductionById(req.params.id)
   if (!production) {
     res.status(404).json({ message: 'Produção não encontrada.' })
     return
@@ -48,46 +48,46 @@ productionRouter.get('/:id', (req, res) => {
   res.json(production)
 })
 
-productionRouter.post('/', (req, res) => {
+productionRouter.post('/', async (req, res) => {
   try {
-    const production = resolveCreateProductionInput(req.body)
+    const production = await resolveCreateProductionInput(req.body)
     res.status(201).json(production)
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Dados inválidos.' })
   }
 })
 
-productionRouter.post('/:id/append-recipes', (req, res) => {
+productionRouter.post('/:id/append-recipes', async (req, res) => {
   try {
     const items = Array.isArray(req.body.items) ? req.body.items : []
-    const production = appendRecipesToProduction(req.params.id, items)
+    const production = await appendRecipesToProduction(req.params.id, items)
     res.json(production)
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Erro ao adicionar receitas.' })
   }
 })
 
-productionRouter.put('/:id', (req, res) => {
+productionRouter.put('/:id', async (req, res) => {
   try {
-    const production = resolveUpdateProductionInput(req.params.id, req.body)
+    const production = await resolveUpdateProductionInput(req.params.id, req.body)
     res.json(production)
   } catch (error) {
     res.status(404).json({ message: error instanceof Error ? error.message : 'Erro ao atualizar.' })
   }
 })
 
-productionRouter.delete('/:id', (req, res) => {
+productionRouter.delete('/:id', async (req, res) => {
   try {
-    removeProduction(req.params.id)
+    await removeProduction(req.params.id)
     res.status(204).send()
   } catch (error) {
     res.status(404).json({ message: error instanceof Error ? error.message : 'Erro ao remover.' })
   }
 })
 
-productionRouter.patch('/:id/items/:itemId/status', (req, res) => {
+productionRouter.patch('/:id/items/:itemId/status', async (req, res) => {
   try {
-    const production = updateItemStatus(
+    const production = await updateItemStatus(
       req.params.id,
       req.params.itemId,
       req.body.status,
@@ -98,24 +98,24 @@ productionRouter.patch('/:id/items/:itemId/status', (req, res) => {
   }
 })
 
-productionRouter.patch('/:id/items/reorder', (req, res) => {
+productionRouter.patch('/:id/items/reorder', async (req, res) => {
   try {
-    const production = reorderItems(req.params.id, req.body.itemIds ?? [])
+    const production = await reorderItems(req.params.id, req.body.itemIds ?? [])
     res.json(production)
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Erro ao reordenar.' })
   }
 })
 
-productionRouter.post('/:id/duplicate', (req, res) => {
+productionRouter.post('/:id/duplicate', async (req, res) => {
   try {
-    const source = getProductionById(req.params.id)
+    const source = await getProductionById(req.params.id)
     if (!source) {
       res.status(404).json({ message: 'Produção de origem não encontrada.' })
       return
     }
 
-    const duplicated = createProduction({
+    const duplicated = await createProduction({
       ...source,
       id: `prd-${randomUUID()}`,
       productionCode: `${source.productionCode}-COPY`,
@@ -132,7 +132,7 @@ productionRouter.post('/:id/duplicate', (req, res) => {
   }
 })
 
-productionRouter.post('/:id/comments', upload.array('photos', 4), (req: AuthedRequest, res) => {
+productionRouter.post('/:id/comments', upload.array('photos', 4), async (req: AuthedRequest, res) => {
   try {
     const files = (req.files as Express.Multer.File[] | undefined) ?? []
     const photos = files.map((file) => ({
@@ -142,7 +142,7 @@ productionRouter.post('/:id/comments', upload.array('photos', 4), (req: AuthedRe
       fileUrl: `/api/uploads/${path.basename(file.path)}`,
     }))
 
-    const production = addComment(req.params.id, {
+    const production = await addComment(req.params.id, {
       authorId: String(req.body.authorId ?? req.user?.employeeId ?? req.user?.id ?? 'unknown'),
       authorName: String(req.body.authorName ?? req.user?.name ?? 'Usuário'),
       message: String(req.body.message ?? ''),

@@ -27,8 +27,8 @@ function parseRecipeInput(body: Record<string, unknown>): RecipeInput {
   return raw as RecipeInput
 }
 
-recipesRouter.get('/', (req, res) => {
-  const recipes = listRecipes({
+recipesRouter.get('/', async (req, res) => {
+  const recipes = await listRecipes({
     search: String(req.query.search ?? ''),
     category: String(req.query.category ?? 'all'),
     status: String(req.query.status ?? 'all'),
@@ -36,8 +36,8 @@ recipesRouter.get('/', (req, res) => {
   res.json(recipes)
 })
 
-recipesRouter.get('/:id', (req, res) => {
-  const recipe = getRecipeById(req.params.id)
+recipesRouter.get('/:id', async (req, res) => {
+  const recipe = await getRecipeById(req.params.id)
   if (!recipe) {
     res.status(404).json({ message: 'Receita não encontrada.' })
     return
@@ -45,18 +45,18 @@ recipesRouter.get('/:id', (req, res) => {
   res.json(recipe)
 })
 
-recipesRouter.post('/', requireManager, upload.single('attachment'), (req: AuthedRequest, res) => {
+recipesRouter.post('/', requireManager, upload.single('attachment'), async (req: AuthedRequest, res) => {
   try {
-    const recipe = createRecipe(parseRecipeInput(req.body), req.file)
+    const recipe = await createRecipe(parseRecipeInput(req.body), req.file)
     res.status(201).json(recipe)
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Dados inválidos.' })
   }
 })
 
-recipesRouter.put('/:id', requireManager, upload.single('attachment'), (req: AuthedRequest, res) => {
+recipesRouter.put('/:id', requireManager, upload.single('attachment'), async (req: AuthedRequest, res) => {
   try {
-    const recipe = updateRecipe(req.params.id, parseRecipeInput(req.body), {
+    const recipe = await updateRecipe(req.params.id, parseRecipeInput(req.body), {
       file: req.file,
       removeAttachment: req.body.removeAttachment === 'true' || req.body.removeAttachment === true,
     })
@@ -66,18 +66,18 @@ recipesRouter.put('/:id', requireManager, upload.single('attachment'), (req: Aut
   }
 })
 
-recipesRouter.delete('/:id', requireManager, (req, res) => {
+recipesRouter.delete('/:id', requireManager, async (req, res) => {
   try {
-    removeRecipe(req.params.id)
+    await removeRecipe(req.params.id)
     res.status(204).send()
   } catch (error) {
     res.status(404).json({ message: error instanceof Error ? error.message : 'Erro ao remover.' })
   }
 })
 
-recipesRouter.patch('/:id/archive', requireManager, (req, res) => {
+recipesRouter.patch('/:id/archive', requireManager, async (req, res) => {
   try {
-    const recipe = archiveRecipe(req.params.id)
+    const recipe = await archiveRecipe(req.params.id)
     res.json(recipe)
   } catch (error) {
     res.status(404).json({ message: error instanceof Error ? error.message : 'Erro ao arquivar.' })

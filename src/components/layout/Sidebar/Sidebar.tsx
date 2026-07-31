@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom'
 import {
   CalendarDays,
   ChefHat,
+  ClipboardList,
   Factory,
   FileText,
   LayoutDashboard,
@@ -27,6 +28,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   CalendarDays,
   Sparkles,
   ChefHat,
+  ClipboardList,
   FileText,
   Users,
   Wheat,

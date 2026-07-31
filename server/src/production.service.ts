@@ -122,21 +122,22 @@ function isCreateProductionInput(input: unknown): input is CreateProductionInput
   return 'employeeId' in input && 'items' in input && !('productionCode' in input)
 }
 
-export function listProductions(filters: ProductionFilters = {}): ProductionDay[] {
-  rolloverProductionsIfNeeded()
-  return loadAllProductions()
+export async function listProductions(filters: ProductionFilters = {}): Promise<ProductionDay[]> {
+  await rolloverProductionsIfNeeded()
+  const productions = await loadAllProductions()
+  return productions
     .filter((production) => matchesFilters(production, filters))
     .map(withProgress)
     .sort((a, b) => b.date.localeCompare(a.date))
 }
 
-export function getProductionById(id: string): ProductionDay | null {
-  rolloverProductionsIfNeeded()
-  const production = loadProductionById(id)
+export async function getProductionById(id: string): Promise<ProductionDay | null> {
+  await rolloverProductionsIfNeeded()
+  const production = await loadProductionById(id)
   return production ? withProgress(production) : null
 }
 
-export function createProduction(input: ProductionDay): ProductionDay {
+export async function createProduction(input: ProductionDay): Promise<ProductionDay> {
   const now = new Date().toISOString()
   const production = withProgress({
     ...input,
@@ -145,16 +146,17 @@ export function createProduction(input: ProductionDay): ProductionDay {
     updatedAt: now,
     comments: input.comments ?? [],
   })
-  saveProduction(production)
+  await saveProduction(production)
   notifyProduction('created', production.id)
   return production
 }
 
-export function createProductionFromInput(input: CreateProductionInput): ProductionDay {
+export async function createProductionFromInput(input: CreateProductionInput): Promise<ProductionDay> {
   const now = new Date().toISOString()
+  const all = await loadAllProductions()
   const production = withProgress({
     id: `prd-${randomUUID()}`,
-    productionCode: getNextProductionCode(loadAllProductions().map((item) => item.productionCode)),
+    productionCode: getNextProductionCode(all.map((item) => item.productionCode)),
     date: input.date,
     shift: input.shift,
     sector: input.sector,
@@ -167,13 +169,13 @@ export function createProductionFromInput(input: CreateProductionInput): Product
     createdAt: now,
     updatedAt: now,
   })
-  saveProduction(production)
+  await saveProduction(production)
   notifyProduction('created', production.id)
   return production
 }
 
-export function updateProduction(id: string, input: ProductionDay): ProductionDay {
-  const existing = loadProductionById(id)
+export async function updateProduction(id: string, input: ProductionDay): Promise<ProductionDay> {
+  const existing = await loadProductionById(id)
   if (!existing) {
     throw new Error('Produção não encontrada.')
   }
@@ -185,13 +187,13 @@ export function updateProduction(id: string, input: ProductionDay): ProductionDa
     createdAt: existing.createdAt,
     updatedAt: new Date().toISOString(),
   })
-  saveProduction(production)
+  await saveProduction(production)
   notifyProduction('updated', production.id)
   return production
 }
 
-export function updateProductionFromInput(id: string, input: CreateProductionInput): ProductionDay {
-  const existing = loadProductionById(id)
+export async function updateProductionFromInput(id: string, input: CreateProductionInput): Promise<ProductionDay> {
+  const existing = await loadProductionById(id)
   if (!existing) {
     throw new Error('Produção não encontrada.')
   }
@@ -207,16 +209,16 @@ export function updateProductionFromInput(id: string, input: CreateProductionInp
     notes: input.notes?.trim() ?? '',
     updatedAt: new Date().toISOString(),
   })
-  saveProduction(production)
+  await saveProduction(production)
   notifyProduction('updated', production.id)
   return production
 }
 
-export function appendRecipesToProduction(
+export async function appendRecipesToProduction(
   productionId: string,
   items: CreateProductionInput['items'],
-): ProductionDay {
-  const existing = loadProductionById(productionId)
+): Promise<ProductionDay> {
+  const existing = await loadProductionById(productionId)
   if (!existing) {
     throw new Error('Produção não encontrada.')
   }
@@ -226,39 +228,39 @@ export function appendRecipesToProduction(
     items: mergeItemsFromInput(existing.items, items),
     updatedAt: new Date().toISOString(),
   })
-  saveProduction(production)
+  await saveProduction(production)
   notifyProduction('updated', production.id)
   return production
 }
 
-export function resolveCreateProductionInput(input: unknown): ProductionDay {
+export async function resolveCreateProductionInput(input: unknown): Promise<ProductionDay> {
   if (isCreateProductionInput(input)) {
     return createProductionFromInput(input)
   }
   return createProduction(input as ProductionDay)
 }
 
-export function resolveUpdateProductionInput(id: string, input: unknown): ProductionDay {
+export async function resolveUpdateProductionInput(id: string, input: unknown): Promise<ProductionDay> {
   if (isCreateProductionInput(input)) {
     return updateProductionFromInput(id, input)
   }
   return updateProduction(id, input as ProductionDay)
 }
 
-export function removeProduction(id: string): void {
-  if (!loadProductionById(id)) {
+export async function removeProduction(id: string): Promise<void> {
+  if (!(await loadProductionById(id))) {
     throw new Error('Produção não encontrada.')
   }
-  deleteProduction(id)
+  await deleteProduction(id)
   notifyProduction('removed', id)
 }
 
-export function updateItemStatus(
+export async function updateItemStatus(
   productionId: string,
   itemId: string,
   status: ProductionItem['status'],
-): ProductionDay {
-  const production = loadProductionById(productionId)
+): Promise<ProductionDay> {
+  const production = await loadProductionById(productionId)
   if (!production) {
     throw new Error('Produção não encontrada.')
   }
@@ -271,13 +273,13 @@ export function updateItemStatus(
     items,
     updatedAt: new Date().toISOString(),
   })
-  saveProduction(updated)
+  await saveProduction(updated)
   notifyProduction('item_status', productionId)
   return updated
 }
 
-export function reorderItems(productionId: string, itemIds: string[]): ProductionDay {
-  const production = loadProductionById(productionId)
+export async function reorderItems(productionId: string, itemIds: string[]): Promise<ProductionDay> {
+  const production = await loadProductionById(productionId)
   if (!production) {
     throw new Error('Produção não encontrada.')
   }
@@ -299,16 +301,16 @@ export function reorderItems(productionId: string, itemIds: string[]): Productio
     items: reordered,
     updatedAt: new Date().toISOString(),
   })
-  saveProduction(updated)
+  await saveProduction(updated)
   notifyProduction('reordered', productionId)
   return updated
 }
 
-export function addComment(
+export async function addComment(
   productionId: string,
   comment: Omit<ShiftComment, 'id' | 'createdAt'>,
-): ProductionDay {
-  const production = loadProductionById(productionId)
+): Promise<ProductionDay> {
+  const production = await loadProductionById(productionId)
   if (!production) {
     throw new Error('Produção não encontrada.')
   }
@@ -332,7 +334,7 @@ export function addComment(
     comments: [entry, ...production.comments],
     updatedAt: new Date().toISOString(),
   })
-  saveProduction(updated)
+  await saveProduction(updated)
   notifyProduction('comment', productionId)
   return updated
 }

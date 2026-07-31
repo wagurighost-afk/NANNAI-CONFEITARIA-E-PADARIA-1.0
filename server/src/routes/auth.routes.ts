@@ -5,11 +5,11 @@ import { requireAuth } from '../middleware.js'
 
 export const authRouter = Router()
 
-authRouter.post('/login', (req, res) => {
+authRouter.post('/login', async (req, res) => {
   try {
     const email = String(req.body?.email ?? '')
     const password = String(req.body?.password ?? '')
-    const session = login(email, password)
+    const session = await login(email, password)
     res.json(session)
   } catch (error) {
     res.status(401).json({ message: error instanceof Error ? error.message : 'Falha no login.' })
@@ -20,24 +20,24 @@ authRouter.get('/me', requireAuth, (req: AuthedRequest, res) => {
   res.json(req.user)
 })
 
-authRouter.post('/refresh', (req, res) => {
+authRouter.post('/refresh', async (req, res) => {
   try {
     const refreshToken = String(req.body?.refreshToken ?? '')
-    const session = refreshSession(refreshToken)
+    const session = await refreshSession(refreshToken)
     res.json(session)
   } catch (error) {
     res.status(401).json({ message: error instanceof Error ? error.message : 'Sessão expirada.' })
   }
 })
 
-authRouter.post('/logout', (req, res) => {
-  logout(typeof req.body?.refreshToken === 'string' ? req.body.refreshToken : undefined)
+authRouter.post('/logout', async (req, res) => {
+  await logout(typeof req.body?.refreshToken === 'string' ? req.body.refreshToken : undefined)
   res.status(204).send()
 })
 
-authRouter.get('/users/:id', requireAuth, (req, res) => {
+authRouter.get('/users/:id', requireAuth, async (req, res) => {
   try {
-    res.json(getUserById(req.params.id))
+    res.json(await getUserById(req.params.id))
   } catch (error) {
     res.status(404).json({ message: error instanceof Error ? error.message : 'Não encontrado.' })
   }

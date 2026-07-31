@@ -1,5 +1,11 @@
 # NANNAI — deploy na nuvem (Render.com)
-# Um único serviço: site + API + PWA instalável
+# Site + API + PWA + PostgreSQL (dados persistentes) + disco para uploads
+
+databases:
+  - name: nannai-db
+    plan: free
+    databaseName: nannai
+    user: nannai
 
 services:
   - type: web
@@ -13,6 +19,10 @@ services:
       npm run build --prefix server
     startCommand: NODE_ENV=production npm run start --prefix server
     healthCheckPath: /api/health
+    disk:
+      name: nannai-uploads
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
       - key: JWT_SECRET
         generateValue: true
@@ -20,3 +30,11 @@ services:
         generateValue: true
       - key: DEFAULT_USER_PASSWORD
         value: Nannai@2026
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nannai-db
+          property: connectionString
+      - key: DATA_DIR
+        value: /var/data
+      - key: UPLOADS_DIR
+        value: /var/data/uploads

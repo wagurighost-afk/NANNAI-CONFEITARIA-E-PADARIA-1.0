@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs'
-import { findUserByEmail, findUserById } from './db.js'
+import { findUserByEmail, findUserById } from './db/index.js'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from './jwt.js'
 import {
   createRefreshToken,
@@ -7,8 +7,9 @@ import {
   revokeRefreshToken,
 } from './seed.js'
 import type { AppUser, AuthSession } from './types.js'
+import type { UserRow } from './db/index.js'
 
-function mapUser(row: NonNullable<ReturnType<typeof findUserById>>): AppUser {
+function mapUser(row: UserRow): AppUser {
   return {
     id: row.id,
     email: row.email,
@@ -18,8 +19,8 @@ function mapUser(row: NonNullable<ReturnType<typeof findUserById>>): AppUser {
   }
 }
 
-function createSession(user: AppUser): AuthSession {
-  const refreshJti = createRefreshToken(user.id)
+async function createSession(user: AppUser): Promise<AuthSession> {
+  const refreshJti = await createRefreshToken(user.id)
   return {
     user,
     tokens: {
@@ -29,8 +30,8 @@ function createSession(user: AppUser): AuthSession {
   }
 }
 
-export function login(email: string, password: string): AuthSession {
-  const row = findUserByEmail(email)
+export async function login(email: string, password: string): Promise<AuthSession> {
+  const row = await findUserByEmail(email)
   if (!row) {
     throw new Error('E-mail ou senha incorretos.')
   }
@@ -43,33 +44,33 @@ export function login(email: string, password: string): AuthSession {
   return createSession(mapUser(row))
 }
 
-export function getUserById(id: string): AppUser {
-  const row = findUserById(id)
+export async function getUserById(id: string): Promise<AppUser> {
+  const row = await findUserById(id)
   if (!row) {
     throw new Error('Usuário não encontrado.')
   }
   return mapUser(row)
 }
 
-export function refreshSession(refreshToken: string): AuthSession {
+export async function refreshSession(refreshToken: string): Promise<AuthSession> {
   const payload = verifyRefreshToken(refreshToken)
-  if (!isRefreshTokenValid(payload.jti, payload.sub)) {
+  if (!(await isRefreshTokenValid(payload.jti, payload.sub))) {
     throw new Error('Sessão expirada. Faça login novamente.')
   }
 
-  const user = getUserById(payload.sub)
-  revokeRefreshToken(payload.jti)
+  const user = await getUserById(payload.sub)
+  await revokeRefreshToken(payload.jti)
   return createSession(user)
 }
 
-export function logout(refreshToken?: string): void {
+export async function logout(refreshToken?: string): Promise<void> {
   if (!refreshToken) {
     return
   }
 
   try {
     const payload = verifyRefreshToken(refreshToken)
-    revokeRefreshToken(payload.jti)
+    await revokeRefreshToken(payload.jti)
   } catch {
     // Ignore invalid refresh token on logout.
   }

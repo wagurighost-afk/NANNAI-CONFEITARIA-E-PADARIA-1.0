@@ -1,0 +1,273 @@
+{
+  "sections": [
+    {
+      "id": "hospedes",
+      "label": "Hotel NANNAI — PAX Hóspedes",
+      "paxField": "hospedesPax",
+      "defaultPax": 200
+    },
+    {
+      "id": "volantes",
+      "label": "Produtos Volantes — PAX",
+      "paxField": "volantesPax",
+      "defaultPax": 200
+    },
+    {
+      "id": "refeitorio",
+      "label": "Refeitório Funcionários — PAX",
+      "paxField": "refeitorioPax",
+      "defaultPax": 200
+    }
+  ],
+  "products": [
+    {
+      "id": "bp-0",
+      "name": "Mini Pão Francês",
+      "category": "PÃES SALGADOS",
+      "sectionId": "hospedes",
+      "multiplier": 0.9,
+      "price": 0.4
+    },
+    {
+      "id": "bp-1",
+      "name": "Mini Pão Integral",
+      "category": "PÃES SALGADOS",
+      "sectionId": "hospedes",
+      "multiplier": 0.2,
+      "price": 0.6
+    },
+    {
+      "id": "bp-2",
+      "name": "Mini Australiano",
+      "category": "PÃES SALGADOS",
+      "sectionId": "hospedes",
+      "multiplier": 0.2,
+      "price": 0.8
+    },
+    {
+      "id": "bp-3",
+      "name": "Mini Pão Gergilim",
+      "category": "PÃES SALGADOS",
+      "sectionId": "hospedes",
+      "multiplier": 0.2,
+      "price": 0.45
+    },
+    {
+      "id": "bp-4",
+      "name": "Mini Pão de Milho ou",
+      "category": "PÃES SALGADOS",
+      "sectionId": "hospedes",
+      "multiplier": 0.2,
+      "price": 0.45
+    },
+    {
+      "id": "bp-5",
+      "name": "Mini Baguete Rustica",
+      "category": "PÃES SALGADOS",
+      "sectionId": "hospedes",
+      "multiplier": 0.1,
+      "price": 0.65
+    },
+    {
+      "id": "bp-6",
+      "name": "Mini Pão Calabresa",
+      "category": "PÃES SALGADOS",
+      "sectionId": "hospedes",
+      "multiplier": 0.2,
+      "price": 0.8
+    },
+    {
+      "id": "bp-7",
+      "name": "Mini Pão Delicia recheado",
+      "category": "PÃES SALGADOS",
+      "sectionId": "hospedes",
+      "multiplier": 0.2,
+      "price": 0.7
+    },
+    {
+      "id": "bp-8",
+      "name": "Focaccia recheada",
+      "category": "PÃES SALGADOS",
+      "sectionId": "hospedes",
+      "multiplier": 0.01,
+      "price": 1.55
+    },
+    {
+      "id": "bp-9",
+      "name": "Mini Tiger",
+      "category": "PÃES SALGADOS",
+      "sectionId": "hospedes",
+      "multiplier": 0.3,
+      "price": 0.4
+    },
+    {
+      "id": "bp-10",
+      "name": "Mini Pão de Frios",
+      "category": "PÃES SALGADOS",
+      "sectionId": "hospedes",
+      "multiplier": 0.2,
+      "price": 0.8
+    },
+    {
+      "id": "bp-11",
+      "name": "Pão de Forma integral",
+      "category": "PÃES SALGADOS",
+      "sectionId": "hospedes",
+      "multiplier": 0.004,
+      "price": 3
+    },
+    {
+      "id": "bp-12",
+      "name": "Pão de forma Tradicional",
+      "category": "PÃES SALGADOS",
+      "sectionId": "hospedes",
+      "multiplier": 0.009,
+      "price": 2.8
+    },
+    {
+      "id": "bp-13",
+      "name": "Pão de Forma Maritoso",
+      "category": "PÃES SALGADOS",
+      "sectionId": "hospedes",
+      "multiplier": 0.004,
+      "price": 3
+    },
+    {
+      "id": "bp-14",
+      "name": "Baguete Francesa 300g",
+      "category": "PÃES SALGADOS",
+      "sectionId": "hospedes",
+      "multiplier": 0.04,
+      "price": 2.6
+    },
+    {
+      "id": "bp-15",
+      "name": "Pães de Decoração Rustico",
+      "category": "PÃES SALGADOS",
+      "sectionId": "hospedes",
+      "multiplier": 0.04,
+      "price": 3.8
+    },
+    {
+      "id": "bp-16",
+      "name": "Mini Brioche ou Pão de Açucar",
+      "category": "PÃES DOCES",
+      "sectionId": "hospedes",
+      "multiplier": 0.2,
+      "price": 0.6
+    },
+    {
+      "id": "bp-17",
+      "name": "Mini Bisnaguinha",
+      "category": "PÃES DOCES",
+      "sectionId": "hospedes",
+      "multiplier": 0.2,
+      "price": 0.5
+    },
+    {
+      "id": "bp-18",
+      "name": "Mini Pão de coco",
+      "category": "PÃES DOCES",
+      "sectionId": "hospedes",
+      "multiplier": 0.1,
+      "price": 0.75
+    },
+    {
+      "id": "bp-19",
+      "name": "Mini Pão doce",
+      "category": "PÃES DOCES",
+      "sectionId": "hospedes",
+      "multiplier": 0.1,
+      "price": 0.6
+    },
+    {
+      "id": "bp-20",
+      "name": "Mini Donuts",
+      "category": "PÃES DOCES",
+      "sectionId": "hospedes",
+      "multiplier": 0.2,
+      "price": 0.8
+    },
+    {
+      "id": "bp-21",
+      "name": "Mini Sonho",
+      "category": "PÃES DOCES",
+      "sectionId": "hospedes",
+      "multiplier": 0.2,
+      "price": 0.8
+    },
+    {
+      "id": "bp-22",
+      "name": "Mini cookies",
+      "category": "PÃES DOCES",
+      "sectionId": "hospedes",
+      "multiplier": 0.2,
+      "price": 0.85
+    },
+    {
+      "id": "bp-23",
+      "name": "Mini Croissant",
+      "category": "FOLHADOS",
+      "sectionId": "hospedes",
+      "multiplier": 0.7,
+      "price": 1.6
+    },
+    {
+      "id": "bp-24",
+      "name": "Mini Pão de Chocolate",
+      "category": "FOLHADOS",
+      "sectionId": "hospedes",
+      "multiplier": 0.5,
+      "price": 1.8
+    },
+    {
+      "id": "bp-25",
+      "name": "Mini Folhado Salgado",
+      "category": "FOLHADOS",
+      "sectionId": "hospedes",
+      "multiplier": 0.5,
+      "price": 0.95
+    },
+    {
+      "id": "bp-26",
+      "name": "Pão de queijo",
+      "category": "PRODUTOS VOLANTES",
+      "sectionId": "volantes",
+      "multiplier": 0.7,
+      "price": 0.63
+    },
+    {
+      "id": "bp-27",
+      "name": "Folhado Salgado",
+      "category": "PRODUTOS VOLANTES",
+      "sectionId": "volantes",
+      "multiplier": 0.3,
+      "price": 0.95
+    },
+    {
+      "id": "bp-28",
+      "name": "Doce do Dia verificar cardápio",
+      "category": "PRODUTOS VOLANTES",
+      "sectionId": "volantes",
+      "multiplier": 0.6,
+      "price": 0.95
+    },
+    {
+      "id": "bp-29",
+      "name": "Pão Francês 50g",
+      "category": "REFEITÓRIO",
+      "sectionId": "refeitorio",
+      "multiplier": 0.9,
+      "price": 0.65
+    },
+    {
+      "id": "bp-30",
+      "name": "Pão de leite 50g",
+      "category": "REFEITÓRIO",
+      "sectionId": "refeitorio",
+      "multiplier": 0.6,
+      "price": 0.8
+    }
+  ],
+  "spreadsheetUrl": "/documents/planilha-producao-paes-2026.xlsx"
+}
