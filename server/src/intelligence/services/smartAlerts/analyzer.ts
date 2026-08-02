@@ -10,7 +10,7 @@ import type { OperationalKpisReport } from '../../types/kpis.types.js'
 import type { SmartAlert, SmartAlertPriority } from '../../types/smartAlerts.types.js'
 import { resolveIngredientStockStatus } from '../../utils/ingredientInventory.js'
 import { round } from '../../utils/kpiMath.js'
-import { previousPeriod } from '../smartInsights/analyzer.js'
+import { hasOperationalData, previousPeriod } from '../../utils/operationalData.js'
 import { compareSmartAlerts } from './priority.js'
 
 interface AnalyzerContext {
@@ -30,15 +30,6 @@ function buildAlert(
     period: ctx.period,
     createdAt: ctx.generatedAt,
   }
-}
-
-function hasOperationalData(report: OperationalKpisReport): boolean {
-  return (
-    report.production.totalProductions > 0
-    || report.waste.totalKg > 0
-    || report.bread.daysWithRecords > 0
-    || report.employees.rows.length > 0
-  )
 }
 
 function analyzeLowStock(ctx: AnalyzerContext): SmartAlert[] {

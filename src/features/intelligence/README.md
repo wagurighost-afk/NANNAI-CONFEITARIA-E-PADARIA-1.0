@@ -1,67 +1,54 @@
 # Frontend — Central de Inteligência Operacional
 
-## Estrutura
+## Estrutura atual
 
 ```
 src/features/intelligence/
-├── README.md
-├── index.ts
+├── components/
+│   ├── ExecutiveDashboard.tsx    # Orquestrador do painel executivo
+│   ├── ExecutiveKpiCard.tsx      # Cartão KPI com prioridade
+│   ├── ExecutivePeriodPicker.tsx # Seletor mês/ano
+│   ├── AlertsPanel.tsx           # Lista de alertas automáticos
+│   └── AlertPriorityIcon.tsx
 ├── constants/
-│   └── intelligence.constants.ts    # query keys
-├── types/
-│   └── intelligence.types.ts        # contrato da API
-├── services/
-│   └── intelligence.service.ts      # cliente HTTP
+│   ├── intelligence.constants.ts
+│   ├── queryOptions.ts           # staleTime, polling 30s
+│   ├── priority.constants.ts
+│   └── alert.constants.ts
 ├── hooks/
-│   └── useIntelligence.ts           # React Query
-└── pages/
-    └── IntelligencePage.tsx         # placeholder (sem UI)
+│   └── useIntelligence.ts        # React Query (dashboard + refresh)
+├── pages/
+│   └── IntelligencePage.tsx
+├── services/
+│   └── intelligence.service.ts
+├── types/
+└── utils/
 ```
 
-## Uso dos hooks
+## Uso principal
 
 ```tsx
-import { useIntelligenceDashboard } from '@/features/intelligence'
+import { useExecutiveDashboard, useIntelligenceRefresh } from '@/features/intelligence'
 
-function Example() {
-  const { data, isLoading, error } = useIntelligenceDashboard({ year: 2026, month: 7 })
-
-  if (isLoading) return null
-  if (error) return null
-
-  return (
-    <pre>{JSON.stringify(data?.kpis, null, 2)}</pre>
-  )
-}
-```
-
-## Serviço HTTP
-
-```ts
-import { intelligenceService } from '@/features/intelligence/services/intelligence.service'
-
-await intelligenceService.getKpis({ year: 2026, month: 7 })
-await intelligenceService.refresh({ year: 2026, month: 7, limit: 10 })
+const { data, isLoading, isError, refetch } = useExecutiveDashboard({ year: 2026, month: 7 })
 ```
 
 ## Rota
 
 - Path: `/intelligence` (`APP_ROUTES.intelligence`)
-- Proteção: `PermissionRoute` com `intelligence:view`
-- Página atual: placeholder oculto — aguardando implementação de UI
+- Menu: **Dashboard Executivo**
+- Proteção: `intelligence:view`
+- Refresh manual: `intelligence:refresh` (liderança)
 
-## Permissões
+## API consumida pela UI
 
-Arquivo: `src/core/permissions/intelligenceAccess.ts`
+| Endpoint | Uso |
+|----------|-----|
+| `GET /intelligence/dashboard` | Painel executivo (1 requisição agregada) |
+| `POST /intelligence/refresh` | Recálculo manual dos snapshots |
 
-- `canAccessIntelligence` → admin + liderança
-- Permissões RBAC: `intelligence:view`, `intelligence:refresh`
+Sincronização em tempo real via SSE (`useRealtimeSync`) invalida `['intelligence']` quando produção, pães, desperdício ou inteligência mudam.
 
-## Próximo passo
+## Documentação backend
 
-Implementar `IntelligenceDashboardPage` consumindo:
-
-- `useIntelligenceDashboard`
-- `useIntelligenceRefresh`
-
-Sem alterar módulos existentes (produção, pães, desperdício, etc.).
+Ver `docs/intelligence/` e `docs/intelligence/REVIEW.md` para arquitetura completa e melhorias.

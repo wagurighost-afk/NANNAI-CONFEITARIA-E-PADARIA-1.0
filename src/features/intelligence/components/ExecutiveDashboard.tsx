@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   AlertCircle,
   DollarSign,
@@ -10,8 +10,12 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react'
-import { Breadcrumb, PageHeader } from '@/components/common'
+import { Breadcrumb, EmptyState, PageHeader } from '@/components/common'
 import { Button, Skeleton } from '@/components/ui'
+import { getErrorMessage } from '@/core/errors'
+import { canRefreshIntelligence } from '@/core/permissions/intelligenceAccess'
+import { useAuth } from '@/hooks/useAuth'
+import { useToast } from '@/hooks'
 import { AlertsPanel } from '@/features/intelligence/components/AlertsPanel'
 import { ExecutiveKpiCard } from '@/features/intelligence/components/ExecutiveKpiCard'
 import { ExecutivePeriodPicker } from '@/features/intelligence/components/ExecutivePeriodPicker'
@@ -55,8 +59,19 @@ function ExecutiveDashboardSkeleton() {
 
 export function ExecutiveDashboard() {
   const [period, setPeriod] = useState<IntelligencePeriod>(currentPeriod)
-  const { data: dashboard, isLoading, isFetching } = useExecutiveDashboard(period)
+  const { user } = useAuth()
+  const { push } = useToast()
+  const prefersReducedMotion = useReducedMotion()
+  const {
+    data: dashboard,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  } = useExecutiveDashboard(period)
   const refresh = useIntelligenceRefresh()
+  const canRefresh = canRefreshIntelligence(user)
 
   const kpis = dashboard?.operationalKpis
   const insightSummary = dashboard?.smartInsights.summary
@@ -140,8 +155,33 @@ export function ExecutiveDashboard() {
 
   const lastUpdated = kpis?.generatedAt ? formatDateTimeBr(kpis.generatedAt) : null
 
+  const handleRefresh = () => {
+    refresh.mutate(
+      { year: period.year, month: period.month },
+      {
+        onSuccess: () => {
+          push({
+            title: 'Indicadores atualizados',
+            description: `Dados de ${formatMonthYearLabel(period.year, period.month)} recalculados.`,
+            variant: 'success',
+          })
+        },
+        onError: (refreshError) => {
+          push({
+            title: 'Falha ao atualizar',
+            description: getErrorMessage(refreshError),
+            variant: 'danger',
+          })
+        },
+      },
+    )
+  }
+
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+    <motion.div
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
       <Breadcrumb
         items={[
           { label: 'Início', href: '/' },
@@ -155,16 +195,19 @@ export function ExecutiveDashboard() {
         actions={
           <>
             <ExecutivePeriodPicker period={period} onChange={setPeriod} />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => refresh.mutate({ year: period.year, month: period.month })}
-              disabled={refresh.isPending}
-              aria-busy={refresh.isPending}
-            >
-              <RefreshCw className={cn('mr-2 size-4', (refresh.isPending || isFetching) && 'animate-spin')} />
-              Atualizar
-            </Button>
+            {canRefresh ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={refresh.isPending}
+                aria-busy={refresh.isPending}
+                aria-label="Recalcular indicadores do período selecionado"
+              >
+                <RefreshCw className={cn('mr-2 size-4', (refresh.isPending || isFetching) && 'animate-spin')} />
+                Atualizar
+              </Button>
+            ) : null}
           </>
         }
       />
@@ -237,14 +280,27 @@ export function ExecutiveDashboard() {
         ) : null}
       </div>
 
+      {isError ? (
+        <div
+          className="mb-6 rounded-2xl border border-danger/30 bg-danger/5 p-4"
+          role="alert"
+          aria-live="assertive"
+        >
+          <p className="text-sm font-medium text-danger">Não foi possível carregar os indicadores.</p>
+          <p className="mt-1 text-sm text-muted-foreground">{getErrorMessage(error)}</p>
+          <Button variant="outline" size="sm" className="mt-3" onClick={() => void refetch()}>
+            Tentar novamente
+          </Button>
+        </div>
+      ) : null}
+
       {isLoading ? (
         <ExecutiveDashboardSkeleton />
       ) : cards.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-10 text-center">
-          <p className="text-sm text-muted-foreground">
-            Sem dados operacionais para {formatMonthYearLabel(period.year, period.month)}.
-          </p>
-        </div>
+        <EmptyState
+          title="Sem dados operacionais"
+          description={`Nenhum indicador disponível para ${formatMonthYearLabel(period.year, period.month)}.`}
+        />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {cards.map((card) => (

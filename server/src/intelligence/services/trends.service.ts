@@ -15,42 +15,76 @@ function directionFromDelta(delta: number): IntelligenceTrend['direction'] {
   return delta > 0 ? 'up' : 'down'
 }
 
-async function computeTrends(
+function buildTrend(
   period: IntelligencePeriod,
-  metricKey?: IntelligenceMetricKey,
-): Promise<IntelligenceTrend[]> {
+  metricKey: 'waste_kg' | 'waste_cost',
+  label: string,
+  unit: string,
+  points: Array<{ date: string; value: number }>,
+): IntelligenceTrend | null {
+  if (points.length === 0) {
+    return null
+  }
+
+  const first = points[0]?.value ?? 0
+  const last = points[points.length - 1]?.value ?? 0
+  const changePercent = first > 0 ? ((last - first) / first) * 100 : 0
+
+  return {
+    id: metricKey === 'waste_cost' ? 'trend-waste-cost' : 'trend-waste-kg',
+    metricKey,
+    label,
+    unit,
+    direction: directionFromDelta(last - first),
+    changePercent: Math.round(changePercent * 100) / 100,
+    points,
+    period,
+  }
+}
+
+/** Calcula todas as tendências disponíveis para o período (cache único). */
+async function computeAllTrends(period: IntelligencePeriod): Promise<IntelligenceTrend[]> {
   const wasteDays = await loadWasteControlDaysInMonth(period.year, period.month)
+  const sorted = wasteDays.slice().sort((a, b) => a.date.localeCompare(b.date))
+
+  const kgPoints = sorted.map((day) => ({ date: day.date, value: day.wasteKgTotal }))
+  const costPoints = sorted.map((day) => ({ date: day.date, value: day.dayTotal }))
 
   const trends: IntelligenceTrend[] = []
 
-  if (!metricKey || metricKey === 'waste_kg' || metricKey === 'waste_cost') {
-    const points = wasteDays
-      .slice()
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .map((day) => ({
-        date: day.date,
-        value: metricKey === 'waste_cost' ? day.dayTotal : day.wasteKgTotal,
-      }))
+  const kgTrend = buildTrend(
+    period,
+    'waste_kg',
+    'Desperdício diário (kg)',
+    'kg',
+    kgPoints,
+  )
+  if (kgTrend) {
+    trends.push(kgTrend)
+  }
 
-    if (points.length > 0) {
-      const first = points[0]?.value ?? 0
-      const last = points[points.length - 1]?.value ?? 0
-      const changePercent = first > 0 ? ((last - first) / first) * 100 : 0
-
-      trends.push({
-        id: metricKey === 'waste_cost' ? 'trend-waste-cost' : 'trend-waste-kg',
-        metricKey: metricKey === 'waste_cost' ? 'waste_cost' : 'waste_kg',
-        label: metricKey === 'waste_cost' ? 'Custo diário de desperdício' : 'Desperdício diário (kg)',
-        unit: metricKey === 'waste_cost' ? 'R$' : 'kg',
-        direction: directionFromDelta(last - first),
-        changePercent: Math.round(changePercent * 100) / 100,
-        points,
-        period,
-      })
-    }
+  const costTrend = buildTrend(
+    period,
+    'waste_cost',
+    'Custo diário de desperdício',
+    'R$',
+    costPoints,
+  )
+  if (costTrend) {
+    trends.push(costTrend)
   }
 
   return trends
+}
+
+function filterTrends(
+  trends: IntelligenceTrend[],
+  metricKey?: IntelligenceMetricKey,
+  limit?: number,
+): IntelligenceTrend[] {
+  const safeLimit = normalizeLimit(limit)
+  const filtered = metricKey ? trends.filter((item) => item.metricKey === metricKey) : trends
+  return filtered.slice(0, safeLimit)
 }
 
 export async function getIntelligenceTrends(
@@ -58,16 +92,12 @@ export async function getIntelligenceTrends(
   metricKey?: IntelligenceMetricKey,
   limit?: number,
 ): Promise<IntelligenceTrend[]> {
-  const safeLimit = normalizeLimit(limit)
   const cached = await findSnapshotByCategory<IntelligenceTrend[]>(period, 'trend')
   if (cached?.data?.length) {
-    const filtered = metricKey
-      ? cached.data.filter((item) => item.metricKey === metricKey)
-      : cached.data
-    return filtered.slice(0, safeLimit)
+    return filterTrends(cached.data, metricKey, limit)
   }
 
-  const trends = await computeTrends(period, metricKey)
+  const trends = await computeAllTrends(period)
   const generatedAt = new Date().toISOString()
 
   await upsertSnapshot({
@@ -78,14 +108,14 @@ export async function getIntelligenceTrends(
     data: trends,
   })
 
-  return trends.slice(0, safeLimit)
+  return filterTrends(trends, metricKey, limit)
 }
 
 export async function refreshIntelligenceTrends(
   period: IntelligencePeriod,
   metricKey?: IntelligenceMetricKey,
 ): Promise<IntelligenceTrend[]> {
-  const trends = await computeTrends(period, metricKey)
+  const trends = await computeAllTrends(period)
   const generatedAt = new Date().toISOString()
 
   await upsertSnapshot({
@@ -96,5 +126,5 @@ export async function refreshIntelligenceTrends(
     data: trends,
   })
 
-  return trends
+  return filterTrends(trends, metricKey)
 }

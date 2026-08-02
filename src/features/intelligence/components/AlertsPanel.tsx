@@ -47,7 +47,7 @@ export const AlertCard = memo(function AlertCard({ alert, className }: AlertCard
           <span className="text-muted-foreground">{alert.reason}</span>
         </p>
         {alert.evidence.length > 0 ? (
-          <ul className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+          <ul className="flex flex-wrap gap-2 text-xs text-muted-foreground" aria-label="Evidências">
             {alert.evidence.map((item) => (
               <li key={`${alert.id}-${item.label}`} className="rounded-md bg-muted px-2 py-1">
                 {item.label}: <span className="font-medium text-foreground">{item.value}</span>
@@ -88,16 +88,20 @@ export function AlertsPanel({ alerts, isLoading, className }: AlertsPanelProps) 
   }
 
   return (
-    <div className={cn('space-y-3', className)}>
+    <section className={cn('space-y-3', className)} aria-labelledby="executive-alerts-heading">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="font-display text-xl text-foreground">Alertas automáticos</h2>
+        <h2 id="executive-alerts-heading" className="font-display text-xl text-foreground">
+          Alertas automáticos
+        </h2>
         <Badge variant="muted">{alerts.length} ativo(s)</Badge>
       </div>
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2" role="list">
         {alerts.map((alert) => (
-          <AlertCard key={alert.id} alert={alert} />
+          <li key={alert.id} role="listitem">
+            <AlertCard alert={alert} />
+          </li>
         ))}
-      </div>
-    </div>
+      </ul>
+    </section>
   )
 }

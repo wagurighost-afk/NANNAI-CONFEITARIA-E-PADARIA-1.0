@@ -9,6 +9,8 @@ import type { IntelligencePeriod } from '../types.js'
 import type { OperationalKpisReport } from '../types/kpis.types.js'
 import { computeOperationalKpis } from './kpis/operational.kpis.js'
 
+const inflight = new Map<string, Promise<OperationalKpisReport>>()
+
 function isOperationalKpisReport(data: unknown): data is OperationalKpisReport {
   if (!data || typeof data !== 'object') {
     return false
@@ -17,14 +19,7 @@ function isOperationalKpisReport(data: unknown): data is OperationalKpisReport {
   return Boolean(record.production && record.waste && record.bread && record.recipes && record.employees)
 }
 
-async function loadOrCompute(period: IntelligencePeriod, force = false): Promise<OperationalKpisReport> {
-  if (!force) {
-    const cached = await findSnapshotByCategory<OperationalKpisReport>(period, 'kpi')
-    if (cached?.data && isOperationalKpisReport(cached.data)) {
-      return cached.data
-    }
-  }
-
+async function computeAndPersist(period: IntelligencePeriod): Promise<OperationalKpisReport> {
   const report = await computeOperationalKpis(period)
 
   await upsertSnapshot({
@@ -36,6 +31,30 @@ async function loadOrCompute(period: IntelligencePeriod, force = false): Promise
   })
 
   return report
+}
+
+async function loadOrCompute(period: IntelligencePeriod, force = false): Promise<OperationalKpisReport> {
+  if (!force) {
+    const cached = await findSnapshotByCategory<OperationalKpisReport>(period, 'kpi')
+    if (cached?.data && isOperationalKpisReport(cached.data)) {
+      return cached.data
+    }
+  }
+
+  const key = `${period.year}-${period.month}`
+  const pending = inflight.get(key)
+  if (pending) {
+    return pending
+  }
+
+  const promise = computeAndPersist(period)
+  inflight.set(key, promise)
+
+  try {
+    return await promise
+  } finally {
+    inflight.delete(key)
+  }
 }
 
 export async function getOperationalKpis(period: IntelligencePeriod): Promise<OperationalKpisReport> {

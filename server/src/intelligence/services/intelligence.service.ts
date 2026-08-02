@@ -77,8 +77,9 @@ export async function refreshIntelligenceData(
   clearOperationalContextCache()
   await clearPeriodSnapshots(period)
 
+  await refreshOperationalKpis(period)
+
   await Promise.all([
-    refreshOperationalKpis(period),
     refreshIntelligenceInsights(period),
     refreshIntelligenceRecommendations(period),
     refreshIntelligenceAlerts(period),

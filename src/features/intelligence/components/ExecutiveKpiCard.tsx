@@ -1,5 +1,5 @@
 import { memo, type ReactNode } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Badge } from '@/components/ui'
 import {
   EXECUTIVE_PRIORITY_CARD_STYLES,
@@ -27,12 +27,15 @@ export const ExecutiveKpiCard = memo(function ExecutiveKpiCard({
   className,
 }: ExecutiveKpiCardProps) {
   const styles = EXECUTIVE_PRIORITY_CARD_STYLES[priority]
+  const prefersReducedMotion = useReducedMotion()
+  const ariaLabel = `${label}: ${value}. Prioridade ${SMART_PRIORITY_LABELS[priority]}.${description ? ` ${description}` : ''}`
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 12 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25 }}
+      transition={{ duration: prefersReducedMotion ? 0 : 0.25 }}
+      aria-label={ariaLabel}
       className={cn(
         'relative overflow-hidden rounded-2xl border p-5 shadow-sm transition-shadow hover:shadow-md',
         styles.card,

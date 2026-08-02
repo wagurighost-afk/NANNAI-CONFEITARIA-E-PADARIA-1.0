@@ -12,7 +12,7 @@ import type {
   SmartRecommendationPriority,
 } from '../../types/smartRecommendations.types.js'
 import { round } from '../../utils/kpiMath.js'
-import { previousPeriod } from '../smartInsights/analyzer.js'
+import { hasOperationalData, previousPeriod } from '../../utils/operationalData.js'
 import { compareSmartRecommendations } from './priority.js'
 
 interface AnalyzerContext {
@@ -32,15 +32,6 @@ function buildRecommendation(
     period: ctx.period,
     createdAt: ctx.generatedAt,
   }
-}
-
-function hasOperationalData(report: OperationalKpisReport): boolean {
-  return (
-    report.production.totalProductions > 0
-    || report.waste.totalKg > 0
-    || report.bread.daysWithRecords > 0
-    || report.employees.rows.length > 0
-  )
 }
 
 function collectBreadIngredientNames(recipes: Recipe[]): string[] {

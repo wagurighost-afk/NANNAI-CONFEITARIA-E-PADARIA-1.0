@@ -7,6 +7,7 @@
 import type { IntelligencePeriod } from '../../types.js'
 import type { OperationalKpisReport } from '../../types/kpis.types.js'
 import type { SmartInsight, SmartInsightPriority } from '../../types/smartInsights.types.js'
+import { hasOperationalData, previousPeriod } from '../../utils/operationalData.js'
 import { round } from '../../utils/kpiMath.js'
 import { compareSmartInsights } from './priority.js'
 
@@ -15,13 +16,6 @@ interface AnalyzerContext {
   current: OperationalKpisReport
   previous: OperationalKpisReport | null
   generatedAt: string
-}
-
-function previousPeriod(period: IntelligencePeriod): IntelligencePeriod {
-  if (period.month === 1) {
-    return { year: period.year - 1, month: 12 }
-  }
-  return { year: period.year, month: period.month - 1 }
 }
 
 function buildInsight(
@@ -33,15 +27,6 @@ function buildInsight(
     period: ctx.period,
     createdAt: ctx.generatedAt,
   }
-}
-
-function hasOperationalData(report: OperationalKpisReport): boolean {
-  return (
-    report.production.totalProductions > 0
-    || report.waste.totalKg > 0
-    || report.bread.daysWithRecords > 0
-    || report.employees.rows.length > 0
-  )
 }
 
 function analyzeWasteIncrease(ctx: AnalyzerContext): SmartInsight | null {

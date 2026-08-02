@@ -8,9 +8,9 @@ import type { IngredientInventoryRecord } from '../../data/ingredientsInventoryS
 import type { IntelligencePeriod } from '../types.js'
 import type { OperationalKpisReport } from '../types/kpis.types.js'
 import { loadIngredientInventory } from '../utils/ingredientInventory.js'
+import { hasOperationalData, previousPeriod } from '../utils/operationalData.js'
 import { loadRecipesCached } from '../cache/resourceCache.js'
 import { getOperationalKpis } from './kpis.service.js'
-import { previousPeriod } from './smartInsights/analyzer.js'
 
 export interface OperationalComparisonContext {
   current: OperationalKpisReport
@@ -20,15 +20,6 @@ export interface OperationalComparisonContext {
 }
 
 const inflight = new Map<string, Promise<OperationalComparisonContext>>()
-
-function hasOperationalData(report: OperationalKpisReport): boolean {
-  return (
-    report.production.totalProductions > 0
-    || report.waste.totalKg > 0
-    || report.bread.daysWithRecords > 0
-    || report.employees.rows.length > 0
-  )
-}
 
 export async function resolveOperationalComparisonContext(
   period: IntelligencePeriod,

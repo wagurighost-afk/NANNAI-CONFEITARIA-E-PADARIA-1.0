@@ -9,6 +9,7 @@ import { canAccessIntelligence } from '../intelligence/access.js'
 import { toAuditActor } from '../audit/actor.js'
 import { safeAudit } from '../audit/safeAudit.js'
 import { normalizeLimit, normalizePeriod } from '../intelligence/constants.js'
+import { respondIntelligenceError } from '../intelligence/utils/httpErrors.js'
 import {
   getIntelligenceAlerts,
   getIntelligenceAlertsReport,
@@ -69,9 +70,7 @@ intelligenceRouter.get('/dashboard', async (req: AuthedRequest, res) => {
     const limit = normalizeLimit(Number(req.query.limit))
     res.json(await getIntelligenceDashboard(period, limit))
   } catch (error) {
-    res.status(500).json({
-      message: error instanceof Error ? error.message : 'Falha ao carregar dashboard de inteligência.',
-    })
+    respondIntelligenceError(res, error, 'Falha ao carregar dashboard de inteligência.')
   }
 })
 
@@ -334,8 +333,6 @@ intelligenceRouter.post('/refresh', async (req: AuthedRequest, res) => {
 
     res.json(result)
   } catch (error) {
-    res.status(500).json({
-      message: error instanceof Error ? error.message : 'Falha ao atualizar inteligência operacional.',
-    })
+    respondIntelligenceError(res, error, 'Falha ao atualizar inteligência operacional.')
   }
 })
