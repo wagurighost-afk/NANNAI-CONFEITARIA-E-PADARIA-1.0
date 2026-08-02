@@ -22,6 +22,8 @@ export const INTELLIGENCE_QUERY_KEYS = {
     ['intelligence', 'kpis', 'employees', params.year, params.month] as const,
   dashboard: (params: IntelligenceQueryParams) =>
     ['intelligence', 'dashboard', params.year, params.month, params.limit ?? null] as const,
+  executiveDashboard: (params: Pick<IntelligenceQueryParams, 'year' | 'month'>) =>
+    ['intelligence', 'executive-dashboard', params.year, params.month] as const,
   kpis: (params: Pick<IntelligenceQueryParams, 'year' | 'month'>) =>
     ['intelligence', 'kpis', params.year, params.month] as const,
   smartInsights: (params: Pick<IntelligenceQueryParams, 'year' | 'month'>) =>

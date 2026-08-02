@@ -4,6 +4,9 @@
  */
 
 import { INTELLIGENCE_CATEGORIES } from '../constants.js'
+import { clearResourceCache } from '../cache/resourceCache.js'
+import { clearSnapshotCache } from '../cache/snapshotCache.js'
+import { findAllSnapshotsForPeriod } from '../repository/intelligence.repository.js'
 import { clearPeriodSnapshots } from '../repository/intelligence.repository.js'
 import type { OperationalKpisReport } from '../types/kpis.types.js'
 import type { SmartInsight, SmartInsightsReport } from '../types/smartInsights.types.js'
@@ -27,12 +30,15 @@ import {
   getIntelligenceRecommendationsReport,
   refreshIntelligenceRecommendations,
 } from './recommendations.service.js'
+import { clearOperationalContextCache } from './operationalContext.service.js'
 import { getIntelligenceTrends, refreshIntelligenceTrends } from './trends.service.js'
 
 export async function getIntelligenceDashboard(
   period: IntelligencePeriod,
   limit?: number,
 ): Promise<IntelligenceDashboard> {
+  await findAllSnapshotsForPeriod(period)
+
   const [operationalKpis, smartInsights, smartRecommendations, smartAlerts, trends] = await Promise.all([
     getOperationalKpis(period),
     getIntelligenceInsightsReport(period),
@@ -66,6 +72,9 @@ export async function refreshIntelligenceData(
   period: IntelligencePeriod,
   limit?: number,
 ): Promise<IntelligenceRefreshResult> {
+  clearSnapshotCache()
+  clearResourceCache()
+  clearOperationalContextCache()
   await clearPeriodSnapshots(period)
 
   await Promise.all([

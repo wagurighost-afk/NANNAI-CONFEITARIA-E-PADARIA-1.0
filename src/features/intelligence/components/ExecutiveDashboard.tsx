@@ -16,10 +16,8 @@ import { AlertsPanel } from '@/features/intelligence/components/AlertsPanel'
 import { ExecutiveKpiCard } from '@/features/intelligence/components/ExecutiveKpiCard'
 import { ExecutivePeriodPicker } from '@/features/intelligence/components/ExecutivePeriodPicker'
 import {
-  useExecutiveOperationalKpis,
+  useExecutiveDashboard,
   useIntelligenceRefresh,
-  useSmartAlertsReport,
-  useSmartInsightsReport,
 } from '@/features/intelligence/hooks/useIntelligence'
 import type { IntelligencePeriod } from '@/features/intelligence/types/intelligence.types'
 import {
@@ -57,14 +55,13 @@ function ExecutiveDashboardSkeleton() {
 
 export function ExecutiveDashboard() {
   const [period, setPeriod] = useState<IntelligencePeriod>(currentPeriod)
-  const {
-    data: kpis,
-    isLoading,
-    isFetching,
-  } = useExecutiveOperationalKpis(period)
-  const { data: insightsReport } = useSmartInsightsReport(period)
-  const { data: alertsReport, isLoading: alertsLoading } = useSmartAlertsReport(period)
+  const { data: dashboard, isLoading, isFetching } = useExecutiveDashboard(period)
   const refresh = useIntelligenceRefresh()
+
+  const kpis = dashboard?.operationalKpis
+  const insightSummary = dashboard?.smartInsights.summary
+  const alertSummary = dashboard?.smartAlerts.summary
+  const alerts = dashboard?.smartAlerts.alerts ?? []
 
   const cards = useMemo(() => {
     if (!kpis) {
@@ -141,8 +138,6 @@ export function ExecutiveDashboard() {
     ]
   }, [kpis])
 
-  const insightSummary = insightsReport?.summary
-  const alertSummary = alertsReport?.summary
   const lastUpdated = kpis?.generatedAt ? formatDateTimeBr(kpis.generatedAt) : null
 
   return (
@@ -265,11 +260,7 @@ export function ExecutiveDashboard() {
         </div>
       )}
 
-      <AlertsPanel
-        className="mt-8"
-        alerts={alertsReport?.alerts ?? []}
-        isLoading={alertsLoading}
-      />
+      <AlertsPanel className="mt-8" alerts={alerts} isLoading={isLoading && !dashboard} />
     </motion.div>
   )
 }

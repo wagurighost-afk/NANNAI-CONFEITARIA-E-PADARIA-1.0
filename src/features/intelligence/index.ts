@@ -4,6 +4,7 @@ export { AlertsPanel } from '@/features/intelligence/components/AlertsPanel'
 export { AlertPriorityIcon } from '@/features/intelligence/components/AlertPriorityIcon'
 export { intelligenceService } from '@/features/intelligence/services/intelligence.service'
 export {
+  useExecutiveDashboard,
   useExecutiveOperationalKpis,
   useSmartAlertsReport,
   useIntelligenceAlerts,

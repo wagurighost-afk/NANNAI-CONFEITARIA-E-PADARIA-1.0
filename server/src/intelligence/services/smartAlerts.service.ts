@@ -7,10 +7,8 @@ import { buildSnapshotId, normalizeLimit } from '../constants.js'
 import { findSnapshotByCategory, upsertSnapshot } from '../repository/intelligence.repository.js'
 import type { IntelligencePeriod } from '../types.js'
 import type { SmartAlert, SmartAlertsReport } from '../types/smartAlerts.types.js'
-import { loadIngredientInventory } from '../utils/ingredientInventory.js'
-import { getOperationalKpis } from './kpis.service.js'
-import { computeOperationalKpis } from './kpis/operational.kpis.js'
-import { analyzeSmartAlerts, previousPeriod } from './smartAlerts/analyzer.js'
+import { resolveOperationalComparisonContext } from './operationalContext.service.js'
+import { analyzeSmartAlerts } from './smartAlerts/analyzer.js'
 import { summarizeAlertPriorities } from './smartAlerts/priority.js'
 
 function isSmartAlertsReport(data: unknown): data is SmartAlertsReport {
@@ -22,17 +20,8 @@ function isSmartAlertsReport(data: unknown): data is SmartAlertsReport {
 }
 
 async function computeSmartAlertsReport(period: IntelligencePeriod): Promise<SmartAlertsReport> {
-  const current = await getOperationalKpis(period)
-  const prev = previousPeriod(period)
-  const previous = await computeOperationalKpis(prev)
-  const inventory = loadIngredientInventory()
-
-  const hasPreviousData =
-    previous.production.totalProductions > 0
-    || previous.waste.totalKg > 0
-    || previous.bread.daysWithRecords > 0
-
-  const alerts = analyzeSmartAlerts(current, hasPreviousData ? previous : null, inventory)
+  const { current, previous, inventory } = await resolveOperationalComparisonContext(period)
+  const alerts = analyzeSmartAlerts(current, previous, inventory)
 
   return {
     period,

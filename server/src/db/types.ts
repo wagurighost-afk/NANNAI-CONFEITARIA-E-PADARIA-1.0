@@ -44,6 +44,7 @@ export interface DatabaseStore {
   saveProductionRecord(production: ProductionDay): Promise<void>
   loadProductionRecord(id: string): Promise<ProductionDay | null>
   loadAllProductionRecords(): Promise<ProductionDay[]>
+  loadProductionRecordsInMonth(year: number, month: number): Promise<ProductionDay[]>
   deleteProductionRecord(id: string): Promise<void>
   insertRefreshToken(token: string, userId: string, expiresAt: string): Promise<void>
   deleteRefreshToken(token: string): Promise<void>

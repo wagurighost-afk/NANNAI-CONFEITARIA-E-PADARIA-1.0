@@ -140,6 +140,14 @@ export function createJsonStore(): DatabaseStore {
       return readDb().productions
     },
 
+    async loadProductionRecordsInMonth(year, month) {
+      const start = `${year}-${String(month).padStart(2, '0')}-01`
+      const endMonth = month === 12 ? 1 : month + 1
+      const endYear = month === 12 ? year + 1 : year
+      const end = `${endYear}-${String(endMonth).padStart(2, '0')}-01`
+      return readDb().productions.filter((item) => item.date >= start && item.date < end)
+    },
+
     async deleteProductionRecord(id) {
       const db = readDb()
       db.productions = db.productions.filter((item) => item.id !== id)

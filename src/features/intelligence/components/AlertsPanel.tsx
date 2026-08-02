@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Skeleton } from '@/components/ui'
 import { AlertPriorityIcon } from '@/features/intelligence/components/AlertPriorityIcon'
 import {
@@ -15,7 +16,7 @@ export interface AlertCardProps {
   className?: string
 }
 
-export function AlertCard({ alert, className }: AlertCardProps) {
+export const AlertCard = memo(function AlertCard({ alert, className }: AlertCardProps) {
   return (
     <Card
       className={cn(
@@ -57,7 +58,7 @@ export function AlertCard({ alert, className }: AlertCardProps) {
       </CardContent>
     </Card>
   )
-}
+})
 
 export interface AlertsPanelProps {
   alerts: SmartAlert[]

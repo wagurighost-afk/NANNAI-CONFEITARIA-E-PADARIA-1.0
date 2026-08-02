@@ -158,3 +158,4 @@ Para adicionar novos KPIs/insights:
 
 - Backend: `server/src/intelligence/README.md`
 - Frontend: `src/features/intelligence/README.md`
+- Otimizações: `docs/intelligence/OPTIMIZATIONS.md`

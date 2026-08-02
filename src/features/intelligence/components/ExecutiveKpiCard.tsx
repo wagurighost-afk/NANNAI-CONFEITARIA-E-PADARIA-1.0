@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { memo, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import { Badge } from '@/components/ui'
 import {
@@ -18,7 +18,7 @@ export interface ExecutiveKpiCardProps {
   className?: string
 }
 
-export function ExecutiveKpiCard({
+export const ExecutiveKpiCard = memo(function ExecutiveKpiCard({
   label,
   value,
   description,
@@ -70,4 +70,4 @@ export function ExecutiveKpiCard({
       </div>
     </motion.article>
   )
-}
+})

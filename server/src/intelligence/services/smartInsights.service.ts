@@ -7,9 +7,8 @@ import { buildSnapshotId, normalizeLimit } from '../constants.js'
 import { findSnapshotByCategory, upsertSnapshot } from '../repository/intelligence.repository.js'
 import type { IntelligencePeriod } from '../types.js'
 import type { SmartInsight, SmartInsightsReport } from '../types/smartInsights.types.js'
-import { getOperationalKpis } from './kpis.service.js'
-import { computeOperationalKpis } from './kpis/operational.kpis.js'
-import { analyzeSmartInsights, previousPeriod } from './smartInsights/analyzer.js'
+import { resolveOperationalComparisonContext } from './operationalContext.service.js'
+import { analyzeSmartInsights } from './smartInsights/analyzer.js'
 import { summarizePriorities } from './smartInsights/priority.js'
 
 function isSmartInsightsReport(data: unknown): data is SmartInsightsReport {
@@ -21,16 +20,8 @@ function isSmartInsightsReport(data: unknown): data is SmartInsightsReport {
 }
 
 async function computeSmartInsightsReport(period: IntelligencePeriod): Promise<SmartInsightsReport> {
-  const current = await getOperationalKpis(period)
-  const prev = previousPeriod(period)
-  const previous = await computeOperationalKpis(prev)
-
-  const hasPreviousData =
-    previous.production.totalProductions > 0
-    || previous.waste.totalKg > 0
-    || previous.bread.daysWithRecords > 0
-
-  const insights = analyzeSmartInsights(current, hasPreviousData ? previous : null)
+  const { current, previous } = await resolveOperationalComparisonContext(period)
+  const insights = analyzeSmartInsights(current, previous)
   const generatedAt = new Date().toISOString()
 
   return {

@@ -82,6 +82,10 @@ export async function loadAllProductionRecords() {
   return getStore().loadAllProductionRecords()
 }
 
+export async function loadProductionRecordsInMonth(year: number, month: number) {
+  return getStore().loadProductionRecordsInMonth(year, month)
+}
+
 export async function deleteProductionRecord(id: string): Promise<void> {
   await getStore().deleteProductionRecord(id)
 }

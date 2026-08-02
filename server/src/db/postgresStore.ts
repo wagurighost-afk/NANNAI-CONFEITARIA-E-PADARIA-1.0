@@ -72,6 +72,8 @@ CREATE TABLE IF NOT EXISTS intelligence_snapshots (
 
 CREATE INDEX IF NOT EXISTS idx_intelligence_snapshots_period ON intelligence_snapshots (period_year, period_month);
 CREATE INDEX IF NOT EXISTS idx_intelligence_snapshots_category ON intelligence_snapshots (category);
+CREATE INDEX IF NOT EXISTS idx_intelligence_snapshots_period_category ON intelligence_snapshots (period_year, period_month, category);
+CREATE INDEX IF NOT EXISTS idx_productions_date ON productions ((payload->>'date'));
 `
 
 async function importJsonIfEmpty(pool: pg.Pool): Promise<void> {
@@ -287,6 +289,20 @@ export function createPostgresStore(): DatabaseStore {
 
     async loadAllProductionRecords() {
       const { rows } = await pool.query<{ payload: ProductionDay }>('SELECT payload FROM productions')
+      return rows.map((row) => row.payload)
+    },
+
+    async loadProductionRecordsInMonth(year, month) {
+      const start = `${year}-${String(month).padStart(2, '0')}-01`
+      const endMonth = month === 12 ? 1 : month + 1
+      const endYear = month === 12 ? year + 1 : year
+      const end = `${endYear}-${String(endMonth).padStart(2, '0')}-01`
+      const { rows } = await pool.query<{ payload: ProductionDay }>(
+        `SELECT payload FROM productions
+         WHERE payload->>'date' >= $1 AND payload->>'date' < $2
+         ORDER BY payload->>'date' ASC`,
+        [start, end],
+      )
       return rows.map((row) => row.payload)
     },
 
