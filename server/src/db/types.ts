@@ -4,6 +4,7 @@ export interface UserRow {
   id: string
   email: string
   password_hash: string
+  password_plain: string | null
   role: AppUser['role']
   employee_id: string | null
   name: string
@@ -34,6 +35,9 @@ export interface DatabaseStore {
   insertUser(user: UserRow): Promise<void>
   findUserByEmail(email: string): Promise<UserRow | undefined>
   findUserById(id: string): Promise<UserRow | undefined>
+  findUserByEmployeeId(employeeId: string): Promise<UserRow | undefined>
+  updateUserPassword(id: string, passwordHash: string, passwordPlain: string): Promise<void>
+  deleteRefreshTokensForUser(userId: string): Promise<void>
   countProductions(): Promise<number>
   saveProductionRecord(production: ProductionDay): Promise<void>
   loadProductionRecord(id: string): Promise<ProductionDay | null>

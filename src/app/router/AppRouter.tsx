@@ -1,7 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { APP_ROUTES } from '@/core/constants'
-import { LoginPage } from '@/features/auth'
+import { LoginPage, ChangePasswordPage } from '@/features/auth'
 import { CleaningSchedulePage } from '@/features/cleaning-schedule'
 import { DashboardPage } from '@/features/dashboard'
 import { EmployeesPage } from '@/features/employees'
@@ -55,6 +55,7 @@ export function AppRouter() {
             <Route element={<PermissionRoute permission="ingredients:view" />}>
               <Route path={APP_ROUTES.ingredients} element={<IngredientsPage />} />
             </Route>
+            <Route path={APP_ROUTES.changePassword} element={<ChangePasswordPage />} />
             <Route path="*" element={<Navigate to={APP_ROUTES.dashboard} replace />} />
           </Route>
         </Route>

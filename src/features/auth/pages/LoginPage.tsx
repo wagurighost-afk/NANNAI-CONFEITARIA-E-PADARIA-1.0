@@ -36,7 +36,7 @@ export function LoginPage() {
             <CardTitle>Entrar</CardTitle>
             <CardDescription>
               {env.useMock
-                ? 'Modo demonstração — qualquer senha funciona com e-mail corporativo.'
+                ? 'Modo demonstração — use a senha padrão ou a definida pela liderança.'
                 : 'Use seu e-mail corporativo e a senha fornecida pela administração.'}
             </CardDescription>
           </CardHeader>
@@ -71,6 +71,10 @@ export function LoginPage() {
                 </Button>
                 <InstallAppButton className="w-full sm:w-auto" />
               </div>
+
+              <p className="text-center text-xs text-muted-foreground">
+                Esqueceu a senha? Peça à liderança ou ao administrador para consultar ou redefinir.
+              </p>
             </form>
           </CardContent>
         </Card>

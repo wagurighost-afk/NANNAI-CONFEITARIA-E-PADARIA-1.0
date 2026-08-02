@@ -4,6 +4,7 @@ import { Badge, Button, Drawer, Tabs, TabsContent, TabsList, TabsTrigger } from 
 import { EmployeeAvatar } from '@/features/employees/components/EmployeeAvatar'
 import { EmployeeStatusBadge } from '@/features/employees/components/EmployeeStatusBadge'
 import { EmployeeDaysOffPanel } from '@/features/schedule/components/EmployeeDaysOffPanel'
+import { EmployeePasswordPanel } from '@/features/employees/components/EmployeePasswordPanel'
 import { monthlyScheduleService } from '@/features/schedule/services/monthlySchedule.service'
 import {
   EMPLOYEE_PHOTO_ACCEPT,
@@ -13,6 +14,8 @@ import {
 import type { Employee } from '@/features/employees/types/employee.types'
 import { useQuery } from '@tanstack/react-query'
 import { cn } from '@/utils/cn'
+import { useAuth } from '@/hooks/useAuth'
+import { hasFullSystemAccess } from '@/core/permissions/systemAccess'
 
 export interface EmployeeProfileDrawerProps {
   employee: Employee | null
@@ -33,6 +36,8 @@ export function EmployeeProfileDrawer({
   onPhotoChange,
   isUpdatingPhoto = false,
 }: EmployeeProfileDrawerProps) {
+  const { user } = useAuth()
+  const canManagePasswords = hasFullSystemAccess(user)
   const photoInputRef = useRef<HTMLInputElement>(null)
   const [photoError, setPhotoError] = useState<string | null>(null)
 
@@ -170,6 +175,9 @@ export function EmployeeProfileDrawer({
           <InfoRow label="Turno" value={employee.shift} />
           <InfoRow label="Admissão" value={formatDate(employee.admissionDate)} />
           <InfoRow label="Observações" value={employee.notes ?? '—'} />
+          {canManagePasswords ? (
+            <EmployeePasswordPanel employeeId={employee.id} employeeEmail={employee.email} />
+          ) : null}
         </TabsContent>
 
         <TabsContent value="history" className="space-y-3">

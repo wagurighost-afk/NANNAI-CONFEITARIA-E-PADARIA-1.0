@@ -1,5 +1,13 @@
 import bcrypt from 'bcryptjs'
-import { findUserByEmail, findUserById } from './db/index.js'
+import { canManageUserPasswords } from './auth/passwordAccess.js'
+import { config } from './config.js'
+import {
+  deleteRefreshTokensForUser,
+  findUserByEmail,
+  findUserByEmployeeId,
+  findUserById,
+  updateUserPassword,
+} from './db/index.js'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from './jwt.js'
 import {
   createRefreshToken,
@@ -73,5 +81,89 @@ export async function logout(refreshToken?: string): Promise<void> {
     await revokeRefreshToken(payload.jti)
   } catch {
     // Ignore invalid refresh token on logout.
+  }
+}
+
+const PASSWORD_MIN_LENGTH = 6
+
+function assertValidPassword(password: string): void {
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    throw new Error(`A senha deve ter pelo menos ${PASSWORD_MIN_LENGTH} caracteres.`)
+  }
+}
+
+function hashPassword(password: string): string {
+  return bcrypt.hashSync(password, 12)
+}
+
+export async function changePassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  assertValidPassword(newPassword)
+
+  const row = await findUserById(userId)
+  if (!row) {
+    throw new Error('Usuário não encontrado.')
+  }
+
+  const valid = bcrypt.compareSync(currentPassword, row.password_hash)
+  if (!valid) {
+    throw new Error('Senha atual incorreta.')
+  }
+
+  if (bcrypt.compareSync(newPassword, row.password_hash)) {
+    throw new Error('A nova senha deve ser diferente da senha atual.')
+  }
+
+  await updateUserPassword(userId, hashPassword(newPassword), newPassword)
+  await deleteRefreshTokensForUser(userId)
+}
+
+export async function getEmployeePassword(
+  actor: AppUser,
+  employeeId: string,
+): Promise<{ password: string | null; email: string; name: string }> {
+  if (!canManageUserPasswords(actor)) {
+    throw new Error('Sem permissão para visualizar senhas.')
+  }
+
+  const row = await findUserByEmployeeId(employeeId)
+  if (!row) {
+    throw new Error('Usuário de acesso não encontrado para este colaborador.')
+  }
+
+  return {
+    email: row.email,
+    name: row.name,
+    password: row.password_plain,
+  }
+}
+
+export async function resetEmployeePassword(
+  actor: AppUser,
+  employeeId: string,
+  newPassword?: string,
+): Promise<{ password: string; email: string; name: string }> {
+  if (!canManageUserPasswords(actor)) {
+    throw new Error('Sem permissão para redefinir senhas.')
+  }
+
+  const row = await findUserByEmployeeId(employeeId)
+  if (!row) {
+    throw new Error('Usuário de acesso não encontrado para este colaborador.')
+  }
+
+  const password = (newPassword?.trim() || config.defaultPassword).trim()
+  assertValidPassword(password)
+
+  await updateUserPassword(row.id, hashPassword(password), password)
+  await deleteRefreshTokensForUser(row.id)
+
+  return {
+    email: row.email,
+    name: row.name,
+    password,
   }
 }

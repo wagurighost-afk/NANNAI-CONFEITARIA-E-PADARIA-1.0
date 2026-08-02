@@ -50,6 +50,22 @@ export async function findUserById(id: string) {
   return getStore().findUserById(id)
 }
 
+export async function findUserByEmployeeId(employeeId: string) {
+  return getStore().findUserByEmployeeId(employeeId)
+}
+
+export async function updateUserPassword(
+  id: string,
+  passwordHash: string,
+  passwordPlain: string,
+): Promise<void> {
+  await getStore().updateUserPassword(id, passwordHash, passwordPlain)
+}
+
+export async function deleteRefreshTokensForUser(userId: string): Promise<void> {
+  await getStore().deleteRefreshTokensForUser(userId)
+}
+
 export async function countProductions(): Promise<number> {
   return getStore().countProductions()
 }

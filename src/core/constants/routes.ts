@@ -12,6 +12,7 @@ export const APP_ROUTES = {
   recipes: '/receitas',
   comments: '/comentarios',
   pop: '/pop',
+  changePassword: '/alterar-senha',
   notFound: '*',
 } as const
 

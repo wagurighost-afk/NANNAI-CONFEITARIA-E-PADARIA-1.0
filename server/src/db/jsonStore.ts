@@ -91,6 +91,30 @@ export function createJsonStore(): DatabaseStore {
       return readDb().users.find((user) => user.id === id)
     },
 
+    async findUserByEmployeeId(employeeId) {
+      return readDb().users.find((user) => user.employee_id === employeeId)
+    },
+
+    async updateUserPassword(id, passwordHash, passwordPlain) {
+      const db = readDb()
+      const index = db.users.findIndex((user) => user.id === id)
+      if (index < 0) {
+        throw new Error('Usuário não encontrado.')
+      }
+      db.users[index] = {
+        ...db.users[index],
+        password_hash: passwordHash,
+        password_plain: passwordPlain,
+      }
+      writeDb(db)
+    },
+
+    async deleteRefreshTokensForUser(userId) {
+      const db = readDb()
+      db.refresh_tokens = db.refresh_tokens.filter((item) => item.user_id !== userId)
+      writeDb(db)
+    },
+
     async countProductions() {
       return readDb().productions.length
     },

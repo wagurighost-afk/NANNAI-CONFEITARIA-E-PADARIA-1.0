@@ -1,7 +1,9 @@
-import { LogOut, Menu, Moon, Sun } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { KeyRound, LogOut, Menu, Moon, Sun } from 'lucide-react'
 import { InstallAppButton } from '@/components/common/InstallAppButton'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { APP_ROUTES } from '@/core/constants'
 import { useAuth } from '@/hooks/useAuth'
 import { useTheme } from '@/hooks/useTheme'
 import { cn } from '@/utils/cn'
@@ -59,6 +61,15 @@ export function Header({ onOpenMobileSidebar, className }: HeaderProps) {
         </Button>
 
         <InstallAppButton />
+
+        <Link
+          to={APP_ROUTES.changePassword}
+          className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg bg-transparent px-3 text-sm font-medium text-foreground transition hover:bg-muted"
+          aria-label="Alterar senha"
+        >
+          <KeyRound className="size-4" />
+          <span className="hidden sm:inline">Senha</span>
+        </Link>
 
         <Button
           variant="outline"
