@@ -32,7 +32,7 @@ export const MAIN_NAVIGATION: readonly AppNavItem[] = [
   {
     id: 'niimbot',
     label: 'NIIMBOT',
-    href: APP_ROUTES.niimbot,
+    href: APP_ROUTES.niimbotSettings,
     icon: 'Bluetooth',
   },
   {

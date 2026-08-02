@@ -17,14 +17,32 @@ export interface NiimbotDeviceInfo {
   firmware: string | null
   /** Connection status for UI. */
   status: NiimbotConnectionStatus
+  /** Last successful connection ISO timestamp (from persistence). */
+  lastConnectedAt?: string | null
+  /** Browser BluetoothDevice.id when known. */
+  bluetoothDeviceId?: string | null
+}
+
+/** Fields persisted after a successful connection. */
+export interface NiimbotPersistedPrinter {
+  name: string
+  model: string
+  modelId: number | null
+  lastConnectedAt: string
+  bluetoothDeviceId: string | null
 }
 
 export interface NiimbotServiceState {
   status: NiimbotConnectionStatus
   device: NiimbotDeviceInfo | null
+  persisted: NiimbotPersistedPrinter | null
   error: string | null
   supported: boolean
   supportMessage: string | null
+  /** True after the first auto-reconnect attempt finished (success or fail). */
+  autoReconnectDone: boolean
+  /** True when a saved printer exists but is not currently connected. */
+  needsReconnect: boolean
 }
 
 export type NiimbotServiceListener = (state: NiimbotServiceState) => void

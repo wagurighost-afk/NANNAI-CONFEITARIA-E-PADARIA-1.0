@@ -17,6 +17,7 @@ export const APP_ROUTES = {
   audit: '/auditoria',
   labels: '/etiquetas',
   niimbot: '/niimbot',
+  niimbotSettings: '/niimbot/configuracoes',
   notFound: '*',
 } as const
 

@@ -70,6 +70,11 @@ const NiimbotConnectionPage = lazyPage(() =>
     default: m.NiimbotConnectionPage,
   })),
 )
+const NiimbotSettingsPage = lazyPage(() =>
+  import('@/features/niimbot/pages/NiimbotSettingsPage').then((m) => ({
+    default: m.NiimbotSettingsPage,
+  })),
+)
 const NotFoundPage = lazyPage(() =>
   import('@/features/errors/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })),
 )
@@ -95,6 +100,7 @@ export function AppRouter() {
               <Route path={APP_ROUTES.labels} element={<LabelsPage />} />
             </Route>
             <Route path={APP_ROUTES.niimbot} element={<NiimbotConnectionPage />} />
+            <Route path={APP_ROUTES.niimbotSettings} element={<NiimbotSettingsPage />} />
             <Route element={<PermissionRoute permission="bread-control:view" />}>
               <Route path={APP_ROUTES.breadControl} element={<BreadControlPage />} />
             </Route>

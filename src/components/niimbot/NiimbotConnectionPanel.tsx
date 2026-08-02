@@ -1,14 +1,40 @@
 import { NiimbotConnectButton } from '@/components/niimbot/NiimbotConnectButton'
 import { NiimbotDeviceInfoCard } from '@/components/niimbot/NiimbotDeviceInfoCard'
+import { NiimbotReconnectButton } from '@/components/niimbot/NiimbotReconnectButton'
 import { NiimbotStatusIndicator } from '@/components/niimbot/NiimbotStatusIndicator'
 import { useNiimbot } from '@/hooks/useNiimbot'
 
 /**
- * Self-contained panel: connect button + status + device details + errors.
- * Safe to drop into any page without touching existing modules.
+ * Compact connection panel with auto-reconnect + Reconectar fallback.
  */
 export function NiimbotConnectionPanel() {
-  const { status, device, error, supported, supportMessage, clearError } = useNiimbot()
+  const {
+    status,
+    device,
+    persisted,
+    error,
+    supported,
+    supportMessage,
+    needsReconnect,
+    clearError,
+  } = useNiimbot({ autoReconnect: true })
+
+  const displayDevice =
+    device ??
+    (persisted
+      ? {
+          model: persisted.model,
+          name: persisted.name,
+          modelId: persisted.modelId,
+          protocolVersion: null,
+          dpi: null,
+          batteryPercent: null,
+          firmware: null,
+          status: 'disconnected' as const,
+          lastConnectedAt: persisted.lastConnectedAt,
+          bluetoothDeviceId: persisted.bluetoothDeviceId,
+        }
+      : null)
 
   return (
     <div className="space-y-4">
@@ -17,7 +43,14 @@ export function NiimbotConnectionPanel() {
           <p className="text-sm font-medium text-foreground">Conexão Bluetooth</p>
           <NiimbotStatusIndicator status={status} />
         </div>
-        <NiimbotConnectButton />
+        <div className="flex flex-wrap gap-2">
+          {needsReconnect ? <NiimbotReconnectButton /> : null}
+          {!persisted ? <NiimbotConnectButton /> : null}
+          {persisted && !needsReconnect && status !== 'connected' ? (
+            <NiimbotConnectButton connectLabel="Conectar NIIMBOT" />
+          ) : null}
+          {status === 'connected' ? <NiimbotConnectButton disconnectLabel="Desconectar" /> : null}
+        </div>
       </div>
 
       {!supported && supportMessage ? (
@@ -41,7 +74,7 @@ export function NiimbotConnectionPanel() {
         </div>
       ) : null}
 
-      <NiimbotDeviceInfoCard device={device} />
+      <NiimbotDeviceInfoCard device={displayDevice} />
     </div>
   )
 }

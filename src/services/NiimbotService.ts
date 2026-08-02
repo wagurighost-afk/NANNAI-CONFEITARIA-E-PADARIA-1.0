@@ -1,10 +1,19 @@
 import 'niimbot-web-bluetooth'
 import {
+  clearPersistedPrinter,
+  loadPersistedPrinter,
+  savePersistedPrinter,
+} from '@/services/niimbot/persistence'
+import {
   attachNiimbotDisconnectListener,
+  disconnectBluetoothDevice,
   readNiimbotExtendedInfo,
+  reconnectSavedNiimbotDevice,
+  resolveBluetoothDeviceId,
 } from '@/services/niimbot/protocol'
 import type {
   NiimbotDeviceInfo,
+  NiimbotPersistedPrinter,
   NiimbotServiceListener,
   NiimbotServiceState,
 } from '@/services/niimbot/types'
@@ -58,43 +67,58 @@ function mapError(error: unknown): string {
     return 'Falha ao conectar à impressora NIIMBOT.'
   }
 
-  const message = error.message.toLowerCase()
+  const message = error.message
+  if (message === 'NO_PERMITTED_DEVICE') {
+    return 'Nenhuma impressora autorizada encontrada. Use “Trocar impressora” para parear novamente.'
+  }
+
+  const normalized = message.toLowerCase()
   if (
-    message.includes('user cancelled') ||
-    message.includes('user canceled') ||
-    message.includes('cancelled') ||
-    message.includes('canceled')
+    normalized.includes('user cancelled') ||
+    normalized.includes('user canceled') ||
+    normalized.includes('cancelled') ||
+    normalized.includes('canceled')
   ) {
     return 'Seleção da impressora cancelada.'
   }
-  if (message.includes('web bluetooth unavailable') || message.includes('bluetooth')) {
+  if (normalized.includes('web bluetooth unavailable') || normalized.includes('bluetooth')) {
     return 'Bluetooth indisponível neste navegador. Use Chrome/Edge com Bluetooth ligado.'
   }
-  if (message.includes('gatt') || message.includes('disconnected')) {
+  if (normalized.includes('gatt') || normalized.includes('disconnected')) {
     return 'A conexão Bluetooth foi interrompida.'
   }
-  return error.message || 'Falha ao conectar à impressora NIIMBOT.'
+  return message || 'Falha ao conectar à impressora NIIMBOT.'
 }
 
 /**
- * Connection-only service for NIIMBOT B1 (stage 1).
- * Uses niimbot-web-bluetooth for pairing/identify. Does not print.
+ * Connection + persistence service for NIIMBOT B1.
+ * Does not print.
  */
 class NiimbotServiceImpl {
   private status: NiimbotServiceState['status'] = 'disconnected'
   private device: NiimbotDeviceInfo | null = null
+  private persisted: NiimbotPersistedPrinter | null = loadPersistedPrinter()
   private error: string | null = null
+  private autoReconnectDone = false
   private listeners = new Set<NiimbotServiceListener>()
   private removeDisconnectListener: (() => void) | null = null
+  private activeBluetoothDevice: BluetoothDevice | null = null
+  private autoReconnectPromise: Promise<boolean> | null = null
 
   getState(): NiimbotServiceState {
     const support = supportProbe()
+    const needsReconnect =
+      Boolean(this.persisted) && this.status !== 'connected' && this.status !== 'connecting'
+
     return {
       status: this.status,
       device: this.device,
+      persisted: this.persisted,
       error: this.error,
       supported: support.supported,
       supportMessage: support.message,
+      autoReconnectDone: this.autoReconnectDone,
+      needsReconnect,
     }
   }
 
@@ -111,8 +135,24 @@ class NiimbotServiceImpl {
   }
 
   /**
-   * Opens the browser Bluetooth chooser (filtered to NIIMBOT B1*),
-   * connects, identifies the printer and reads optional battery/firmware.
+   * Attempts silent reconnect to the last saved printer.
+   * Safe to call multiple times — runs once until reset.
+   */
+  async tryAutoReconnect(): Promise<boolean> {
+    if (this.autoReconnectPromise) {
+      return this.autoReconnectPromise
+    }
+
+    this.autoReconnectPromise = this.runAutoReconnect()
+    try {
+      return await this.autoReconnectPromise
+    } finally {
+      this.autoReconnectPromise = null
+    }
+  }
+
+  /**
+   * Opens the browser Bluetooth chooser, connects and persists the printer.
    */
   async connect(): Promise<NiimbotDeviceInfo> {
     const support = supportProbe()
@@ -129,6 +169,9 @@ class NiimbotServiceImpl {
 
     try {
       this.clearDisconnectWatch()
+      await disconnectBluetoothDevice(this.activeBluetoothDevice)
+      this.activeBluetoothDevice = null
+
       const driver = getDriver()
       const info = await driver.identify(NIIMBOT_B1_CONNECT_MODEL)
       const printer = info ?? driver.printer
@@ -138,6 +181,8 @@ class NiimbotServiceImpl {
       }
 
       const extended = await readNiimbotExtendedInfo()
+      const bluetoothDeviceId = await resolveBluetoothDeviceId(printer.deviceName)
+      const lastConnectedAt = new Date().toISOString()
 
       this.device = {
         model: printer.label || 'NIIMBOT',
@@ -148,32 +193,113 @@ class NiimbotServiceImpl {
         batteryPercent: extended.batteryPercent,
         firmware: extended.firmware,
         status: 'connected',
+        lastConnectedAt,
+        bluetoothDeviceId,
       }
+
+      this.persistFromDevice(this.device)
       this.status = 'connected'
       this.error = null
+      this.autoReconnectDone = true
       await this.watchDisconnect()
       this.emit()
       return this.device
     } catch (error) {
       this.status = 'disconnected'
-      this.device = null
       this.error = mapError(error)
       this.emit()
       throw new Error(this.error)
     }
   }
 
+  /**
+   * Reconnect to the saved printer without changing pairing when possible.
+   * Falls back to the Bluetooth chooser if silent reconnect is unavailable.
+   */
+  async reconnect(): Promise<NiimbotDeviceInfo> {
+    if (!this.persisted) {
+      return this.connect()
+    }
+
+    const support = supportProbe()
+    if (!support.supported) {
+      this.error = support.message
+      this.emit()
+      throw new Error(support.message ?? 'Web Bluetooth indisponível.')
+    }
+
+    this.status = 'connecting'
+    this.error = null
+    this.emit()
+
+    try {
+      this.clearDisconnectWatch()
+      const session = await reconnectSavedNiimbotDevice(this.persisted)
+      this.activeBluetoothDevice = session.device
+      const lastConnectedAt = new Date().toISOString()
+
+      this.device = {
+        model: session.model,
+        name: session.name || this.persisted.name,
+        modelId: session.modelId ?? this.persisted.modelId,
+        protocolVersion: session.protocolVersion,
+        dpi: session.dpi,
+        batteryPercent: session.batteryPercent,
+        firmware: session.firmware,
+        status: 'connected',
+        lastConnectedAt,
+        bluetoothDeviceId: session.bluetoothDeviceId,
+      }
+
+      this.persistFromDevice(this.device)
+      this.status = 'connected'
+      this.error = null
+      this.autoReconnectDone = true
+      await this.watchDisconnect(session.device)
+      this.emit()
+      return this.device
+    } catch (silentError) {
+      // Silent path failed — ask the user to pick the printer again.
+      try {
+        return await this.connect()
+      } catch (chooserError) {
+        this.status = 'disconnected'
+        this.error = mapError(chooserError ?? silentError)
+        this.emit()
+        throw new Error(this.error)
+      }
+    }
+  }
+
+  /** Open chooser to pair a different printer (keeps persistence until success). */
+  async changePrinter(): Promise<NiimbotDeviceInfo> {
+    return this.connect()
+  }
+
+  /** Disconnect GATT but keep the saved printer for later reconnect. */
   async disconnect(): Promise<void> {
     this.clearDisconnectWatch()
     try {
       await getDriver().disconnect()
     } catch {
-      // Device may already be gone.
+      // ignore
     }
+    await disconnectBluetoothDevice(this.activeBluetoothDevice)
+    this.activeBluetoothDevice = null
     this.status = 'disconnected'
     if (this.device) {
       this.device = { ...this.device, status: 'disconnected' }
     }
+    this.emit()
+  }
+
+  /** Disconnect and forget the saved printer. */
+  async forgetPrinter(): Promise<void> {
+    await this.disconnect()
+    clearPersistedPrinter()
+    this.persisted = null
+    this.device = null
+    this.error = null
     this.emit()
   }
 
@@ -182,16 +308,108 @@ class NiimbotServiceImpl {
     this.emit()
   }
 
-  private async watchDisconnect(): Promise<void> {
+  private async runAutoReconnect(): Promise<boolean> {
+    if (this.status === 'connected') {
+      this.autoReconnectDone = true
+      this.emit()
+      return true
+    }
+
+    const saved = this.persisted ?? loadPersistedPrinter()
+    this.persisted = saved
+
+    if (!saved) {
+      this.autoReconnectDone = true
+      this.emit()
+      return false
+    }
+
+    if (!supportProbe().supported) {
+      this.autoReconnectDone = true
+      this.error = null
+      this.emit()
+      return false
+    }
+
+    this.status = 'connecting'
+    this.error = null
+    this.emit()
+
+    try {
+      this.clearDisconnectWatch()
+      const session = await reconnectSavedNiimbotDevice(saved)
+      this.activeBluetoothDevice = session.device
+      const lastConnectedAt = new Date().toISOString()
+
+      this.device = {
+        model: session.model || saved.model,
+        name: session.name || saved.name,
+        modelId: session.modelId ?? saved.modelId,
+        protocolVersion: session.protocolVersion,
+        dpi: session.dpi,
+        batteryPercent: session.batteryPercent,
+        firmware: session.firmware,
+        status: 'connected',
+        lastConnectedAt,
+        bluetoothDeviceId: session.bluetoothDeviceId ?? saved.bluetoothDeviceId,
+      }
+
+      this.persistFromDevice(this.device)
+      this.status = 'connected'
+      this.error = null
+      this.autoReconnectDone = true
+      await this.watchDisconnect(session.device)
+      this.emit()
+      return true
+    } catch {
+      this.status = 'disconnected'
+      this.device = this.deviceFromPersisted(saved)
+      this.error = null
+      this.autoReconnectDone = true
+      this.emit()
+      return false
+    }
+  }
+
+  private persistFromDevice(device: NiimbotDeviceInfo): void {
+    const record: NiimbotPersistedPrinter = {
+      name: device.name,
+      model: device.model,
+      modelId: device.modelId,
+      lastConnectedAt: device.lastConnectedAt ?? new Date().toISOString(),
+      bluetoothDeviceId: device.bluetoothDeviceId ?? null,
+    }
+    savePersistedPrinter(record)
+    this.persisted = record
+  }
+
+  private deviceFromPersisted(saved: NiimbotPersistedPrinter): NiimbotDeviceInfo {
+    return {
+      model: saved.model,
+      name: saved.name,
+      modelId: saved.modelId,
+      protocolVersion: null,
+      dpi: null,
+      batteryPercent: null,
+      firmware: null,
+      status: 'disconnected',
+      lastConnectedAt: saved.lastConnectedAt,
+      bluetoothDeviceId: saved.bluetoothDeviceId,
+    }
+  }
+
+  private async watchDisconnect(device?: BluetoothDevice | null): Promise<void> {
     this.clearDisconnectWatch()
     this.removeDisconnectListener = await attachNiimbotDisconnectListener(() => {
       this.status = 'disconnected'
       if (this.device) {
         this.device = { ...this.device, status: 'disconnected' }
+      } else if (this.persisted) {
+        this.device = this.deviceFromPersisted(this.persisted)
       }
-      this.error = 'Conexão com a NIIMBOT perdida. Conecte novamente para continuar.'
+      this.error = 'Conexão com a NIIMBOT perdida. Toque em Reconectar para continuar.'
       this.emit()
-    })
+    }, device)
   }
 
   private clearDisconnectWatch(): void {
@@ -208,4 +426,9 @@ class NiimbotServiceImpl {
 }
 
 export const NiimbotService = new NiimbotServiceImpl()
-export type { NiimbotDeviceInfo, NiimbotServiceState, NiimbotConnectionStatus } from '@/services/niimbot/types'
+export type {
+  NiimbotDeviceInfo,
+  NiimbotServiceState,
+  NiimbotConnectionStatus,
+  NiimbotPersistedPrinter,
+} from '@/services/niimbot/types'

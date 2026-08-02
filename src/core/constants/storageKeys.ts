@@ -3,4 +3,5 @@ export const STORAGE_KEYS = {
   refreshToken: 'nannai.auth.refreshToken',
   theme: 'nannai.theme',
   sidebarCollapsed: 'nannai.sidebar.collapsed',
+  niimbotPrinter: 'nannai.niimbot.printer',
 } as const

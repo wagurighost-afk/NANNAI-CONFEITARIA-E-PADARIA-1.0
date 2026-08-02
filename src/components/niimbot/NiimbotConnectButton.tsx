@@ -19,7 +19,9 @@ export function NiimbotConnectButton({
   disabled,
   ...buttonProps
 }: NiimbotConnectButtonProps) {
-  const { supported, isConnected, isConnecting, connect, disconnect } = useNiimbot()
+  const { supported, isConnected, isConnecting, connect, disconnect } = useNiimbot({
+    autoReconnect: false,
+  })
 
   const handleClick = () => {
     if (isConnected) {

@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react'
-import { Bluetooth, Battery, Cpu, Hash, Radio } from 'lucide-react'
+import { Bluetooth, Battery, Clock3, Cpu, Hash, Radio } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 import { NiimbotStatusIndicator } from '@/components/niimbot/NiimbotStatusIndicator'
 import type { NiimbotDeviceInfo } from '@/services/niimbot/types'
+import { formatDateTimeBr } from '@/utils/formatDate'
 
 export interface NiimbotDeviceInfoCardProps {
   device: NiimbotDeviceInfo | null
@@ -84,16 +85,28 @@ export function NiimbotDeviceInfoCard({
         />
         <InfoRow
           icon={<Hash className="size-4" />}
+          label="ID"
+          value={device.modelId != null ? String(device.modelId) : 'Indisponível'}
+        />
+        <InfoRow
+          icon={<Hash className="size-4" />}
           label="Firmware"
           value={formatFirmware(device.firmware)}
+        />
+        <InfoRow
+          icon={<Clock3 className="size-4" />}
+          label="Última conexão"
+          value={
+            device.lastConnectedAt ? formatDateTimeBr(device.lastConnectedAt) : 'Indisponível'
+          }
         />
         <InfoRow
           icon={<Cpu className="size-4" />}
           label="Detalhes"
           value={[
-            device.modelId != null ? `ID ${device.modelId}` : null,
             device.dpi != null ? `${device.dpi} dpi` : null,
             device.protocolVersion != null ? `Protocolo ${device.protocolVersion}` : null,
+            device.bluetoothDeviceId ? `BLE ${device.bluetoothDeviceId.slice(0, 8)}…` : null,
           ]
             .filter(Boolean)
             .join(' · ') || '—'}

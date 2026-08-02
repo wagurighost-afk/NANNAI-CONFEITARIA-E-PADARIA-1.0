@@ -1,86 +1,74 @@
-# NIIMBOT B1 — Etapa 1 (somente conexão)
+# NIIMBOT B1 — Etapa 1 (conexão + persistência)
 
-Primeira etapa da integração: **parear e identificar** a impressora via Web Bluetooth.
-**Não há impressão nesta etapa.**
+Integração sem impressão: parear via Web Bluetooth, **salvar a impressora**, **reconectar automaticamente** e gerenciar em **Configurações**.
 
 ## Arquitetura
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│ UI                                                          │
-│  NiimbotConnectionPage                                      │
-│    └── NiimbotConnectionPanel                               │
-│          ├── NiimbotConnectButton  ("Conectar NIIMBOT")     │
-│          ├── NiimbotStatusIndicator (🟢🟡🔴)                │
-│          └── NiimbotDeviceInfoCard (modelo, nome, …)        │
-└───────────────────────────┬─────────────────────────────────┘
-                            │ useNiimbot()
-┌───────────────────────────▼─────────────────────────────────┐
-│ Hook                                                        │
-│  src/hooks/useNiimbot.ts                                    │
-│  - assina o serviço                                         │
-│  - toasts de sucesso / erro / perda de conexão              │
-└───────────────────────────┬─────────────────────────────────┘
-                            │
-┌───────────────────────────▼─────────────────────────────────┐
-│ Serviço                                                     │
-│  src/services/NiimbotService.ts  (singleton)                │
-│  - connect() / disconnect() / subscribe()                   │
-│  - usa niimbot-web-bluetooth (identify / disconnect)        │
-│  - protocol.ts lê bateria/firmware (quando disponível)      │
-└───────────────────────────┬─────────────────────────────────┘
-                            │
-┌───────────────────────────▼─────────────────────────────────┐
-│ Driver                                                      │
-│  niimbot-web-bluetooth                                      │
-│  - requestDevice (filtro namePrefix "B1")                   │
-│  - GATT + identificação B1 / B1 Pro                         │
-└─────────────────────────────────────────────────────────────┘
+/niimbot/configuracoes  →  NiimbotSettingsPage
+                              └── NiimbotSettingsPanel
+                                    ├── Status 🟢🟡🔴
+                                    ├── Botão Reconectar (se necessário)
+                                    ├── Trocar impressora / Desconectar
+                                    └── NiimbotDeviceInfoCard
+                                          │
+                                          ▼
+                                     useNiimbot({ autoReconnect: true })
+                                          │
+                                          ▼
+                                     NiimbotService
+                                       ├── connect()      → chooser + identify + save
+                                       ├── tryAutoReconnect() → getDevices() + GATT
+                                       ├── reconnect() / changePrinter() / disconnect()
+                                       └── persistence.ts → localStorage
 ```
 
-## Arquivos novos
+## Persistência
 
-| Caminho | Papel |
+Após conectar com sucesso, salva em `localStorage` (`nannai.niimbot.printer`):
+
+| Campo | Descrição |
+|-------|-----------|
+| `name` | Nome BLE |
+| `model` | Modelo (ex.: Niimbot B1) |
+| `modelId` | ID numérico (ex.: 4096) |
+| `lastConnectedAt` | ISO da última conexão |
+| `bluetoothDeviceId` | ID do `BluetoothDevice` (para reconexão) |
+
+## Reconexão automática
+
+1. Ao abrir a tela de configurações, `useNiimbot` chama `tryAutoReconnect()`
+2. O serviço busca dispositivos já autorizados (`navigator.bluetooth.getDevices`)
+3. Reabre GATT, identifica e atualiza bateria/firmware quando possível
+4. Se falhar → status desconectado + botão **Reconectar**
+
+> Em alguns Chromes, `getDevices()` / reconexão silenciosa depende do backend de permissões Bluetooth do site. Se a reconexão automática não funcionar, **Reconectar** abre o fluxo de pareamento novamente.
+
+## Tela de configurações
+
+Rota: `/niimbot/configuracoes` (menu **NIIMBOT**)
+
+Permite:
+
+- Ver informações (modelo, nome, ID, bateria, firmware, última conexão)
+- **Reconectar**
+- **Trocar impressora** (novo seletor Bluetooth)
+- **Desconectar** (mantém a impressora salva)
+
+`/niimbot` redireciona para a tela de configurações.
+
+## Arquivos principais
+
+| Arquivo | Papel |
 |---------|-------|
-| `src/services/NiimbotService.ts` | Serviço de conexão |
-| `src/services/niimbot/types.ts` | Tipos do domínio |
-| `src/services/niimbot/protocol.ts` | Leitura opcional de bateria/firmware |
+| `src/services/NiimbotService.ts` | Conexão + auto-reconnect + ações |
+| `src/services/niimbot/persistence.ts` | localStorage |
+| `src/services/niimbot/protocol.ts` | GATT silencioso + PrinterInfo |
 | `src/hooks/useNiimbot.ts` | Bridge React |
-| `src/components/niimbot/*` | Componentes reutilizáveis |
-| `src/features/niimbot/pages/NiimbotConnectionPage.tsx` | Página da etapa 1 |
+| `src/components/niimbot/*` | UI reutilizável |
+| `src/features/niimbot/pages/NiimbotSettingsPage.tsx` | Tela de configurações |
 
-Nenhum módulo de negócio existente (Produção, Etiquetas, etc.) foi alterado além do **roteamento/navegação** para expor a nova página.
+## Fora de escopo
 
-## Fluxo do botão "Conectar NIIMBOT"
-
-1. Usuário clica em **Conectar NIIMBOT**
-2. Status → 🟡 Conectando
-3. Chrome/Edge abre o seletor Bluetooth (filtros `B1*`)
-4. Usuário escolhe a impressora
-5. Driver identifica modelo (B1 = 4096, B1 Pro = 4097, …)
-6. Serviço tenta ler bateria (`PrinterInfo 0x0A`) e firmware (`0x09`)
-7. Status → 🟢 Conectada e o card exibe os dados
-8. Se o GATT cair, status → 🔴 Desconectada + aviso ao usuário
-
-## Dados exibidos
-
-| Campo | Origem |
-|-------|--------|
-| Modelo | `Niimbot.printer.label` |
-| Nome | `Niimbot.printer.deviceName` (BLE) |
-| Status | estado interno do serviço |
-| Bateria | `PrinterInfo` charge level (quando o navegador expõe o device) |
-| Firmware | `PrinterInfo` software version (quando disponível) |
-
-## Requisitos
-
-- Chrome ou Edge
-- HTTPS ou `localhost`
-- Bluetooth do sistema ligado
-- Biblioteca: `niimbot-web-bluetooth`
-
-## Fora de escopo (próximas etapas)
-
-- Renderização de etiquetas
-- Envio de jobs de impressão
+- Impressão de etiquetas
 - Integração com o módulo Etiquetas Inteligentes
