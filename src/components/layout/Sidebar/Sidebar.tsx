@@ -69,10 +69,10 @@ function NavItems({
               onClick={onNavigate}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors',
-                  'text-sidebar-foreground/80 hover:bg-white/10 hover:text-sidebar-foreground',
+                  'flex min-h-11 items-center gap-3 rounded-lg px-3 py-3 text-base transition-colors sm:py-2.5 sm:text-sm',
+                  'text-sidebar-foreground/80 hover:bg-white/10 hover:text-sidebar-foreground active:bg-white/15',
                   isActive && 'bg-white/15 text-sidebar-foreground font-medium',
-                  isCollapsed && 'justify-center px-2',
+                  isCollapsed && 'justify-center px-2 lg:min-h-0 lg:py-2.5',
                 )
               }
               title={isCollapsed ? item.label : undefined}
@@ -109,7 +109,7 @@ export function Sidebar({
       <aside
         className={cn(
           'fixed inset-y-0 left-0 z-50 flex flex-col bg-sidebar text-sidebar-foreground transition-all duration-300',
-          'w-64 lg:translate-x-0',
+          'w-[min(100vw,18rem)] pt-safe pb-safe lg:translate-x-0',
           isCollapsed ? 'lg:w-20' : 'lg:w-64',
           isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
         )}

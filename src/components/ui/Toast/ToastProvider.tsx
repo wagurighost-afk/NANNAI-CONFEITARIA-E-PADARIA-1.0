@@ -87,7 +87,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
       {typeof document !== 'undefined'
         ? createPortal(
             <div
-              className="pointer-events-none fixed right-4 bottom-4 z-[70] flex w-full max-w-sm flex-col gap-2"
+              className="pointer-events-none fixed right-4 bottom-[calc(4rem+env(safe-area-inset-bottom,0px)+1rem)] z-[70] flex w-full max-w-sm flex-col gap-2 px-safe lg:bottom-4"
               aria-live="polite"
               aria-relevant="additions"
             >
@@ -114,7 +114,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
                       </div>
                       <button
                         type="button"
-                        className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                        className="touch-target rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
                         aria-label="Fechar notificação"
                         onClick={() => {
                           dismiss(toast.id)

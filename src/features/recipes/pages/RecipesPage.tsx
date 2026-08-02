@@ -202,7 +202,7 @@ export function RecipesPage() {
         />
       </div>
       {selectionMode && canSendToProduction ? (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface-elevated p-4 shadow-lg md:static md:mb-4 md:rounded-xl md:border md:shadow-none">
+        <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] z-40 border-t border-border bg-surface-elevated p-4 pb-safe shadow-lg md:static md:bottom-auto md:mb-4 md:rounded-xl md:border md:shadow-none lg:bottom-auto">
           <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
               {selectedCount > 0

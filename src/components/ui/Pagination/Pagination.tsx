@@ -61,10 +61,10 @@ export function Pagination({
   const canGoNext = page < totalPages
 
   return (
-    <nav aria-label="Paginação" className={cn('flex items-center gap-1', className)}>
+    <nav aria-label="Paginação" className={cn('flex flex-wrap items-center justify-center gap-1', className)}>
       <Button
         variant="outline"
-        size="sm"
+        size="md"
         disabled={!canGoPrev}
         onClick={() => {
           onPageChange(page - 1)
@@ -87,7 +87,7 @@ export function Pagination({
           <Button
             key={item}
             variant={item === page ? 'primary' : 'ghost'}
-            size="sm"
+            size="md"
             aria-label={`Página ${item}`}
             aria-current={item === page ? 'page' : undefined}
             onClick={() => {
@@ -101,7 +101,7 @@ export function Pagination({
 
       <Button
         variant="outline"
-        size="sm"
+        size="md"
         disabled={!canGoNext}
         onClick={() => {
           onPageChange(page + 1)

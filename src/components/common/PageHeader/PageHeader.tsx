@@ -17,7 +17,7 @@ export function PageHeader({ title, description, actions, className }: PageHeade
       )}
     >
       <div>
-        <h1 className="font-display text-3xl text-foreground">{title}</h1>
+        <h1 className="font-display text-2xl text-foreground sm:text-3xl">{title}</h1>
         {description ? (
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{description}</p>
         ) : null}

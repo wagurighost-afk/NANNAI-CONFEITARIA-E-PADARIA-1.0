@@ -34,7 +34,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             id={selectId}
             className={cn(
               fieldBaseClassName,
-              'h-10 appearance-none px-3 pr-10',
+              'h-11 appearance-none px-3 pr-10 sm:h-10',
               fieldErrorClassName(Boolean(error)),
               className,
             )}

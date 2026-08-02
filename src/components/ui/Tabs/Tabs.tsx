@@ -106,7 +106,8 @@ export function TabsTrigger({ value, className, children, ...props }: TabsTrigge
       aria-controls={`${baseId}-panel-${value}`}
       tabIndex={selected ? 0 : -1}
       className={cn(
-        'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+        'rounded-lg px-4 py-2.5 text-sm font-medium transition-colors sm:px-3 sm:py-1.5',
+        'min-h-11 sm:min-h-0',
         selected
           ? 'bg-surface-elevated text-foreground shadow-sm'
           : 'text-muted-foreground hover:text-foreground',

@@ -13,6 +13,9 @@ export interface HeaderProps {
   className?: string
 }
 
+const iconButtonClass =
+  'touch-target !h-11 !w-11 !min-h-[44px] !min-w-[44px] !p-0 sm:!h-9 sm:!w-9 sm:!min-h-0 sm:!min-w-0'
+
 export function Header({ onOpenMobileSidebar, className }: HeaderProps) {
   const { user, logout } = useAuth()
   const { isDark, toggleTheme } = useTheme()
@@ -20,27 +23,30 @@ export function Header({ onOpenMobileSidebar, className }: HeaderProps) {
   return (
     <header
       className={cn(
-        'sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-border bg-surface/90 px-4 backdrop-blur-md sm:px-6',
+        'sticky top-0 z-30 flex min-h-16 items-center justify-between gap-2 border-b border-border bg-surface/95 px-3 pt-safe backdrop-blur-md sm:gap-3 sm:px-6',
         className,
       )}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 items-center gap-1 sm:gap-2">
         <Button
           variant="ghost"
-          size="sm"
-          className="lg:hidden"
+          size="md"
+          className={cn(iconButtonClass, 'lg:hidden')}
           onClick={onOpenMobileSidebar}
           aria-label="Abrir menu"
         >
           <Menu className="size-5" />
         </Button>
-        <div className="hidden sm:block">
-          <p className="text-sm font-medium text-foreground">Painel de gestão</p>
-          <p className="text-xs text-muted-foreground">Confeitaria e Padaria</p>
+        <div className="min-w-0 hidden sm:block">
+          <p className="truncate text-sm font-medium text-foreground">Painel de gestão</p>
+          <p className="truncate text-xs text-muted-foreground">Confeitaria e Padaria</p>
         </div>
+        <p className="truncate font-display text-base font-semibold text-foreground sm:hidden">
+          NANNAI
+        </p>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-0.5 sm:gap-2">
         {user ? (
           <div className="mr-1 hidden items-center gap-2 md:flex">
             <div className="text-right">
@@ -53,34 +59,39 @@ export function Header({ onOpenMobileSidebar, className }: HeaderProps) {
 
         <Button
           variant="ghost"
-          size="sm"
+          size="md"
+          className={iconButtonClass}
           onClick={toggleTheme}
           aria-label={isDark ? 'Ativar tema claro' : 'Ativar tema escuro'}
         >
-          {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          {isDark ? <Sun className="size-5" /> : <Moon className="size-5" />}
         </Button>
 
-        <InstallAppButton />
+        <div className="hidden sm:block">
+          <InstallAppButton />
+        </div>
 
         <Link
           to={APP_ROUTES.changePassword}
-          className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg bg-transparent px-3 text-sm font-medium text-foreground transition hover:bg-muted"
+          className={cn(
+            iconButtonClass,
+            'inline-flex items-center justify-center rounded-lg text-foreground transition hover:bg-muted',
+          )}
           aria-label="Alterar senha"
         >
-          <KeyRound className="size-4" />
-          <span className="hidden sm:inline">Senha</span>
+          <KeyRound className="size-5" />
         </Link>
 
         <Button
           variant="outline"
-          size="sm"
+          size="md"
+          className={iconButtonClass}
           onClick={() => {
             void logout()
           }}
           aria-label="Sair"
         >
-          <LogOut className="size-4" />
-          <span className="hidden sm:inline">Sair</span>
+          <LogOut className="size-5" />
         </Button>
       </div>
     </header>

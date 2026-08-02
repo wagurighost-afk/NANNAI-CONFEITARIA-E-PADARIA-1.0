@@ -52,8 +52,8 @@ export function DataTable<TRow>({
         className,
       )}
     >
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] border-collapse text-sm">
+      <div className="-mx-1 overflow-x-auto overscroll-x-contain px-1 scrollbar-thin sm:mx-0 sm:px-0">
+        <table className="w-full min-w-full border-collapse text-sm sm:min-w-[640px]">
           <thead className="bg-muted/50">
             <tr>
               {columns.map((column) => {
@@ -80,7 +80,7 @@ export function DataTable<TRow>({
                     {column.sortable && onSort ? (
                       <button
                         type="button"
-                        className="inline-flex items-center gap-1 hover:text-foreground"
+                        className="inline-flex min-h-11 items-center gap-1 rounded-md px-1 hover:text-foreground sm:min-h-0"
                         onClick={() => {
                           onSort(column.id)
                         }}

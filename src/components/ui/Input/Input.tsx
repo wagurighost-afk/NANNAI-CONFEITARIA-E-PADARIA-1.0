@@ -24,7 +24,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           id={inputId}
           className={cn(
             fieldBaseClassName,
-            'h-10 px-3',
+            'h-11 px-3 sm:h-10',
             fieldErrorClassName(Boolean(error)),
             className,
           )}

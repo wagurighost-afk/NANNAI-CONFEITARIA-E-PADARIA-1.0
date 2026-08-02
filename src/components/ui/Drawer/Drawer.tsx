@@ -106,7 +106,7 @@ export function Drawer({
             exit={motionSide.exit}
             transition={{ duration: duration.moderate / 1000, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="flex items-start justify-between gap-3 border-b border-border p-5">
+            <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-4 pt-safe sm:px-5">
               <div>
                 <h2 id="drawer-title" className="font-display text-xl text-foreground">
                   {title}
@@ -115,13 +115,15 @@ export function Drawer({
                   <p className="mt-1 text-sm text-muted-foreground">{description}</p>
                 ) : null}
               </div>
-              <Button variant="ghost" size="sm" onClick={onClose} aria-label="Fechar">
-                <X className="size-4" />
+              <Button variant="ghost" size="md" onClick={onClose} aria-label="Fechar" className="touch-target shrink-0">
+                <X className="size-5" />
               </Button>
             </div>
-            <div className="flex-1 overflow-y-auto p-5 text-sm text-foreground">{children}</div>
+            <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 text-sm text-foreground sm:px-5">
+              {children}
+            </div>
             {footer ? (
-              <div className="border-t border-border p-4 sm:p-5">{footer}</div>
+              <div className="border-t border-border px-4 py-4 pb-safe sm:px-5">{footer}</div>
             ) : null}
           </motion.aside>
         </div>

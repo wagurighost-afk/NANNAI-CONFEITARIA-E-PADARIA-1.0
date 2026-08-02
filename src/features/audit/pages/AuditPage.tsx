@@ -2,6 +2,7 @@ import { RefreshCw } from 'lucide-react'
 import { Breadcrumb, EmptyState, PageHeader } from '@/components/common'
 import { Badge, Button, DataTable, Pagination, SearchInput, Select, Spinner } from '@/components/ui'
 import type { DataTableColumn } from '@/components/ui/DataTable'
+import { AuditLogCard } from '@/features/audit/components/AuditLogCard'
 import { AuditLogDetailDrawer } from '@/features/audit/components/AuditLogDetailDrawer'
 import {
   AUDIT_ACTION_LABELS,
@@ -86,7 +87,7 @@ export function AuditPage() {
         title="Histórico de Auditoria"
         description="Registro completo de alterações: quem alterou, quando, o que mudou, antes e depois."
         actions={
-          <Button variant="outline" size="sm" onClick={() => void refetch()} disabled={isFetching}>
+          <Button variant="outline" size="md" onClick={() => void refetch()} disabled={isFetching}>
             {isFetching ? <Spinner className="size-4" /> : <RefreshCw className="size-4" />}
             Atualizar
           </Button>
@@ -138,14 +139,33 @@ export function AuditPage() {
           </span>
         </div>
 
-        <DataTable
-          columns={columns}
-          data={logs}
-          getRowId={(row) => row.id}
-          isLoading={isLoading}
-          emptyMessage="Nenhum registro de auditoria encontrado."
-          onRowClick={(row) => selectLog(row.id)}
-        />
+        <div className="hidden lg:block">
+          <DataTable
+            columns={columns}
+            data={logs}
+            getRowId={(row) => row.id}
+            isLoading={isLoading}
+            emptyMessage="Nenhum registro de auditoria encontrado."
+            onRowClick={(row) => selectLog(row.id)}
+          />
+        </div>
+
+        <div className="space-y-3 lg:hidden">
+          {isLoading
+            ? Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className="h-28 animate-pulse rounded-2xl bg-muted" />
+              ))
+            : null}
+          {!isLoading
+            ? logs.map((log) => (
+                <AuditLogCard
+                  key={log.id}
+                  log={log}
+                  onClick={() => selectLog(log.id)}
+                />
+              ))
+            : null}
+        </div>
 
         {!isLoading && logs.length === 0 ? (
           <EmptyState
