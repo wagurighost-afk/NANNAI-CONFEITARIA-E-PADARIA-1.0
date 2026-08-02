@@ -47,7 +47,9 @@ Ao marcar um item como **Concluído** (com `labels:print`), o drawer abre o diá
 | Adaptador | Status |
 |-----------|--------|
 | Navegador (`browser-print`) | Ativo — `window.print` + CSS de etiqueta |
-| NIIMBOT Bluetooth / SDK | Registrados, indisponíveis até conexão real |
+| NIIMBOT B1 (`niimbot-b1`) | Ativo via Web Bluetooth (Chrome/Edge) — ver [NIIMBOT_B1.md](./NIIMBOT_B1.md) |
+
+A B1 Pro é detectada automaticamente no pareamento (mesmo nome BLE).
 
 ## Validade inteligente
 

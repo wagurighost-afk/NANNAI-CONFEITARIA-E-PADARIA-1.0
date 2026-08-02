@@ -128,7 +128,7 @@ Auth mock está ativa em `authService` (`USE_MOCK_AUTH`) até o backend existir.
 
 - Local: `features/labels/` · API `server/src/labels*` · docs em `docs/labels/`.
 - 6 modelos com validade automática, QR Code, histórico, reimpressão e impressão via navegador.
-- Integração com Produção ao concluir item; adaptadores NIIMBOT preparados (stubs).
+- Integração com Produção ao concluir item; impressão direta **NIIMBOT B1** via Web Bluetooth (`docs/labels/NIIMBOT_B1.md`).
 - Repository: `LabelRepository` → `MockLabelRepository` / `ApiLabelRepository`.
 - Rota: `/etiquetas` · permissões `labels:view` / `labels:print`.
 

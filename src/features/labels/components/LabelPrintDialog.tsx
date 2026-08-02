@@ -1,9 +1,10 @@
+import { Bluetooth, BluetoothConnected } from 'lucide-react'
 import { Button, Input, Select } from '@/components/ui'
 import { LABEL_TEMPLATES } from '@/features/labels/constants/labelTemplates'
 import { LabelPreview, LabelPrintSheet } from '@/features/labels/components/LabelPreview'
 import { useLabelMutations } from '@/features/labels/hooks/useLabels'
 import { useLabelPrint } from '@/features/labels/hooks/useLabelPrint'
-import { listLabelPrinterAdapters } from '@/features/labels/printer/labelPrinterRegistry'
+import { getLabelPrinterAdapter, listLabelPrinterAdapters } from '@/features/labels/printer/labelPrinterRegistry'
 import type { CreateLabelInput, LabelRecord, LabelTemplateId } from '@/features/labels/types/label.types'
 import { buildQrPayload, resolveLabelFieldData } from '@/features/labels/utils/labelData'
 import { getErrorMessage } from '@/core/errors'
@@ -31,7 +32,19 @@ export function LabelPrintDialogContent({
   const { user } = useAuth()
   const { push } = useToast()
   const { createMutation, reprintMutation } = useLabelMutations()
-  const { adapterId, setAdapterId, isPrinting, error, print } = useLabelPrint()
+  const {
+    adapterId,
+    setAdapterId,
+    isPrinting,
+    isConnecting,
+    progress,
+    error,
+    status,
+    refreshStatus,
+    connect,
+    disconnect,
+    print,
+  } = useLabelPrint()
   const [templateId, setTemplateId] = useState<LabelTemplateId>(initialDraft.templateId)
   const [copies, setCopies] = useState(1)
   const [data, setData] = useState(initialDraft.data)
@@ -42,6 +55,10 @@ export function LabelPrintDialogContent({
     setData(initialDraft.data)
     setSavedRecord(existingRecord ?? null)
   }, [existingRecord, initialDraft])
+
+  useEffect(() => {
+    refreshStatus()
+  }, [adapterId, refreshStatus])
 
   const previewData = useMemo(
     () => resolveLabelFieldData(data, templateId),
@@ -54,7 +71,9 @@ export function LabelPrintDialogContent({
   )
 
   const adapters = listLabelPrinterAdapters()
-  const isSaving = createMutation.isPending || reprintMutation.isPending || isPrinting
+  const selectedAdapter = getLabelPrinterAdapter(adapterId)
+  const isNiimbot = adapterId === 'niimbot-b1'
+  const isSaving = createMutation.isPending || reprintMutation.isPending || isPrinting || isConnecting
 
   const handleFieldChange = (field: keyof typeof previewData, value: string) => {
     if (readOnly) {
@@ -78,6 +97,25 @@ export function LabelPrintDialogContent({
     })
   }
 
+  const handleConnect = async () => {
+    try {
+      await connect()
+      const next = getLabelPrinterAdapter(adapterId)?.getStatus?.()
+      push({
+        title: 'Impressora conectada',
+        description: next?.message ?? 'NIIMBOT pronta para imprimir.',
+        variant: 'success',
+      })
+      refreshStatus()
+    } catch (connectError: unknown) {
+      push({
+        title: 'Falha ao conectar',
+        description: getErrorMessage(connectError),
+        variant: 'danger',
+      })
+    }
+  }
+
   const handlePrint = async () => {
     if (readOnly) {
       return
@@ -92,7 +130,9 @@ export function LabelPrintDialogContent({
         await print(record, copies)
         push({
           title: mode === 'reprint' ? 'Etiqueta reimpressa' : 'Etiqueta impressa',
-          description: `${record.data.productName} · ${copies} cópia(s)`,
+          description: `${record.data.productName} · ${copies} cópia(s)${
+            isNiimbot ? ' · NIIMBOT' : ''
+          }`,
           variant: 'success',
         })
         onCompleted?.(record)
@@ -204,9 +244,61 @@ export function LabelPrintDialogContent({
               onChange={(event) => handleFieldChange('batchNumber', event.target.value)}
             />
           </div>
+
+          {isNiimbot && !readOnly ? (
+            <div className="rounded-xl border border-border bg-muted/30 p-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="flex items-center gap-2 text-sm font-medium text-foreground">
+                    {status?.connected ? (
+                      <BluetoothConnected className="size-4 text-success" />
+                    ) : (
+                      <Bluetooth className="size-4 text-muted-foreground" />
+                    )}
+                    {status?.connected ? 'NIIMBOT conectada' : 'NIIMBOT B1 via Bluetooth'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {status?.message ??
+                      selectedAdapter?.description ??
+                      'Pareie a impressora no Chrome/Edge (HTTPS ou localhost).'}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  {status?.connected ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={isSaving}
+                      onClick={() => void disconnect()}
+                    >
+                      Desconectar
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={isSaving}
+                      onClick={() => void handleConnect()}
+                    >
+                      <Bluetooth className="size-4" />
+                      {isConnecting ? 'Conectando…' : 'Conectar B1'}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : null}
+
           {user ? (
             <p className="text-xs text-muted-foreground">
               Operador: {user.name}
+            </p>
+          ) : null}
+          {progress ? (
+            <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-foreground">
+              {progress}
             </p>
           ) : null}
           {error ? (
@@ -227,7 +319,9 @@ export function LabelPrintDialogContent({
         </div>
       </div>
 
-      {savedRecord && !readOnly ? <LabelPrintSheet record={savedRecord} copies={copies} /> : null}
+      {savedRecord && !readOnly && adapterId === 'browser-print' ? (
+        <LabelPrintSheet record={savedRecord} copies={copies} />
+      ) : null}
 
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         {onCancel ? (
@@ -237,7 +331,11 @@ export function LabelPrintDialogContent({
         ) : null}
         {!readOnly ? (
           <Button type="button" onClick={() => void handlePrint()} disabled={isSaving}>
-            {isSaving ? 'Processando...' : `Imprimir ${copies} etiqueta(s)`}
+            {isSaving
+              ? progress ?? 'Processando...'
+              : isNiimbot
+                ? `Imprimir na B1 (${copies})`
+                : `Imprimir ${copies} etiqueta(s)`}
           </Button>
         ) : null}
       </div>

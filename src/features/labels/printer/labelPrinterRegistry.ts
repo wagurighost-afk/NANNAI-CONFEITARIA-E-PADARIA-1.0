@@ -1,19 +1,15 @@
 import { browserPrintAdapter } from '@/features/labels/printer/browserPrintAdapter'
-import { niimbotBluetoothAdapter, niimbotSdkAdapter } from '@/features/labels/printer/niimbotAdapter'
+import { niimbotB1Adapter } from '@/features/labels/printer/niimbotAdapter'
 import type { LabelPrinterAdapter } from '@/features/labels/printer/types'
 
-const adapters: LabelPrinterAdapter[] = [
-  browserPrintAdapter,
-  niimbotBluetoothAdapter,
-  niimbotSdkAdapter,
-]
+const adapters: LabelPrinterAdapter[] = [browserPrintAdapter, niimbotB1Adapter]
 
-/** All registered adapters (including unavailable stubs). */
+/** All registered adapters (including unavailable ones). */
 export function listAllLabelPrinterAdapters(): LabelPrinterAdapter[] {
   return adapters
 }
 
-/** Adapters currently usable for printing. NIIMBOT stubs stay hidden until ready. */
+/** Adapters currently usable in this browser/environment. */
 export function listLabelPrinterAdapters(): LabelPrinterAdapter[] {
   return adapters.filter((adapter) => adapter.isAvailable())
 }

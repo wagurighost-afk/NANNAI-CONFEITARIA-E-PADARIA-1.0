@@ -103,7 +103,7 @@ export function LabelsPage() {
       />
       <PageHeader
         title="Etiquetas Inteligentes"
-        description="Gere, visualize e reimprima etiquetas com QR Code, validade automática e histórico — preparadas para impressoras NIIMBOT."
+        description="Gere, visualize e reimprima etiquetas com QR Code, validade automática e histórico — com impressão direta na NIIMBOT B1 via Bluetooth."
         actions={
           canPrint ? (
             <Button onClick={openCreate}>

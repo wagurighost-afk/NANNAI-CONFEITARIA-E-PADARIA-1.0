@@ -3,6 +3,13 @@ import type { LabelFieldData, LabelRecord } from '@/features/labels/types/label.
 export interface LabelPrintPayload {
   record: LabelRecord
   copies: number
+  onProgress?: (status: string) => void
+}
+
+export interface LabelPrinterStatus {
+  adapterId: string
+  connected: boolean
+  message?: string
 }
 
 export interface LabelPrinterAdapter {
@@ -13,12 +20,7 @@ export interface LabelPrinterAdapter {
   connect(): Promise<void>
   disconnect(): Promise<void>
   print(payload: LabelPrintPayload): Promise<void>
-}
-
-export interface LabelPrinterStatus {
-  adapterId: string
-  connected: boolean
-  message?: string
+  getStatus?: () => LabelPrinterStatus
 }
 
 export function buildNiimbotPrintPayload(record: LabelRecord, copies: number) {
