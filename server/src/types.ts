@@ -81,11 +81,81 @@ export interface CreateProductionInput {
 }
 
 export interface RealtimeEvent {
-  scope: 'production' | 'auth' | 'recipes' | 'monthly-schedule' | 'bread-control'
+  scope: 'production' | 'auth' | 'recipes' | 'monthly-schedule' | 'bread-control' | 'waste-control'
   action: string
   productionId?: string
   recipeId?: string
   scheduleId?: string
+  dayId?: string
+}
+
+export type WasteBuffetType = 'cha' | 'jantar'
+export type WastePhase = 'entrada' | 'reposicao' | 'finalizacao'
+export type WasteSector = 'Confeitaria' | 'Padaria'
+
+export interface WasteControlProduct {
+  id: string
+  name: string
+  unit: string
+  unitPrice: number
+  buffets: WasteBuffetType[]
+  sector: WasteSector
+}
+
+export interface WasteLineItem {
+  productId: string
+  productName: string
+  sector: WasteSector
+  units: number
+  wasteKg: number
+  unitPrice: number
+  total: number
+}
+
+export interface WastePhaseRecord {
+  items: WasteLineItem[]
+  wasteKgTotal: number
+  phaseTotal: number
+}
+
+export interface WasteControlDay {
+  id: string
+  date: string
+  buffet: WasteBuffetType
+  pax: number
+  monthlyGoalKg: number
+  dessertsQty: number
+  phases: Record<WastePhase, WastePhaseRecord>
+  wasteKgTotal: number
+  dayTotal: number
+  updatedAt: string
+}
+
+export interface SaveWasteControlDayInput {
+  date: string
+  buffet: WasteBuffetType
+  pax: number
+  monthlyGoalKg: number
+  dessertsQty?: number
+  phases: Record<WastePhase, Array<{ productId: string; units: number; wasteKg: number }>>
+}
+
+export interface WasteControlMonthlySummary {
+  year: number
+  month: number
+  days: Array<{
+    date: string
+    dayNumber: number
+    buffet: WasteBuffetType
+    wasteKgTotal: number
+    dayTotal: number
+    pax: number
+  }>
+  buffetTotals: Record<WasteBuffetType, number>
+  sectorTotals: Record<WasteSector, number>
+  phaseTotals: Record<WastePhase, number>
+  monthTotal: number
+  monthWasteKg: number
 }
 
 export type RecipeCategory =

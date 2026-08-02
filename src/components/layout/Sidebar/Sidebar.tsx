@@ -10,6 +10,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Sparkles,
+  Trash2,
   Users,
   Wheat,
   X,
@@ -30,6 +31,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   ChefHat,
   ClipboardList,
   FileText,
+  Trash2,
   Users,
   Wheat,
 }

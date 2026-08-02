@@ -30,6 +30,13 @@ export const MAIN_NAVIGATION: readonly AppNavItem[] = [
     permission: 'bread-control:view',
   },
   {
+    id: 'waste-control',
+    label: 'Controle de Desperdício',
+    href: APP_ROUTES.wasteControl,
+    icon: 'Trash2',
+    permission: 'waste-control:view',
+  },
+  {
     id: 'comments',
     label: 'Comentários',
     href: APP_ROUTES.comments,

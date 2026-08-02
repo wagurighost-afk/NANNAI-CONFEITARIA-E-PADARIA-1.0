@@ -2,7 +2,7 @@ import pg from 'pg'
 import { config } from '../config.js'
 import { readJsonDatabaseFile } from './jsonStore.js'
 import type { DatabaseFile, DatabaseStore } from './types.js'
-import type { BreadControlDay, MonthlySchedule, ProductionDay, Recipe } from '../types.js'
+import type { BreadControlDay, MonthlySchedule, ProductionDay, Recipe, WasteControlDay } from '../types.js'
 
 const { Pool } = pg
 
@@ -49,6 +49,16 @@ CREATE TABLE IF NOT EXISTS bread_control_days (
 );
 
 CREATE INDEX IF NOT EXISTS idx_bread_control_days_record_date ON bread_control_days(record_date);
+
+CREATE TABLE IF NOT EXISTS waste_control_days (
+  id TEXT PRIMARY KEY,
+  record_date DATE NOT NULL,
+  buffet TEXT NOT NULL,
+  payload JSONB NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_waste_control_days_record_date ON waste_control_days(record_date);
+CREATE INDEX IF NOT EXISTS idx_waste_control_days_buffet ON waste_control_days(buffet);
 `
 
 async function importJsonIfEmpty(pool: pg.Pool): Promise<void> {
@@ -114,6 +124,14 @@ async function importJsonIfEmpty(pool: pg.Pool): Promise<void> {
         `INSERT INTO bread_control_days (id, record_date, payload) VALUES ($1, $2::date, $3::jsonb)
          ON CONFLICT (id) DO NOTHING`,
         [day.id, day.date, JSON.stringify(day)],
+      )
+    }
+
+    for (const day of snapshot.waste_control_days ?? []) {
+      await client.query(
+        `INSERT INTO waste_control_days (id, record_date, buffet, payload) VALUES ($1, $2::date, $3, $4::jsonb)
+         ON CONFLICT (id) DO NOTHING`,
+        [day.id, day.date, day.buffet, JSON.stringify(day)],
       )
     }
 
@@ -320,6 +338,36 @@ export function createPostgresStore(): DatabaseStore {
         `INSERT INTO bread_control_days (id, record_date, payload) VALUES ($1, $2::date, $3::jsonb)
          ON CONFLICT (id) DO UPDATE SET record_date = EXCLUDED.record_date, payload = EXCLUDED.payload`,
         [day.id, day.date, JSON.stringify(day)],
+      )
+    },
+
+    async loadWasteControlDay(id) {
+      const { rows } = await pool.query<{ payload: WasteControlDay }>(
+        'SELECT payload FROM waste_control_days WHERE id = $1',
+        [id],
+      )
+      return rows[0]?.payload ?? null
+    },
+
+    async loadWasteControlDaysInMonth(year, month) {
+      const start = `${year}-${String(month).padStart(2, '0')}-01`
+      const endMonth = month === 12 ? 1 : month + 1
+      const endYear = month === 12 ? year + 1 : year
+      const end = `${endYear}-${String(endMonth).padStart(2, '0')}-01`
+      const { rows } = await pool.query<{ payload: WasteControlDay }>(
+        `SELECT payload FROM waste_control_days
+         WHERE record_date >= $1::date AND record_date < $2::date
+         ORDER BY record_date ASC`,
+        [start, end],
+      )
+      return rows.map((row) => row.payload)
+    },
+
+    async saveWasteControlDay(day) {
+      await pool.query(
+        `INSERT INTO waste_control_days (id, record_date, buffet, payload) VALUES ($1, $2::date, $3, $4::jsonb)
+         ON CONFLICT (id) DO UPDATE SET record_date = EXCLUDED.record_date, buffet = EXCLUDED.buffet, payload = EXCLUDED.payload`,
+        [day.id, day.date, day.buffet, JSON.stringify(day)],
       )
     },
   }

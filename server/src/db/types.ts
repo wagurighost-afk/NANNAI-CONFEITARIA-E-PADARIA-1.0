@@ -1,4 +1,4 @@
-import type { AppUser, BreadControlDay, MonthlySchedule, ProductionDay, Recipe } from '../types.js'
+import type { AppUser, BreadControlDay, MonthlySchedule, ProductionDay, Recipe, WasteControlDay } from '../types.js'
 
 export interface UserRow {
   id: string
@@ -21,6 +21,7 @@ export interface DatabaseFile {
   recipes: Recipe[]
   monthly_schedules: MonthlySchedule[]
   bread_control_days: BreadControlDay[]
+  waste_control_days: WasteControlDay[]
   refresh_tokens: RefreshTokenRow[]
   meta: Record<string, string>
 }
@@ -53,4 +54,7 @@ export interface DatabaseStore {
   loadBreadControlDay(id: string): Promise<BreadControlDay | null>
   loadBreadControlDaysInMonth(year: number, month: number): Promise<BreadControlDay[]>
   saveBreadControlDay(day: BreadControlDay): Promise<void>
+  loadWasteControlDay(id: string): Promise<WasteControlDay | null>
+  loadWasteControlDaysInMonth(year: number, month: number): Promise<WasteControlDay[]>
+  saveWasteControlDay(day: WasteControlDay): Promise<void>
 }

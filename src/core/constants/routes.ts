@@ -6,6 +6,7 @@ export const APP_ROUTES = {
   ingredients: '/ingredientes',
   production: '/producao',
   breadControl: '/controle-paes',
+  wasteControl: '/controle-desperdicio',
   schedule: '/escala',
   cleaningSchedule: '/escala-limpeza',
   recipes: '/receitas',

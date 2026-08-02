@@ -130,6 +130,18 @@ export async function saveBreadControlDay(day: Parameters<DatabaseStore['saveBre
   await getStore().saveBreadControlDay(day)
 }
 
+export async function loadWasteControlDay(id: string) {
+  return getStore().loadWasteControlDay(id)
+}
+
+export async function loadWasteControlDaysInMonth(year: number, month: number) {
+  return getStore().loadWasteControlDaysInMonth(year, month)
+}
+
+export async function saveWasteControlDay(day: Parameters<DatabaseStore['saveWasteControlDay']>[0]): Promise<void> {
+  await getStore().saveWasteControlDay(day)
+}
+
 export function isPostgresEnabled(): boolean {
   return Boolean(config.databaseUrl)
 }

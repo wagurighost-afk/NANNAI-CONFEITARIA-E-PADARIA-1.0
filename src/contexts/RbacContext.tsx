@@ -3,6 +3,7 @@ import type { Permission, RbacContextValue } from '@/types/rbac.types'
 import type { UserRole } from '@/types/auth.types'
 import { getPermissionsForRole } from '@/core/permissions'
 import { canAccessBreadControl, canViewBreadMonthlySummary } from '@/core/permissions/breadControlAccess'
+import { canAccessWasteControl, canViewWasteMonthlySummary } from '@/core/permissions/wasteControlAccess'
 import { hasFullSystemAccess } from '@/core/permissions/systemAccess'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -38,6 +39,12 @@ export function RbacProvider({ children }: RbacProviderProps) {
     }
     if (canViewBreadMonthlySummary(user) && !base.includes('bread-control:summary')) {
       base.push('bread-control:summary')
+    }
+    if (canAccessWasteControl(user) && !base.includes('waste-control:view')) {
+      base.push('waste-control:view')
+    }
+    if (canViewWasteMonthlySummary(user) && !base.includes('waste-control:summary')) {
+      base.push('waste-control:summary')
     }
     return base
   }, [role, user])

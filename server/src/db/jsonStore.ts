@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { config } from '../config.js'
 import type { DatabaseFile, DatabaseStore, RefreshTokenRow, UserRow } from './types.js'
-import type { BreadControlDay, MonthlySchedule, ProductionDay, Recipe } from '../types.js'
+import type { BreadControlDay, MonthlySchedule, ProductionDay, Recipe, WasteControlDay } from '../types.js'
 
 const dbPath = path.join(config.dataDir, 'nannai.json')
 
@@ -13,6 +13,7 @@ function emptyDb(): DatabaseFile {
     recipes: [],
     monthly_schedules: [],
     bread_control_days: [],
+    waste_control_days: [],
     refresh_tokens: [],
     meta: {},
   }
@@ -25,6 +26,7 @@ function normalizeDb(parsed: Partial<DatabaseFile>): DatabaseFile {
     recipes: parsed.recipes ?? [],
     monthly_schedules: parsed.monthly_schedules ?? [],
     bread_control_days: parsed.bread_control_days ?? [],
+    waste_control_days: parsed.waste_control_days ?? [],
     refresh_tokens: parsed.refresh_tokens ?? [],
     meta: parsed.meta ?? {},
   }
@@ -202,6 +204,26 @@ export function createJsonStore(): DatabaseStore {
         db.bread_control_days[index] = day
       } else {
         db.bread_control_days.push(day)
+      }
+      writeDb(db)
+    },
+
+    async loadWasteControlDay(id) {
+      return readDb().waste_control_days.find((day) => day.id === id) ?? null
+    },
+
+    async loadWasteControlDaysInMonth(year, month) {
+      const prefix = `${year}-${String(month).padStart(2, '0')}-`
+      return readDb().waste_control_days.filter((day) => day.date.startsWith(prefix))
+    },
+
+    async saveWasteControlDay(day) {
+      const db = readDb()
+      const index = db.waste_control_days.findIndex((item) => item.id === day.id)
+      if (index >= 0) {
+        db.waste_control_days[index] = day
+      } else {
+        db.waste_control_days.push(day)
       }
       writeDb(db)
     },

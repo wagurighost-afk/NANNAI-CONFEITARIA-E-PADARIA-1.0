@@ -11,6 +11,7 @@ import { PopPage } from '@/features/pop'
 import { CommentsPage } from '@/features/comments'
 import { ProductionPage } from '@/features/production'
 import { BreadControlPage } from '@/features/bread-control'
+import { WasteControlPage } from '@/features/waste-control'
 import { RecipesPage } from '@/features/recipes'
 import { SchedulePage } from '@/features/schedule'
 import { PermissionRoute } from '@/app/router/PermissionRoute'
@@ -36,6 +37,9 @@ export function AppRouter() {
             <Route path={APP_ROUTES.production} element={<ProductionPage />} />
             <Route element={<PermissionRoute permission="bread-control:view" />}>
               <Route path={APP_ROUTES.breadControl} element={<BreadControlPage />} />
+            </Route>
+            <Route element={<PermissionRoute permission="waste-control:view" />}>
+              <Route path={APP_ROUTES.wasteControl} element={<WasteControlPage />} />
             </Route>
             <Route path={APP_ROUTES.comments} element={<CommentsPage />} />
             <Route path={APP_ROUTES.schedule} element={<SchedulePage />} />
