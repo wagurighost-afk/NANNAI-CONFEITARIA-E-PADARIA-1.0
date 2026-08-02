@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import {
+  BrainCircuit,
   CalendarDays,
   ChefHat,
   ClipboardList,
@@ -24,6 +25,7 @@ import { cn } from '@/utils/cn'
 
 const NAV_ICONS: Record<string, LucideIcon> = {
   LayoutDashboard,
+  BrainCircuit,
   MessageSquare,
   Factory,
   CalendarDays,

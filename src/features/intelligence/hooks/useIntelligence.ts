@@ -35,6 +35,18 @@ export function useOperationalKpis(params: Pick<IntelligenceQueryParams, 'year' 
   })
 }
 
+/** KPIs operacionais com polling para o Dashboard Executivo (tempo real). */
+export function useExecutiveOperationalKpis(params: Pick<IntelligenceQueryParams, 'year' | 'month'>) {
+  return useQuery({
+    queryKey: INTELLIGENCE_QUERY_KEYS.operationalKpis(params),
+    queryFn: () => intelligenceService.getOperationalKpis(params),
+    enabled: Boolean(params.year && params.month),
+    staleTime: 1000 * 15,
+    refetchInterval: 1000 * 30,
+    refetchOnWindowFocus: true,
+  })
+}
+
 export function useProductionKpis(params: Pick<IntelligenceQueryParams, 'year' | 'month'>) {
   return useQuery({
     queryKey: INTELLIGENCE_QUERY_KEYS.productionKpis(params),

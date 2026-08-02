@@ -1,6 +1,8 @@
 export { IntelligencePage } from '@/features/intelligence/pages/IntelligencePage'
+export { ExecutiveDashboard } from '@/features/intelligence/components/ExecutiveDashboard'
 export { intelligenceService } from '@/features/intelligence/services/intelligence.service'
 export {
+  useExecutiveOperationalKpis,
   useSmartInsightsReport,
   useSmartRecommendationsReport,
   useOperationalKpis,

@@ -28,6 +28,7 @@ export function useRealtimeSync(): void {
           void queryClient.invalidateQueries({ queryKey: ['production'] })
           void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
           void queryClient.invalidateQueries({ queryKey: ['comments-feed'] })
+          void queryClient.invalidateQueries({ queryKey: ['intelligence'] })
         }
         if (payload.scope === 'recipes') {
           void queryClient.invalidateQueries({ queryKey: ['recipes'] })
@@ -37,9 +38,11 @@ export function useRealtimeSync(): void {
         }
         if (payload.scope === 'bread-control') {
           void queryClient.invalidateQueries({ queryKey: ['bread-control'] })
+          void queryClient.invalidateQueries({ queryKey: ['intelligence'] })
         }
         if (payload.scope === 'waste-control') {
           void queryClient.invalidateQueries({ queryKey: ['waste-control'] })
+          void queryClient.invalidateQueries({ queryKey: ['intelligence'] })
         }
         if (payload.scope === 'intelligence') {
           void queryClient.invalidateQueries({ queryKey: ['intelligence'] })

@@ -72,6 +72,13 @@ export const MAIN_NAVIGATION: readonly AppNavItem[] = [
     permission: 'pop:view',
   },
   {
+    id: 'intelligence',
+    label: 'Dashboard Executivo',
+    href: APP_ROUTES.intelligence,
+    icon: 'BrainCircuit',
+    permission: 'intelligence:view',
+  },
+  {
     id: 'employees',
     label: 'Colaboradores',
     href: APP_ROUTES.employees,

@@ -1,8 +1,10 @@
 /**
- * Ponto de entrada da rota /intelligence.
- * UI será implementada em fase posterior — este componente apenas reserva a rota.
+ * Ponto de entrada da rota /intelligence — Dashboard Executivo.
  * @module intelligence/pages
  */
+
+import { ExecutiveDashboard } from '@/features/intelligence/components/ExecutiveDashboard'
+
 export function IntelligencePage() {
-  return <div data-intelligence-module="ready" className="hidden" aria-hidden />
+  return <ExecutiveDashboard />
 }
