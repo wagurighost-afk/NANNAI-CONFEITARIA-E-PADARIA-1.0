@@ -1,4 +1,5 @@
 import type { AppUser, BreadControlDay, MonthlySchedule, ProductionDay, Recipe, WasteControlDay } from '../types.js'
+import type { AuditLogRecord } from '../audit/types.js'
 import type { IntelligenceSnapshot } from '../intelligence/types.js'
 
 export interface UserRow {
@@ -25,6 +26,7 @@ export interface DatabaseFile {
   bread_control_days: BreadControlDay[]
   waste_control_days: WasteControlDay[]
   intelligence_snapshots: IntelligenceSnapshot[]
+  audit_logs: AuditLogRecord[]
   refresh_tokens: RefreshTokenRow[]
   meta: Record<string, string>
 }
@@ -76,4 +78,6 @@ export interface DatabaseStore {
     month: number,
     category?: IntelligenceSnapshot['category'],
   ): Promise<void>
+  insertAuditLog(record: AuditLogRecord): Promise<void>
+  listAuditLogs(filters: import('../audit/types.js').AuditLogFilters): Promise<import('../audit/types.js').AuditLogListResult>
 }

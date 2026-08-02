@@ -5,6 +5,7 @@ import { getPermissionsForRole } from '@/core/permissions'
 import { canAccessBreadControl, canViewBreadMonthlySummary } from '@/core/permissions/breadControlAccess'
 import { canAccessWasteControl, canViewWasteMonthlySummary } from '@/core/permissions/wasteControlAccess'
 import { canAccessIntelligence } from '@/core/permissions/intelligenceAccess'
+import { canViewAuditLogs } from '@/core/permissions/auditAccess'
 import { hasFullSystemAccess } from '@/core/permissions/systemAccess'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -50,6 +51,9 @@ export function RbacProvider({ children }: RbacProviderProps) {
     if (canAccessIntelligence(user) && !base.includes('intelligence:view')) {
       base.push('intelligence:view')
       base.push('intelligence:refresh')
+    }
+    if (canViewAuditLogs(user) && !base.includes('audit:view')) {
+      base.push('audit:view')
     }
     return base
   }, [role, user])

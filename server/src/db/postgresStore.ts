@@ -74,6 +74,25 @@ CREATE INDEX IF NOT EXISTS idx_intelligence_snapshots_period ON intelligence_sna
 CREATE INDEX IF NOT EXISTS idx_intelligence_snapshots_category ON intelligence_snapshots (category);
 CREATE INDEX IF NOT EXISTS idx_intelligence_snapshots_period_category ON intelligence_snapshots (period_year, period_month, category);
 CREATE INDEX IF NOT EXISTS idx_productions_date ON productions ((payload->>'date'));
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id TEXT PRIMARY KEY,
+  actor_id TEXT NOT NULL,
+  actor_name TEXT NOT NULL,
+  actor_email TEXT NOT NULL,
+  actor_employee_id TEXT,
+  entity_type TEXT NOT NULL,
+  entity_id TEXT NOT NULL,
+  action TEXT NOT NULL,
+  summary TEXT NOT NULL,
+  before_data JSONB,
+  after_data JSONB,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_entity ON audit_logs (entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_actor ON audit_logs (actor_id);
 `
 
 async function importJsonIfEmpty(pool: pg.Pool): Promise<void> {
@@ -498,6 +517,99 @@ export function createPostgresStore(): DatabaseStore {
         'DELETE FROM intelligence_snapshots WHERE period_year = $1 AND period_month = $2',
         [year, month],
       )
+    },
+
+    async insertAuditLog(record) {
+      await pool.query(
+        `INSERT INTO audit_logs (
+          id, actor_id, actor_name, actor_email, actor_employee_id,
+          entity_type, entity_id, action, summary, before_data, after_data, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+        [
+          record.id,
+          record.actor.userId,
+          record.actor.userName,
+          record.actor.userEmail,
+          record.actor.employeeId ?? null,
+          record.entityType,
+          record.entityId,
+          record.action,
+          record.summary,
+          record.before ? JSON.stringify(record.before) : null,
+          record.after ? JSON.stringify(record.after) : null,
+          record.createdAt,
+        ],
+      )
+    },
+
+    async listAuditLogs(filters) {
+      const limit = Math.min(Math.max(filters.limit ?? 50, 1), 200)
+      const offset = Math.max(filters.offset ?? 0, 0)
+      const conditions: string[] = []
+      const params: unknown[] = []
+
+      const add = (sql: string, value: unknown) => {
+        params.push(value)
+        conditions.push(sql.replace('$?', `$${params.length}`))
+      }
+
+      if (filters.entityType) add('entity_type = $?', filters.entityType)
+      if (filters.entityId) add('entity_id = $?', filters.entityId)
+      if (filters.actorId) add('actor_id = $?', filters.actorId)
+      if (filters.action) add('action = $?', filters.action)
+      if (filters.from) add('created_at >= $?::timestamptz', filters.from)
+      if (filters.to) add('created_at <= $?::timestamptz', filters.to)
+
+      const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+
+      const countResult = await pool.query<{ count: string }>(
+        `SELECT COUNT(*)::text AS count FROM audit_logs ${where}`,
+        params,
+      )
+      const total = Number(countResult.rows[0]?.count ?? 0)
+
+      const listParams = [...params, limit, offset]
+      const result = await pool.query<{
+        id: string
+        actor_id: string
+        actor_name: string
+        actor_email: string
+        actor_employee_id: string | null
+        entity_type: string
+        entity_id: string
+        action: string
+        summary: string
+        before_data: unknown
+        after_data: unknown
+        created_at: Date
+      }>(
+        `SELECT id, actor_id, actor_name, actor_email, actor_employee_id,
+                entity_type, entity_id, action, summary, before_data, after_data, created_at
+         FROM audit_logs ${where}
+         ORDER BY created_at DESC
+         LIMIT $${listParams.length - 1} OFFSET $${listParams.length}`,
+        listParams,
+      )
+
+      return {
+        total,
+        items: result.rows.map((row) => ({
+          id: row.id,
+          actor: {
+            userId: row.actor_id,
+            userName: row.actor_name,
+            userEmail: row.actor_email,
+            employeeId: row.actor_employee_id ?? undefined,
+          },
+          entityType: row.entity_type as import('../audit/types.js').AuditEntityType,
+          entityId: row.entity_id,
+          action: row.action as import('../audit/types.js').AuditAction,
+          summary: row.summary,
+          before: row.before_data as Record<string, unknown> | null,
+          after: row.after_data as Record<string, unknown> | null,
+          createdAt: row.created_at.toISOString(),
+        })),
+      }
     },
   }
 }

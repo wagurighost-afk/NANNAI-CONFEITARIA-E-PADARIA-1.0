@@ -1,5 +1,7 @@
 import { Router } from 'express'
+import { toAuditActor } from '../audit/actor.js'
 import { requireAuth } from '../middleware.js'
+import type { AuthedRequest } from '../middleware.js'
 import {
   getBreadControlDay,
   getBreadControlMonthlySummary,
@@ -29,14 +31,14 @@ breadControlRouter.get('/days/:date', async (req, res) => {
   res.json(day)
 })
 
-breadControlRouter.put('/days/:date', async (req, res) => {
+breadControlRouter.put('/days/:date', async (req: AuthedRequest, res) => {
   try {
     const input: SaveBreadControlDayInput = {
       date: req.params.date,
       pax: Number(req.body.pax ?? 0),
       items: Array.isArray(req.body.items) ? req.body.items : [],
     }
-    const day = await saveBreadControlDayRecord(input)
+    const day = await saveBreadControlDayRecord(input, toAuditActor(req.user!))
     res.json(day)
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Dados inválidos.' })

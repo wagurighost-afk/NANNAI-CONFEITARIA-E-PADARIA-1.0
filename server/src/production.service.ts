@@ -1,4 +1,6 @@
 import { randomUUID } from 'node:crypto'
+import { safeAudit } from './audit/safeAudit.js'
+import type { AuditActor } from './audit/types.js'
 import { SEED_EMPLOYEES } from './data/employees.js'
 import { emitRealtime } from './events.js'
 import {
@@ -137,7 +139,7 @@ export async function getProductionById(id: string): Promise<ProductionDay | nul
   return production ? withProgress(production) : null
 }
 
-export async function createProduction(input: ProductionDay): Promise<ProductionDay> {
+export async function createProduction(input: ProductionDay, actor?: AuditActor): Promise<ProductionDay> {
   const now = new Date().toISOString()
   const production = withProgress({
     ...input,
@@ -148,10 +150,20 @@ export async function createProduction(input: ProductionDay): Promise<Production
   })
   await saveProduction(production)
   notifyProduction('created', production.id)
+  await safeAudit(actor, {
+    entityType: 'production',
+    entityId: production.id,
+    action: 'create',
+    summary: `Produção ${production.productionCode} criada`,
+    after: production,
+  })
   return production
 }
 
-export async function createProductionFromInput(input: CreateProductionInput): Promise<ProductionDay> {
+export async function createProductionFromInput(
+  input: CreateProductionInput,
+  actor?: AuditActor,
+): Promise<ProductionDay> {
   const now = new Date().toISOString()
   const all = await loadAllProductions()
   const production = withProgress({
@@ -171,10 +183,21 @@ export async function createProductionFromInput(input: CreateProductionInput): P
   })
   await saveProduction(production)
   notifyProduction('created', production.id)
+  await safeAudit(actor, {
+    entityType: 'production',
+    entityId: production.id,
+    action: 'create',
+    summary: `Produção ${production.productionCode} criada`,
+    after: production,
+  })
   return production
 }
 
-export async function updateProduction(id: string, input: ProductionDay): Promise<ProductionDay> {
+export async function updateProduction(
+  id: string,
+  input: ProductionDay,
+  actor?: AuditActor,
+): Promise<ProductionDay> {
   const existing = await loadProductionById(id)
   if (!existing) {
     throw new Error('Produção não encontrada.')
@@ -189,10 +212,22 @@ export async function updateProduction(id: string, input: ProductionDay): Promis
   })
   await saveProduction(production)
   notifyProduction('updated', production.id)
+  await safeAudit(actor, {
+    entityType: 'production',
+    entityId: production.id,
+    action: 'update',
+    summary: `Produção ${production.productionCode} atualizada`,
+    before: existing,
+    after: production,
+  })
   return production
 }
 
-export async function updateProductionFromInput(id: string, input: CreateProductionInput): Promise<ProductionDay> {
+export async function updateProductionFromInput(
+  id: string,
+  input: CreateProductionInput,
+  actor?: AuditActor,
+): Promise<ProductionDay> {
   const existing = await loadProductionById(id)
   if (!existing) {
     throw new Error('Produção não encontrada.')
@@ -211,12 +246,21 @@ export async function updateProductionFromInput(id: string, input: CreateProduct
   })
   await saveProduction(production)
   notifyProduction('updated', production.id)
+  await safeAudit(actor, {
+    entityType: 'production',
+    entityId: production.id,
+    action: 'update',
+    summary: `Produção ${production.productionCode} atualizada`,
+    before: existing,
+    after: production,
+  })
   return production
 }
 
 export async function appendRecipesToProduction(
   productionId: string,
   items: CreateProductionInput['items'],
+  actor?: AuditActor,
 ): Promise<ProductionDay> {
   const existing = await loadProductionById(productionId)
   if (!existing) {
@@ -230,35 +274,59 @@ export async function appendRecipesToProduction(
   })
   await saveProduction(production)
   notifyProduction('updated', production.id)
+  await safeAudit(actor, {
+    entityType: 'production',
+    entityId: production.id,
+    action: 'update',
+    summary: `Receitas adicionadas à produção ${production.productionCode}`,
+    before: { items: existing.items },
+    after: { items: production.items },
+  })
   return production
 }
 
-export async function resolveCreateProductionInput(input: unknown): Promise<ProductionDay> {
+export async function resolveCreateProductionInput(
+  input: unknown,
+  actor?: AuditActor,
+): Promise<ProductionDay> {
   if (isCreateProductionInput(input)) {
-    return createProductionFromInput(input)
+    return createProductionFromInput(input, actor)
   }
-  return createProduction(input as ProductionDay)
+  return createProduction(input as ProductionDay, actor)
 }
 
-export async function resolveUpdateProductionInput(id: string, input: unknown): Promise<ProductionDay> {
+export async function resolveUpdateProductionInput(
+  id: string,
+  input: unknown,
+  actor?: AuditActor,
+): Promise<ProductionDay> {
   if (isCreateProductionInput(input)) {
-    return updateProductionFromInput(id, input)
+    return updateProductionFromInput(id, input, actor)
   }
-  return updateProduction(id, input as ProductionDay)
+  return updateProduction(id, input as ProductionDay, actor)
 }
 
-export async function removeProduction(id: string): Promise<void> {
-  if (!(await loadProductionById(id))) {
+export async function removeProduction(id: string, actor?: AuditActor): Promise<void> {
+  const existing = await loadProductionById(id)
+  if (!existing) {
     throw new Error('Produção não encontrada.')
   }
   await deleteProduction(id)
   notifyProduction('removed', id)
+  await safeAudit(actor, {
+    entityType: 'production',
+    entityId: id,
+    action: 'delete',
+    summary: `Produção ${existing.productionCode} removida`,
+    before: existing,
+  })
 }
 
 export async function updateItemStatus(
   productionId: string,
   itemId: string,
   status: ProductionItem['status'],
+  actor?: AuditActor,
 ): Promise<ProductionDay> {
   const production = await loadProductionById(productionId)
   if (!production) {
@@ -268,6 +336,7 @@ export async function updateItemStatus(
   const items = production.items.map((item) =>
     item.id === itemId ? { ...item, status } : item,
   )
+  const previousItem = production.items.find((item) => item.id === itemId)
   const updated = withProgress({
     ...production,
     items,
@@ -275,10 +344,22 @@ export async function updateItemStatus(
   })
   await saveProduction(updated)
   notifyProduction('item_status', productionId)
+  await safeAudit(actor, {
+    entityType: 'production',
+    entityId: productionId,
+    action: 'status_change',
+    summary: `Status do item "${previousItem?.name ?? itemId}" alterado para ${status}`,
+    before: previousItem ?? null,
+    after: updated.items.find((item) => item.id === itemId) ?? null,
+  })
   return updated
 }
 
-export async function reorderItems(productionId: string, itemIds: string[]): Promise<ProductionDay> {
+export async function reorderItems(
+  productionId: string,
+  itemIds: string[],
+  actor?: AuditActor,
+): Promise<ProductionDay> {
   const production = await loadProductionById(productionId)
   if (!production) {
     throw new Error('Produção não encontrada.')
@@ -303,12 +384,21 @@ export async function reorderItems(productionId: string, itemIds: string[]): Pro
   })
   await saveProduction(updated)
   notifyProduction('reordered', productionId)
+  await safeAudit(actor, {
+    entityType: 'production',
+    entityId: productionId,
+    action: 'update',
+    summary: `Itens reordenados na produção ${production.productionCode}`,
+    before: { itemOrder: production.items.map((item) => item.id) },
+    after: { itemOrder: reordered.map((item) => item.id) },
+  })
   return updated
 }
 
 export async function addComment(
   productionId: string,
   comment: Omit<ShiftComment, 'id' | 'createdAt'>,
+  actor?: AuditActor,
 ): Promise<ProductionDay> {
   const production = await loadProductionById(productionId)
   if (!production) {
@@ -336,5 +426,12 @@ export async function addComment(
   })
   await saveProduction(updated)
   notifyProduction('comment', productionId)
+  await safeAudit(actor, {
+    entityType: 'production',
+    entityId: productionId,
+    action: 'comment',
+    summary: `Comentário adicionado na produção ${production.productionCode}`,
+    after: entry,
+  })
   return updated
 }

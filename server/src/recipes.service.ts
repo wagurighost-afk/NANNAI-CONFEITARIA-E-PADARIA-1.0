@@ -1,6 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
+import { safeAudit } from './audit/safeAudit.js'
+import type { AuditActor } from './audit/types.js'
 import { config } from './config.js'
 import {
   deleteRecipeRecord,
@@ -143,7 +145,11 @@ export async function getRecipeById(id: string): Promise<Recipe | null> {
   return loadRecipeRecord(id)
 }
 
-export async function createRecipe(input: RecipeInput, file?: Express.Multer.File): Promise<Recipe> {
+export async function createRecipe(
+  input: RecipeInput,
+  file?: Express.Multer.File,
+  actor?: AuditActor,
+): Promise<Recipe> {
   const normalized = normalizeInput(input)
   const recipes = await loadAllRecipes()
   const now = new Date().toISOString()
@@ -159,13 +165,20 @@ export async function createRecipe(input: RecipeInput, file?: Express.Multer.Fil
 
   await saveRecipeRecord(recipe)
   emitRealtime({ scope: 'recipes', action: 'created', recipeId: recipe.id })
+  await safeAudit(actor, {
+    entityType: 'recipe',
+    entityId: recipe.id,
+    action: 'create',
+    summary: `Receita "${recipe.name}" criada`,
+    after: recipe,
+  })
   return recipe
 }
 
 export async function updateRecipe(
   id: string,
   input: RecipeInput,
-  options: { file?: Express.Multer.File; removeAttachment?: boolean } = {},
+  options: { file?: Express.Multer.File; removeAttachment?: boolean; actor?: AuditActor } = {},
 ): Promise<Recipe> {
   const existing = await loadRecipeRecord(id)
   if (!existing) {
@@ -195,10 +208,18 @@ export async function updateRecipe(
 
   await saveRecipeRecord(recipe)
   emitRealtime({ scope: 'recipes', action: 'updated', recipeId: recipe.id })
+  await safeAudit(options.actor, {
+    entityType: 'recipe',
+    entityId: recipe.id,
+    action: 'update',
+    summary: `Receita "${recipe.name}" atualizada`,
+    before: existing,
+    after: recipe,
+  })
   return recipe
 }
 
-export async function removeRecipe(id: string): Promise<void> {
+export async function removeRecipe(id: string, actor?: AuditActor): Promise<void> {
   const existing = await loadRecipeRecord(id)
   if (!existing) {
     throw new Error('Receita não encontrada.')
@@ -207,9 +228,16 @@ export async function removeRecipe(id: string): Promise<void> {
   removeAttachmentFiles(existing.attachments)
   await deleteRecipeRecord(id)
   emitRealtime({ scope: 'recipes', action: 'deleted', recipeId: id })
+  await safeAudit(actor, {
+    entityType: 'recipe',
+    entityId: id,
+    action: 'delete',
+    summary: `Receita "${existing.name}" removida`,
+    before: existing,
+  })
 }
 
-export async function archiveRecipe(id: string): Promise<Recipe> {
+export async function archiveRecipe(id: string, actor?: AuditActor): Promise<Recipe> {
   const existing = await loadRecipeRecord(id)
   if (!existing) {
     throw new Error('Receita não encontrada.')
@@ -223,5 +251,13 @@ export async function archiveRecipe(id: string): Promise<Recipe> {
 
   await saveRecipeRecord(recipe)
   emitRealtime({ scope: 'recipes', action: 'archived', recipeId: recipe.id })
+  await safeAudit(actor, {
+    entityType: 'recipe',
+    entityId: recipe.id,
+    action: 'update',
+    summary: `Receita "${recipe.name}" arquivada`,
+    before: existing,
+    after: recipe,
+  })
   return recipe
 }

@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import multer from 'multer'
+import { toAuditActor } from '../audit/actor.js'
 import { config } from '../config.js'
 import type { AuthedRequest } from '../middleware.js'
 import { requireAuth, requireManager } from '../middleware.js'
@@ -50,14 +51,14 @@ monthlyScheduleRouter.get('/:id', async (req, res) => {
 monthlyScheduleRouter.post('/import', requireManager, upload.single('file'), async (req: AuthedRequest, res) => {
   try {
     const input = JSON.parse(String(req.body.data ?? '{}')) as ImportMonthlyScheduleInput
-    const schedule = await importMonthlySchedule(input, req.file)
+    const schedule = await importMonthlySchedule(input, req.file, toAuditActor(req.user!))
     res.status(201).json(schedule)
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Dados inválidos.' })
   }
 })
 
-monthlyScheduleRouter.patch('/:id/day', requireManager, async (req, res) => {
+monthlyScheduleRouter.patch('/:id/day', requireManager, async (req: AuthedRequest, res) => {
   try {
     const input = req.body as UpdateMonthlyDayInput
     const schedule = await updateMonthlyDay({
@@ -65,14 +66,14 @@ monthlyScheduleRouter.patch('/:id/day', requireManager, async (req, res) => {
       rowId: input.rowId,
       day: input.day,
       status: input.status,
-    })
+    }, toAuditActor(req.user!))
     res.json(schedule)
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Erro ao atualizar dia.' })
   }
 })
 
-monthlyScheduleRouter.patch('/:id/swap', requireManager, async (req, res) => {
+monthlyScheduleRouter.patch('/:id/swap', requireManager, async (req: AuthedRequest, res) => {
   try {
     const input = req.body as SwapMonthlyDaysInput
     const schedule = await swapMonthlyDays({
@@ -81,19 +82,20 @@ monthlyScheduleRouter.patch('/:id/swap', requireManager, async (req, res) => {
       sourceDay: input.sourceDay,
       targetRowId: input.targetRowId,
       targetDay: input.targetDay,
-    })
+    }, toAuditActor(req.user!))
     res.json(schedule)
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Erro ao trocar dias.' })
   }
 })
 
-monthlyScheduleRouter.patch('/:id/toggle', requireManager, async (req, res) => {
+monthlyScheduleRouter.patch('/:id/toggle', requireManager, async (req: AuthedRequest, res) => {
   try {
     const schedule = await toggleMonthlyDay(
       req.params.id,
       String(req.body.rowId),
       Number(req.body.day),
+      toAuditActor(req.user!),
     )
     res.json(schedule)
   } catch (error) {

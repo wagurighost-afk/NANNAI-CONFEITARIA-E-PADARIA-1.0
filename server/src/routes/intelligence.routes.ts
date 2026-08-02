@@ -6,6 +6,8 @@
 
 import { Router } from 'express'
 import { canAccessIntelligence } from '../intelligence/access.js'
+import { toAuditActor } from '../audit/actor.js'
+import { safeAudit } from '../audit/safeAudit.js'
 import { normalizeLimit, normalizePeriod } from '../intelligence/constants.js'
 import {
   getIntelligenceAlerts,
@@ -318,6 +320,14 @@ intelligenceRouter.post('/refresh', async (req: AuthedRequest, res) => {
     const period = normalizePeriod(year, month)
     const limit = normalizeLimit(Number(req.body?.limit ?? req.query.limit))
     const result = await refreshIntelligenceData(period, limit)
+
+    await safeAudit(toAuditActor(req.user!), {
+      entityType: 'intelligence',
+      entityId: `intel-${period.year}-${period.month}`,
+      action: 'refresh',
+      summary: `Inteligência operacional atualizada (${period.month}/${period.year})`,
+      after: { period, refreshedAt: new Date().toISOString() },
+    })
 
     const { emitRealtime } = await import('../events.js')
     emitRealtime({ scope: 'intelligence', action: 'refreshed', scheduleId: `intel-${period.year}-${period.month}` })

@@ -2,6 +2,7 @@ import path from 'node:path'
 import { randomUUID } from 'node:crypto'
 import { Router } from 'express'
 import multer from 'multer'
+import { toAuditActor } from '../audit/actor.js'
 import { config } from '../config.js'
 import type { AuthedRequest } from '../middleware.js'
 import { requireAuth } from '../middleware.js'
@@ -48,49 +49,50 @@ productionRouter.get('/:id', async (req, res) => {
   res.json(production)
 })
 
-productionRouter.post('/', async (req, res) => {
+productionRouter.post('/', async (req: AuthedRequest, res) => {
   try {
-    const production = await resolveCreateProductionInput(req.body)
+    const production = await resolveCreateProductionInput(req.body, toAuditActor(req.user!))
     res.status(201).json(production)
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Dados inválidos.' })
   }
 })
 
-productionRouter.post('/:id/append-recipes', async (req, res) => {
+productionRouter.post('/:id/append-recipes', async (req: AuthedRequest, res) => {
   try {
     const items = Array.isArray(req.body.items) ? req.body.items : []
-    const production = await appendRecipesToProduction(req.params.id, items)
+    const production = await appendRecipesToProduction(req.params.id, items, toAuditActor(req.user!))
     res.json(production)
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Erro ao adicionar receitas.' })
   }
 })
 
-productionRouter.put('/:id', async (req, res) => {
+productionRouter.put('/:id', async (req: AuthedRequest, res) => {
   try {
-    const production = await resolveUpdateProductionInput(req.params.id, req.body)
+    const production = await resolveUpdateProductionInput(req.params.id, req.body, toAuditActor(req.user!))
     res.json(production)
   } catch (error) {
     res.status(404).json({ message: error instanceof Error ? error.message : 'Erro ao atualizar.' })
   }
 })
 
-productionRouter.delete('/:id', async (req, res) => {
+productionRouter.delete('/:id', async (req: AuthedRequest, res) => {
   try {
-    await removeProduction(req.params.id)
+    await removeProduction(req.params.id, toAuditActor(req.user!))
     res.status(204).send()
   } catch (error) {
     res.status(404).json({ message: error instanceof Error ? error.message : 'Erro ao remover.' })
   }
 })
 
-productionRouter.patch('/:id/items/:itemId/status', async (req, res) => {
+productionRouter.patch('/:id/items/:itemId/status', async (req: AuthedRequest, res) => {
   try {
     const production = await updateItemStatus(
       req.params.id,
       req.params.itemId,
       req.body.status,
+      toAuditActor(req.user!),
     )
     res.json(production)
   } catch (error) {
@@ -98,16 +100,16 @@ productionRouter.patch('/:id/items/:itemId/status', async (req, res) => {
   }
 })
 
-productionRouter.patch('/:id/items/reorder', async (req, res) => {
+productionRouter.patch('/:id/items/reorder', async (req: AuthedRequest, res) => {
   try {
-    const production = await reorderItems(req.params.id, req.body.itemIds ?? [])
+    const production = await reorderItems(req.params.id, req.body.itemIds ?? [], toAuditActor(req.user!))
     res.json(production)
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Erro ao reordenar.' })
   }
 })
 
-productionRouter.post('/:id/duplicate', async (req, res) => {
+productionRouter.post('/:id/duplicate', async (req: AuthedRequest, res) => {
   try {
     const source = await getProductionById(req.params.id)
     if (!source) {
@@ -125,7 +127,7 @@ productionRouter.post('/:id/duplicate', async (req, res) => {
       items: source.items.map((item) => ({ ...item, status: 'Pendente' })),
       comments: [],
       progress: 0,
-    })
+    }, toAuditActor(req.user!))
     res.status(201).json(duplicated)
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Erro ao duplicar.' })
@@ -147,7 +149,7 @@ productionRouter.post('/:id/comments', upload.array('photos', 4), async (req: Au
       authorName: String(req.body.authorName ?? req.user?.name ?? 'Usuário'),
       message: String(req.body.message ?? ''),
       photos,
-    })
+    }, toAuditActor(req.user!))
     res.json(production)
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Erro ao comentar.' })

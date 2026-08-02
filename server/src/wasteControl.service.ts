@@ -1,4 +1,6 @@
 import { listWasteProductsForBuffet, WASTE_PRODUCTS } from './data/wasteProductsSeed.js'
+import { safeAudit } from './audit/safeAudit.js'
+import type { AuditActor } from './audit/types.js'
 import { loadWasteControlDay, loadWasteControlDaysInMonth, saveWasteControlDay } from './db/index.js'
 import { emitRealtime } from './events.js'
 import type {
@@ -82,7 +84,9 @@ export async function getWasteControlDay(
 
 export async function saveWasteControlDayRecord(
   input: SaveWasteControlDayInput,
+  actor?: AuditActor,
 ): Promise<WasteControlDay> {
+  const existing = await loadWasteControlDay(dayId(input.date, input.buffet))
   const phases = PHASES.reduce(
     (acc, phase) => {
       acc[phase] = buildPhaseItems(input.buffet, input.phases[phase] ?? [])
@@ -110,6 +114,14 @@ export async function saveWasteControlDayRecord(
 
   await saveWasteControlDay(record)
   emitRealtime({ scope: 'waste-control', action: 'updated', dayId: record.id })
+  await safeAudit(actor, {
+    entityType: 'waste_control',
+    entityId: record.id,
+    action: existing ? 'update' : 'create',
+    summary: `Controle de desperdício (${input.buffet}) do dia ${input.date} salvo`,
+    before: existing,
+    after: record,
+  })
   return record
 }
 

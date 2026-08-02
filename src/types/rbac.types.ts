@@ -28,6 +28,7 @@ export type Permission =
   | 'purchases:manage'
   | 'users:manage'
   | 'settings:manage'
+  | 'audit:view'
 
 export type RolePermissionsMap = Record<UserRole, readonly Permission[]>
 

@@ -13,6 +13,7 @@ import { ProductionPage } from '@/features/production'
 import { BreadControlPage } from '@/features/bread-control'
 import { WasteControlPage } from '@/features/waste-control'
 import { IntelligencePage } from '@/features/intelligence'
+import { AuditPage } from '@/features/audit'
 import { RecipesPage } from '@/features/recipes'
 import { SchedulePage } from '@/features/schedule'
 import { PermissionRoute } from '@/app/router/PermissionRoute'
@@ -44,6 +45,9 @@ export function AppRouter() {
             </Route>
             <Route element={<PermissionRoute permission="intelligence:view" />}>
               <Route path={APP_ROUTES.intelligence} element={<IntelligencePage />} />
+            </Route>
+            <Route element={<PermissionRoute permission="audit:view" />}>
+              <Route path={APP_ROUTES.audit} element={<AuditPage />} />
             </Route>
             <Route path={APP_ROUTES.comments} element={<CommentsPage />} />
             <Route path={APP_ROUTES.schedule} element={<SchedulePage />} />

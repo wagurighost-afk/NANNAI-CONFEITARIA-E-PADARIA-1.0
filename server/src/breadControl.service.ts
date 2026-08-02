@@ -1,4 +1,6 @@
 import { BREAD_PRODUCTS } from './data/breadProductsSeed.js'
+import { safeAudit } from './audit/safeAudit.js'
+import type { AuditActor } from './audit/types.js'
 import { loadBreadControlDay, loadBreadControlDaysInMonth, saveBreadControlDay } from './db/index.js'
 import { emitRealtime } from './events.js'
 import type {
@@ -57,7 +59,11 @@ export async function getBreadControlDay(date: string): Promise<BreadControlDay 
   return loadBreadControlDay(dayId(date))
 }
 
-export async function saveBreadControlDayRecord(input: SaveBreadControlDayInput): Promise<BreadControlDay> {
+export async function saveBreadControlDayRecord(
+  input: SaveBreadControlDayInput,
+  actor?: AuditActor,
+): Promise<BreadControlDay> {
+  const existing = await loadBreadControlDay(dayId(input.date))
   const items = buildLineItems(input)
   const sectionTotals = computeSectionTotals(items)
   const dayTotal = roundMoney(items.reduce((sum, item) => sum + item.total, 0))
@@ -75,6 +81,14 @@ export async function saveBreadControlDayRecord(input: SaveBreadControlDayInput)
 
   await saveBreadControlDay(record)
   emitRealtime({ scope: 'bread-control', action: 'updated', scheduleId: record.id })
+  await safeAudit(actor, {
+    entityType: 'bread_control',
+    entityId: record.id,
+    action: existing ? 'update' : 'create',
+    summary: `Controle de pães do dia ${input.date} salvo`,
+    before: existing,
+    after: record,
+  })
   return record
 }
 

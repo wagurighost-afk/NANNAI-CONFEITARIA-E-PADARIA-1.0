@@ -1,4 +1,6 @@
 import bcrypt from 'bcryptjs'
+import { safeAudit } from './audit/safeAudit.js'
+import { toAuditActor } from './audit/actor.js'
 import { canManageUserPasswords } from './auth/passwordAccess.js'
 import { config } from './config.js'
 import {
@@ -100,6 +102,7 @@ export async function changePassword(
   userId: string,
   currentPassword: string,
   newPassword: string,
+  actor?: AppUser,
 ): Promise<void> {
   assertValidPassword(newPassword)
 
@@ -119,6 +122,16 @@ export async function changePassword(
 
   await updateUserPassword(userId, hashPassword(newPassword), newPassword)
   await deleteRefreshTokensForUser(userId)
+
+  const auditActor = actor ? toAuditActor(actor) : toAuditActor(mapUser(row))
+  await safeAudit(auditActor, {
+    entityType: 'auth',
+    entityId: userId,
+    action: 'password_change',
+    summary: `Senha alterada por ${auditActor.userName}`,
+    before: { userId, email: row.email },
+    after: { userId, email: row.email, passwordChanged: true },
+  })
 }
 
 export async function getEmployeePassword(
@@ -160,6 +173,15 @@ export async function resetEmployeePassword(
 
   await updateUserPassword(row.id, hashPassword(password), password)
   await deleteRefreshTokensForUser(row.id)
+
+  await safeAudit(toAuditActor(actor), {
+    entityType: 'auth',
+    entityId: row.id,
+    action: 'password_reset',
+    summary: `Senha redefinida para ${row.name} por ${actor.name}`,
+    before: { userId: row.id, email: row.email, employeeId },
+    after: { userId: row.id, email: row.email, employeeId, passwordReset: true },
+  })
 
   return {
     email: row.email,

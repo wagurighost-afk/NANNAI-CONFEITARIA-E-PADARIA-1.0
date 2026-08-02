@@ -53,7 +53,7 @@ authRouter.post('/change-password', requireAuth, async (req: AuthedRequest, res)
       return
     }
 
-    await changePassword(req.user!.id, currentPassword, newPassword)
+    await changePassword(req.user!.id, currentPassword, newPassword, req.user!)
     res.json({ message: 'Senha alterada com sucesso.' })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Não foi possível alterar a senha.'

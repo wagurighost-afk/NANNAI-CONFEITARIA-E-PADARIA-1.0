@@ -6,6 +6,7 @@ import {
   ClipboardList,
   Factory,
   FileText,
+  History,
   LayoutDashboard,
   MessageSquare,
   PanelLeftClose,
@@ -36,6 +37,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   Trash2,
   Users,
   Wheat,
+  History,
 }
 
 export interface SidebarProps {

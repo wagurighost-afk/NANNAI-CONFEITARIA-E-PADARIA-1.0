@@ -189,6 +189,14 @@ export async function deleteIntelligenceSnapshotsByPeriod(
   await getStore().deleteIntelligenceSnapshotsByPeriod(year, month, category)
 }
 
+export async function insertAuditLog(record: Parameters<DatabaseStore['insertAuditLog']>[0]): Promise<void> {
+  await getStore().insertAuditLog(record)
+}
+
+export async function listAuditLogs(filters: Parameters<DatabaseStore['listAuditLogs']>[0]) {
+  return getStore().listAuditLogs(filters)
+}
+
 export function isPostgresEnabled(): boolean {
   return Boolean(config.databaseUrl)
 }

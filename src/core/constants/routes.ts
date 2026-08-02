@@ -14,6 +14,7 @@ export const APP_ROUTES = {
   pop: '/pop',
   changePassword: '/alterar-senha',
   intelligence: '/intelligence',
+  audit: '/auditoria',
   notFound: '*',
 } as const
 

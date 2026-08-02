@@ -1,4 +1,7 @@
 import { Router } from 'express'
+import { toAuditActor } from '../audit/actor.js'
+import type { AuthedRequest } from '../middleware.js'
+import { requireAuth } from '../middleware.js'
 import {
   createEmptyWasteDay,
   getWasteControlDay,
@@ -7,7 +10,6 @@ import {
   saveWasteControlDayRecord,
 } from '../wasteControl.service.js'
 import type { SaveWasteControlDayInput, WasteBuffetType } from '../types.js'
-import { requireAuth } from '../middleware.js'
 
 export const wasteControlRouter = Router()
 
@@ -33,7 +35,7 @@ wasteControlRouter.get('/days/:date', async (req, res) => {
   res.json(day ?? createEmptyWasteDay(req.params.date, buffet))
 })
 
-wasteControlRouter.put('/days/:date', async (req, res) => {
+wasteControlRouter.put('/days/:date', async (req: AuthedRequest, res) => {
   const buffet = parseBuffet(req.query.buffet ?? req.body.buffet)
   if (!buffet) {
     res.status(400).json({ message: 'Informe o buffet (cafe, cha ou jantar).' })
@@ -53,7 +55,7 @@ wasteControlRouter.put('/days/:date', async (req, res) => {
         finalizacao: Array.isArray(req.body.phases?.finalizacao) ? req.body.phases.finalizacao : [],
       },
     }
-    const day = await saveWasteControlDayRecord(input)
+    const day = await saveWasteControlDayRecord(input, toAuditActor(req.user!))
     res.json(day)
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Dados inválidos.' })

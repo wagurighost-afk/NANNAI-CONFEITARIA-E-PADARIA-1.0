@@ -15,6 +15,7 @@ function emptyDb(): DatabaseFile {
     bread_control_days: [],
     waste_control_days: [],
     intelligence_snapshots: [],
+    audit_logs: [],
     refresh_tokens: [],
     meta: {},
   }
@@ -29,6 +30,7 @@ function normalizeDb(parsed: Partial<DatabaseFile>): DatabaseFile {
     bread_control_days: parsed.bread_control_days ?? [],
     waste_control_days: parsed.waste_control_days ?? [],
     intelligence_snapshots: parsed.intelligence_snapshots ?? [],
+    audit_logs: parsed.audit_logs ?? [],
     refresh_tokens: parsed.refresh_tokens ?? [],
     meta: parsed.meta ?? {},
   }
@@ -302,6 +304,48 @@ export function createJsonStore(): DatabaseStore {
         return false
       })
       writeDb(db)
+    },
+
+    async insertAuditLog(record) {
+      const db = readDb()
+      db.audit_logs.unshift(record)
+      if (db.audit_logs.length > 5000) {
+        db.audit_logs = db.audit_logs.slice(0, 5000)
+      }
+      writeDb(db)
+    },
+
+    async listAuditLogs(filters) {
+      const limit = Math.min(Math.max(filters.limit ?? 50, 1), 200)
+      const offset = Math.max(filters.offset ?? 0, 0)
+
+      let items = [...readDb().audit_logs]
+
+      if (filters.entityType) {
+        items = items.filter((item) => item.entityType === filters.entityType)
+      }
+      if (filters.entityId) {
+        items = items.filter((item) => item.entityId === filters.entityId)
+      }
+      if (filters.actorId) {
+        items = items.filter((item) => item.actor.userId === filters.actorId)
+      }
+      if (filters.action) {
+        items = items.filter((item) => item.action === filters.action)
+      }
+      if (filters.from) {
+        items = items.filter((item) => item.createdAt >= filters.from!)
+      }
+      if (filters.to) {
+        items = items.filter((item) => item.createdAt <= filters.to!)
+      }
+
+      items.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+
+      return {
+        total: items.length,
+        items: items.slice(offset, offset + limit),
+      }
     },
   }
 }

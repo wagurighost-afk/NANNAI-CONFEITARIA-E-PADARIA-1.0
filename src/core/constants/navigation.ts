@@ -79,6 +79,13 @@ export const MAIN_NAVIGATION: readonly AppNavItem[] = [
     permission: 'intelligence:view',
   },
   {
+    id: 'audit',
+    label: 'Auditoria',
+    href: APP_ROUTES.audit,
+    icon: 'History',
+    permission: 'audit:view',
+  },
+  {
     id: 'employees',
     label: 'Colaboradores',
     href: APP_ROUTES.employees,

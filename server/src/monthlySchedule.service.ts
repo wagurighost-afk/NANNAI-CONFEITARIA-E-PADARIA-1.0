@@ -1,6 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
+import { safeAudit } from './audit/safeAudit.js'
+import type { AuditActor } from './audit/types.js'
 import { config } from './config.js'
 import { matchEmployeeIdByScheduleName } from './data/monthlyScheduleSeed.js'
 import {
@@ -106,6 +108,7 @@ export async function getMonthlyScheduleByYearMonth(year: number, month: number)
 export async function importMonthlySchedule(
   input: ImportMonthlyScheduleInput,
   file?: Express.Multer.File,
+  actor?: AuditActor,
 ): Promise<MonthlySchedule> {
   const id = scheduleKey(input.year, input.month)
   const existing = await loadMonthlyScheduleRecord(id)
@@ -131,10 +134,22 @@ export async function importMonthlySchedule(
     updatedAt: now,
   }
 
-  return saveSchedule(schedule)
+  const saved = await saveSchedule(schedule)
+  await safeAudit(actor, {
+    entityType: 'monthly_schedule',
+    entityId: saved.id,
+    action: existing ? 'update' : 'create',
+    summary: `Escala mensal ${input.label} importada`,
+    before: existing,
+    after: saved,
+  })
+  return saved
 }
 
-export async function updateMonthlyDay(input: UpdateMonthlyDayInput): Promise<MonthlySchedule> {
+export async function updateMonthlyDay(
+  input: UpdateMonthlyDayInput,
+  actor?: AuditActor,
+): Promise<MonthlySchedule> {
   const schedule = await loadMonthlyScheduleRecord(input.scheduleId)
   if (!schedule) {
     throw new Error('Escala mensal não encontrada.')
@@ -155,6 +170,8 @@ export async function updateMonthlyDay(input: UpdateMonthlyDayInput): Promise<Mo
     throw new Error('Dia inválido na escala.')
   }
 
+  const beforeDay = { ...currentDay }
+
   row.days[dayIndex] =
     input.status === 'work'
       ? { day: currentDay.day, status: 'work' }
@@ -165,10 +182,19 @@ export async function updateMonthlyDay(input: UpdateMonthlyDayInput): Promise<Mo
         }
 
   schedule.updatedAt = new Date().toISOString()
-  return saveSchedule(schedule)
+  const saved = await saveSchedule(schedule)
+  await safeAudit(actor, {
+    entityType: 'monthly_schedule',
+    entityId: schedule.id,
+    action: 'update',
+    summary: `Dia ${input.day} da escala atualizado (${row.employeeName})`,
+    before: beforeDay,
+    after: row.days[dayIndex],
+  })
+  return saved
 }
 
-export async function swapMonthlyDays(input: SwapMonthlyDaysInput): Promise<MonthlySchedule> {
+export async function swapMonthlyDays(input: SwapMonthlyDaysInput, actor?: AuditActor): Promise<MonthlySchedule> {
   const schedule = await loadMonthlyScheduleRecord(input.scheduleId)
   if (!schedule) {
     throw new Error('Escala mensal não encontrada.')
@@ -195,11 +221,33 @@ export async function swapMonthlyDays(input: SwapMonthlyDaysInput): Promise<Mont
   sourceRow.days[sourceDayIndex] = { ...targetDay, day: sourceDay.day }
   targetRow.days[targetDayIndex] = { ...sourceDay, day: targetDay.day }
 
+  const before = {
+    source: { ...sourceDay },
+    target: { ...targetDay },
+  }
+
   schedule.updatedAt = new Date().toISOString()
-  return saveSchedule(schedule)
+  const saved = await saveSchedule(schedule)
+  await safeAudit(actor, {
+    entityType: 'monthly_schedule',
+    entityId: schedule.id,
+    action: 'update',
+    summary: `Dias trocados na escala (${sourceRow.employeeName} ↔ ${targetRow.employeeName})`,
+    before,
+    after: {
+      source: sourceRow.days[sourceDayIndex],
+      target: targetRow.days[targetDayIndex],
+    },
+  })
+  return saved
 }
 
-export async function toggleMonthlyDay(scheduleId: string, rowId: string, day: number): Promise<MonthlySchedule> {
+export async function toggleMonthlyDay(
+  scheduleId: string,
+  rowId: string,
+  day: number,
+  actor?: AuditActor,
+): Promise<MonthlySchedule> {
   const schedule = await loadMonthlyScheduleRecord(scheduleId)
   const row = schedule?.rows.find((item) => item.id === rowId)
   const dayCell = row?.days.find((item) => item.day === day)
@@ -212,5 +260,5 @@ export async function toggleMonthlyDay(scheduleId: string, rowId: string, day: n
     rowId,
     day,
     status: nextDayStatus(dayCell.status),
-  })
+  }, actor)
 }
