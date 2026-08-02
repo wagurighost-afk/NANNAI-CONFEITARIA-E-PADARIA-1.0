@@ -1,26 +1,28 @@
-# NIIMBOT B1 — Etapa 1 (conexão + persistência)
+# NIIMBOT B1 — Conexão, persistência e teste de impressão
 
-Integração sem impressão: parear via Web Bluetooth, **salvar a impressora**, **reconectar automaticamente** e gerenciar em **Configurações**.
+Integração com Web Bluetooth: parear, **salvar a impressora**, **reconectar automaticamente**, gerenciar em **Configurações** e validar com **Teste da Impressora**.
+
+> Ainda **não** há integração com Produção nem com Etiquetas Inteligentes.
 
 ## Arquitetura
 
 ```
 /niimbot/configuracoes  →  NiimbotSettingsPage
-                              └── NiimbotSettingsPanel
+/niimbot/teste          →  NiimbotPrintTestPage
+                              └── NiimbotPrintTestPanel
                                     ├── Status 🟢🟡🔴
-                                    ├── Botão Reconectar (se necessário)
-                                    ├── Trocar impressora / Desconectar
-                                    └── NiimbotDeviceInfoCard
+                                    ├── Imprimir etiqueta de teste
+                                    └── Logs de impressão
                                           │
                                           ▼
                                      useNiimbot({ autoReconnect: true })
                                           │
                                           ▼
                                      NiimbotService
-                                       ├── connect()      → chooser + identify + save
-                                       ├── tryAutoReconnect() → getDevices() + GATT
-                                       ├── reconnect() / changePrinter() / disconnect()
-                                       └── persistence.ts → localStorage
+                                       ├── connect() / reconnect() / disconnect()
+                                       ├── printTestLabel() → render + printImage
+                                       ├── persistence.ts → localStorage
+                                       └── printLogs.ts → localStorage
 ```
 
 ## Persistência
@@ -35,40 +37,54 @@ Após conectar com sucesso, salva em `localStorage` (`nannai.niimbot.printer`):
 | `lastConnectedAt` | ISO da última conexão |
 | `bluetoothDeviceId` | ID do `BluetoothDevice` (para reconexão) |
 
+Logs de impressão ficam em `nannai.niimbot.printLogs` (últimas 50 entradas).
+
 ## Reconexão automática
 
-1. Ao abrir a tela de configurações, `useNiimbot` chama `tryAutoReconnect()`
+1. Ao abrir as telas NIIMBOT, `useNiimbot` chama `tryAutoReconnect()`
 2. O serviço busca dispositivos já autorizados (`navigator.bluetooth.getDevices`)
 3. Reabre GATT, identifica e atualiza bateria/firmware quando possível
 4. Se falhar → status desconectado + botão **Reconectar**
 
-> Em alguns Chromes, `getDevices()` / reconexão silenciosa depende do backend de permissões Bluetooth do site. Se a reconexão automática não funcionar, **Reconectar** abre o fluxo de pareamento novamente.
+## Teste da Impressora
 
-## Tela de configurações
+Rota: `/niimbot/teste`
 
-Rota: `/niimbot/configuracoes` (menu **NIIMBOT**)
+Botão: **Imprimir etiqueta de teste**
 
-Permite:
+Conteúdo da etiqueta (50×30 mm):
 
-- Ver informações (modelo, nome, ID, bateria, firmware, última conexão)
-- **Reconectar**
-- **Trocar impressora** (novo seletor Bluetooth)
-- **Desconectar** (mantém a impressora salva)
+- NANNAI
+- Teste de Impressão
+- Data
+- Hora
+- QR Code (`NANNAI|TESTE|{ISO}`)
 
-`/niimbot` redireciona para a tela de configurações.
+Em caso de erro, a UI mostra mensagem amigável (toast + faixa na tela) e registra log.
+
+## Telas
+
+| Rota | Função |
+|------|--------|
+| `/niimbot/configuracoes` | Status, reconectar, trocar, desconectar |
+| `/niimbot/teste` | Impressão de teste + logs |
+| `/niimbot` | Redireciona para configurações |
+
+Menu **NIIMBOT** aponta para configurações; de lá há atalho para o teste.
 
 ## Arquivos principais
 
 | Arquivo | Papel |
 |---------|-------|
-| `src/services/NiimbotService.ts` | Conexão + auto-reconnect + ações |
-| `src/services/niimbot/persistence.ts` | localStorage |
-| `src/services/niimbot/protocol.ts` | GATT silencioso + PrinterInfo |
+| `src/services/NiimbotService.ts` | Conexão + printTestLabel |
+| `src/services/niimbot/renderTestLabel.ts` | Canvas da etiqueta de teste |
+| `src/services/niimbot/printLogs.ts` | Persistência dos logs |
+| `src/services/niimbot/printModels.ts` | Modelos/tamanhos B1 e B1 Pro |
 | `src/hooks/useNiimbot.ts` | Bridge React |
 | `src/components/niimbot/*` | UI reutilizável |
-| `src/features/niimbot/pages/NiimbotSettingsPage.tsx` | Tela de configurações |
+| `src/features/niimbot/pages/NiimbotPrintTestPage.tsx` | Tela de teste |
 
 ## Fora de escopo
 
-- Impressão de etiquetas
+- Integração com Produção
 - Integração com o módulo Etiquetas Inteligentes

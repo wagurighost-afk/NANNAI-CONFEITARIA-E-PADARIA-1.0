@@ -18,6 +18,7 @@ export const APP_ROUTES = {
   labels: '/etiquetas',
   niimbot: '/niimbot',
   niimbotSettings: '/niimbot/configuracoes',
+  niimbotPrintTest: '/niimbot/teste',
   notFound: '*',
 } as const
 

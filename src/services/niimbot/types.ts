@@ -32,6 +32,23 @@ export interface NiimbotPersistedPrinter {
   bluetoothDeviceId: string | null
 }
 
+export type NiimbotPrintLogLevel = 'info' | 'warn' | 'error'
+
+export type NiimbotPrintLogAction =
+  | 'print_test_start'
+  | 'print_test_progress'
+  | 'print_test_success'
+  | 'print_test_error'
+
+export interface NiimbotPrintLogEntry {
+  id: string
+  at: string
+  level: NiimbotPrintLogLevel
+  action: NiimbotPrintLogAction
+  message: string
+  detail?: string
+}
+
 export interface NiimbotServiceState {
   status: NiimbotConnectionStatus
   device: NiimbotDeviceInfo | null
@@ -43,6 +60,12 @@ export interface NiimbotServiceState {
   autoReconnectDone: boolean
   /** True when a saved printer exists but is not currently connected. */
   needsReconnect: boolean
+  /** True while a test print job is in progress. */
+  isPrinting: boolean
+  /** Last progress string from the driver (e.g. "sending image…"). */
+  printProgress: string | null
+  /** Recent NIIMBOT print activity logs (newest first). */
+  printLogs: NiimbotPrintLogEntry[]
 }
 
 export type NiimbotServiceListener = (state: NiimbotServiceState) => void

@@ -4,4 +4,5 @@ export const STORAGE_KEYS = {
   theme: 'nannai.theme',
   sidebarCollapsed: 'nannai.sidebar.collapsed',
   niimbotPrinter: 'nannai.niimbot.printer',
+  niimbotPrintLogs: 'nannai.niimbot.printLogs',
 } as const

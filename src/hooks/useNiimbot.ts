@@ -117,6 +117,32 @@ export function useNiimbot(options?: { autoReconnect?: boolean }) {
     })
   }, [push])
 
+  const printTestLabel = useCallback(async () => {
+    try {
+      await NiimbotService.printTestLabel()
+      push({
+        title: 'Etiqueta impressa',
+        description: 'A etiqueta de teste foi enviada para a NIIMBOT.',
+        variant: 'success',
+      })
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível imprimir a etiqueta de teste.'
+      push({
+        title: 'Falha na impressão',
+        description: message,
+        variant: 'danger',
+      })
+      throw error
+    }
+  }, [push])
+
+  const clearPrintLogs = useCallback(() => {
+    NiimbotService.clearPrintLogs()
+  }, [])
+
   const clearError = useCallback(() => {
     NiimbotService.clearError()
   }, [])
@@ -130,6 +156,9 @@ export function useNiimbot(options?: { autoReconnect?: boolean }) {
     supportMessage: state.supportMessage,
     autoReconnectDone: state.autoReconnectDone,
     needsReconnect: state.needsReconnect,
+    isPrinting: state.isPrinting,
+    printProgress: state.printProgress,
+    printLogs: state.printLogs,
     isConnecting: state.status === 'connecting',
     isConnected: state.status === 'connected',
     connect,
@@ -137,6 +166,8 @@ export function useNiimbot(options?: { autoReconnect?: boolean }) {
     changePrinter,
     disconnect,
     forgetPrinter,
+    printTestLabel,
+    clearPrintLogs,
     clearError,
   }
 }

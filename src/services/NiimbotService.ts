@@ -1,9 +1,16 @@
 import 'niimbot-web-bluetooth'
+import { logger } from '@/core/logger'
 import {
   clearPersistedPrinter,
   loadPersistedPrinter,
   savePersistedPrinter,
 } from '@/services/niimbot/persistence'
+import {
+  appendPrintLog,
+  clearPrintLogs,
+  loadPrintLogs,
+} from '@/services/niimbot/printLogs'
+import { NIIMBOT_MODEL_B1, resolveNiimbotPrintProfile } from '@/services/niimbot/printModels'
 import {
   attachNiimbotDisconnectListener,
   disconnectBluetoothDevice,
@@ -11,25 +18,20 @@ import {
   reconnectSavedNiimbotDevice,
   resolveBluetoothDeviceId,
 } from '@/services/niimbot/protocol'
+import {
+  buildTestLabelContent,
+  renderTestLabelDataUrl,
+} from '@/services/niimbot/renderTestLabel'
 import type {
   NiimbotDeviceInfo,
   NiimbotPersistedPrinter,
+  NiimbotPrintLogEntry,
   NiimbotServiceListener,
   NiimbotServiceState,
 } from '@/services/niimbot/types'
 
 /** B1 filter model for niimbot-web-bluetooth (also matches B1 Pro BLE name). */
-const NIIMBOT_B1_CONNECT_MODEL = {
-  label: 'Niimbot B1',
-  id: 4096,
-  dpi: 203,
-  protocol: 'v4',
-  task: 'b1' as const,
-  density: 3,
-  label_type: 1,
-  speed: 1,
-  name_prefixes: ['B1'],
-}
+const NIIMBOT_B1_CONNECT_MODEL = NIIMBOT_MODEL_B1
 
 function getDriver(): NonNullable<Window['Niimbot']> {
   const api = typeof window !== 'undefined' ? window.Niimbot : undefined
@@ -90,9 +92,44 @@ function mapError(error: unknown): string {
   return message || 'Falha ao conectar à impressora NIIMBOT.'
 }
 
+function mapPrintError(error: unknown): string {
+  if (!(error instanceof Error)) {
+    return 'Não foi possível imprimir a etiqueta de teste. Tente novamente.'
+  }
+
+  const message = error.message
+  const normalized = message.toLowerCase()
+
+  if (
+    normalized.includes('user cancelled') ||
+    normalized.includes('user canceled') ||
+    normalized.includes('cancelled') ||
+    normalized.includes('canceled')
+  ) {
+    return 'Impressão cancelada. Selecione a impressora no painel Bluetooth para continuar.'
+  }
+  if (normalized.includes('web bluetooth unavailable')) {
+    return 'Bluetooth indisponível. Use Chrome ou Edge em HTTPS ou localhost, com Bluetooth ligado.'
+  }
+  if (normalized.includes('failed to write to ble')) {
+    return 'A impressora não respondeu durante o envio. Reconecte e tente imprimir de novo.'
+  }
+  if (normalized.includes('dpi') || normalized.includes('task "')) {
+    return 'O modelo/tamanho da etiqueta não combina com a impressora conectada. Reconecte a NIIMBOT e tente novamente.'
+  }
+  if (normalized.includes('gatt') || normalized.includes('disconnected')) {
+    return 'A conexão com a impressora caiu durante a impressão. Reconecte e tente novamente.'
+  }
+  if (normalized.includes('conecte a impressora')) {
+    return message
+  }
+
+  return message || 'Não foi possível imprimir a etiqueta de teste. Tente novamente.'
+}
+
 /**
- * Connection + persistence service for NIIMBOT B1.
- * Does not print.
+ * Connection, persistence and test-print service for NIIMBOT B1.
+ * Production / Etiquetas Inteligentes integration is intentionally out of scope.
  */
 class NiimbotServiceImpl {
   private status: NiimbotServiceState['status'] = 'disconnected'
@@ -100,6 +137,9 @@ class NiimbotServiceImpl {
   private persisted: NiimbotPersistedPrinter | null = loadPersistedPrinter()
   private error: string | null = null
   private autoReconnectDone = false
+  private isPrinting = false
+  private printProgress: string | null = null
+  private printLogs: NiimbotPrintLogEntry[] = loadPrintLogs()
   private listeners = new Set<NiimbotServiceListener>()
   private removeDisconnectListener: (() => void) | null = null
   private activeBluetoothDevice: BluetoothDevice | null = null
@@ -119,6 +159,9 @@ class NiimbotServiceImpl {
       supportMessage: support.message,
       autoReconnectDone: this.autoReconnectDone,
       needsReconnect,
+      isPrinting: this.isPrinting,
+      printProgress: this.printProgress,
+      printLogs: this.printLogs,
     }
   }
 
@@ -303,9 +346,181 @@ class NiimbotServiceImpl {
     this.emit()
   }
 
+  /**
+   * Prints a fixed test label (NANNAI / Teste de Impressão / data / hora / QR).
+   * Does not integrate with Produção or Etiquetas Inteligentes.
+   */
+  async printTestLabel(options?: {
+    onProgress?: (status: string) => void
+  }): Promise<void> {
+    const support = supportProbe()
+    if (!support.supported) {
+      const message = support.message ?? 'Web Bluetooth indisponível.'
+      this.error = message
+      this.recordPrintLog({
+        level: 'error',
+        action: 'print_test_error',
+        message,
+      })
+      this.emit()
+      throw new Error(message)
+    }
+
+    if (this.isPrinting) {
+      throw new Error('Já existe uma impressão em andamento. Aguarde a conclusão.')
+    }
+
+    this.isPrinting = true
+    this.printProgress = 'preparando…'
+    this.error = null
+    this.emit()
+
+    const printerLabel = this.device?.name ?? this.persisted?.name
+    this.recordPrintLog({
+      level: 'info',
+      action: 'print_test_start',
+      message: 'Iniciando impressão da etiqueta de teste.',
+      ...(printerLabel ? { detail: printerLabel } : {}),
+    })
+    logger.info('NIIMBOT print test started', {
+      printer: this.device?.name ?? this.persisted?.name ?? null,
+      modelId: this.device?.modelId ?? this.persisted?.modelId ?? null,
+    })
+
+    try {
+      if (this.status !== 'connected') {
+        if (this.persisted) {
+          await this.reconnect()
+        } else {
+          throw new Error('Conecte a impressora NIIMBOT antes de imprimir a etiqueta de teste.')
+        }
+      }
+
+      // Release any silent GATT session so the driver can own the BLE link.
+      this.clearDisconnectWatch()
+      await disconnectBluetoothDevice(this.activeBluetoothDevice)
+      this.activeBluetoothDevice = null
+
+      const driver = getDriver()
+      this.printProgress = 'conectando…'
+      this.emit()
+      options?.onProgress?.('conectando…')
+
+      const identified = await driver.identify(NIIMBOT_B1_CONNECT_MODEL)
+      const printer = identified ?? driver.printer
+      if (!printer) {
+        throw new Error('Não foi possível identificar a impressora para impressão.')
+      }
+
+      const lastConnectedAt = new Date().toISOString()
+      this.device = {
+        model: printer.label || this.device?.model || 'NIIMBOT',
+        name: printer.deviceName?.trim() || this.device?.name || 'Impressora NIIMBOT',
+        modelId: printer.modelId ?? this.device?.modelId ?? null,
+        protocolVersion: printer.protocolVersion ?? this.device?.protocolVersion ?? null,
+        dpi: printer.dpi ?? this.device?.dpi ?? null,
+        batteryPercent: this.device?.batteryPercent ?? null,
+        firmware: this.device?.firmware ?? null,
+        status: 'connected',
+        lastConnectedAt,
+        bluetoothDeviceId:
+          this.device?.bluetoothDeviceId ??
+          (await resolveBluetoothDeviceId(printer.deviceName)) ??
+          this.persisted?.bluetoothDeviceId ??
+          null,
+      }
+      this.persistFromDevice(this.device)
+      this.status = 'connected'
+
+      const { model, size } = resolveNiimbotPrintProfile(this.device)
+      const content = buildTestLabelContent()
+      this.printProgress = 'gerando etiqueta…'
+      this.emit()
+      options?.onProgress?.('gerando etiqueta…')
+
+      const imageUrl = await renderTestLabelDataUrl(size, content)
+
+      await driver.printImage(imageUrl, {
+        model,
+        size,
+        copies: 1,
+        onProgress: (status) => {
+          this.printProgress = status
+          this.emit()
+          options?.onProgress?.(status)
+        },
+      })
+
+      const extended = await readNiimbotExtendedInfo()
+      if (this.device) {
+        this.device = {
+          ...this.device,
+          batteryPercent: extended.batteryPercent ?? this.device.batteryPercent,
+          firmware: extended.firmware ?? this.device.firmware,
+          status: 'connected',
+        }
+      }
+
+      await this.watchDisconnect()
+      this.printProgress = 'ok'
+      this.recordPrintLog({
+        level: 'info',
+        action: 'print_test_success',
+        message: 'Etiqueta de teste impressa com sucesso.',
+        detail: `${content.dateLabel} ${content.timeLabel}`,
+      })
+      logger.info('NIIMBOT print test succeeded', {
+        printer: this.device?.name ?? null,
+        printedAt: content.printedAt,
+      })
+      this.emit()
+    } catch (error) {
+      const friendly = mapPrintError(error)
+      this.error = friendly
+      this.printProgress = null
+      const cause = error instanceof Error ? error.message : null
+      this.recordPrintLog({
+        level: 'error',
+        action: 'print_test_error',
+        message: friendly,
+        ...(cause ? { detail: cause } : {}),
+      })
+      logger.error('NIIMBOT print test failed', {
+        message: friendly,
+        cause: error instanceof Error ? error.message : String(error),
+      })
+
+      if (this.status === 'connected') {
+        await this.watchDisconnect(this.activeBluetoothDevice)
+      }
+      this.emit()
+      throw new Error(friendly)
+    } finally {
+      this.isPrinting = false
+      if (this.printProgress === 'ok') {
+        // keep brief success cue; UI can clear via clearError/next action
+      } else if (this.printProgress === 'preparando…' || this.printProgress === 'conectando…') {
+        this.printProgress = null
+      }
+      this.emit()
+    }
+  }
+
+  clearPrintLogs(): void {
+    clearPrintLogs()
+    this.printLogs = []
+    this.emit()
+  }
+
   clearError(): void {
     this.error = null
     this.emit()
+  }
+
+  private recordPrintLog(
+    input: Omit<NiimbotPrintLogEntry, 'id' | 'at'> & { at?: string },
+  ): void {
+    this.printLogs = appendPrintLog(input)
   }
 
   private async runAutoReconnect(): Promise<boolean> {
@@ -431,4 +646,5 @@ export type {
   NiimbotServiceState,
   NiimbotConnectionStatus,
   NiimbotPersistedPrinter,
+  NiimbotPrintLogEntry,
 } from '@/services/niimbot/types'

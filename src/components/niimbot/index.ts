@@ -1,6 +1,7 @@
 export { NiimbotConnectButton } from '@/components/niimbot/NiimbotConnectButton'
 export { NiimbotConnectionPanel } from '@/components/niimbot/NiimbotConnectionPanel'
 export { NiimbotDeviceInfoCard } from '@/components/niimbot/NiimbotDeviceInfoCard'
+export { NiimbotPrintTestPanel } from '@/components/niimbot/NiimbotPrintTestPanel'
 export { NiimbotReconnectButton } from '@/components/niimbot/NiimbotReconnectButton'
 export { NiimbotSettingsPanel } from '@/components/niimbot/NiimbotSettingsPanel'
 export { NiimbotStatusIndicator } from '@/components/niimbot/NiimbotStatusIndicator'

@@ -1,8 +1,10 @@
-import { Bluetooth, RefreshCw, Replace, Unplug } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Bluetooth, Printer, RefreshCw, Replace, Unplug } from 'lucide-react'
 import { Button } from '@/components/ui'
 import { NiimbotConnectButton } from '@/components/niimbot/NiimbotConnectButton'
 import { NiimbotDeviceInfoCard } from '@/components/niimbot/NiimbotDeviceInfoCard'
 import { NiimbotStatusIndicator } from '@/components/niimbot/NiimbotStatusIndicator'
+import { APP_ROUTES } from '@/core/constants'
 import { useNiimbot } from '@/hooks/useNiimbot'
 import { formatDateTimeBr } from '@/utils/formatDate'
 
@@ -101,6 +103,22 @@ export function NiimbotSettingsPanel() {
         device={displayDevice}
         emptyMessage="Nenhuma impressora salva. Clique em “Conectar NIIMBOT” para parear a B1."
       />
+
+      <div className="rounded-2xl border border-border bg-surface-elevated p-4">
+        <p className="text-sm font-medium text-foreground">Teste da Impressora</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Imprima uma etiqueta de teste (NANNAI, data, hora e QR) sem integrar com Produção.
+        </p>
+        <div className="mt-3">
+          <Link
+            to={APP_ROUTES.niimbotPrintTest}
+            className="inline-flex h-11 min-h-[44px] items-center justify-center gap-2 rounded-lg bg-primary px-4 text-base font-medium text-primary-foreground shadow-sm transition-opacity hover:opacity-90 sm:h-10 sm:min-h-[40px] sm:text-sm"
+          >
+            <Printer className="size-4" />
+            Abrir teste da impressora
+          </Link>
+        </div>
+      </div>
 
       {persisted ? (
         <div className="rounded-2xl border border-border bg-surface-elevated p-4">

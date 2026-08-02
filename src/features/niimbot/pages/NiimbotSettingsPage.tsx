@@ -4,7 +4,6 @@ import { APP_ROUTES } from '@/core/constants'
 
 /**
  * Printer settings screen: persist, auto-reconnect, change/disconnect, view info.
- * Printing is intentionally out of scope.
  */
 export function NiimbotSettingsPage() {
   return (
@@ -18,7 +17,7 @@ export function NiimbotSettingsPage() {
       />
       <PageHeader
         title="Configurações da impressora"
-        description="Gerencie a NIIMBOT B1: reconexão automática, troca de dispositivo e informações da conexão. A impressão virá em uma etapa seguinte."
+        description="Gerencie a NIIMBOT B1: reconexão automática, troca de dispositivo e informações da conexão. Use Teste da Impressora para validar a impressão."
       />
       <NiimbotSettingsPanel />
     </PageShell>
