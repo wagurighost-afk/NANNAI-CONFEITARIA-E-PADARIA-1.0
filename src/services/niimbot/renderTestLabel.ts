@@ -1,4 +1,5 @@
 import QRCode from 'qrcode'
+import { loadImage } from '@/services/niimbot/canvas'
 import type { NiimbotPrintSize } from '@/services/niimbot/printModels'
 
 export interface TestLabelContent {
@@ -86,13 +87,4 @@ export async function renderTestLabelDataUrl(
   ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize)
 
   return canvas.toDataURL('image/png')
-}
-
-function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const image = new Image()
-    image.onload = () => resolve(image)
-    image.onerror = () => reject(new Error('Falha ao gerar o QR Code da etiqueta de teste.'))
-    image.src = src
-  })
 }

@@ -21,15 +21,32 @@ export interface NiimbotDeviceInfo {
   lastConnectedAt?: string | null
   /** Browser BluetoothDevice.id when known. */
   bluetoothDeviceId?: string | null
+  /** Registry id of the active saved printer. */
+  printerId?: string | null
 }
 
-/** Fields persisted after a successful connection. */
-export interface NiimbotPersistedPrinter {
+/**
+ * One saved printer in the multi-printer registry.
+ * Today only one BLE session is active at a time; the registry selects which.
+ */
+export interface NiimbotPrinterRecord {
+  id: string
   name: string
   model: string
   modelId: number | null
   lastConnectedAt: string
   bluetoothDeviceId: string | null
+  /** Optional friendly label for future multi-printer UI. */
+  nickname?: string
+}
+
+/** @deprecated Prefer NiimbotPrinterRecord — kept as alias for call sites. */
+export type NiimbotPersistedPrinter = NiimbotPrinterRecord
+
+export interface NiimbotPrinterRegistry {
+  version: 1
+  activeId: string | null
+  printers: NiimbotPrinterRecord[]
 }
 
 export type NiimbotPrintLogLevel = 'info' | 'warn' | 'error'
@@ -55,7 +72,11 @@ export interface NiimbotPrintLogEntry {
 export interface NiimbotServiceState {
   status: NiimbotConnectionStatus
   device: NiimbotDeviceInfo | null
-  persisted: NiimbotPersistedPrinter | null
+  /** Active printer from the registry (convenience alias). */
+  persisted: NiimbotPrinterRecord | null
+  /** Full saved printer list (multi-printer ready). */
+  printers: NiimbotPrinterRecord[]
+  activePrinterId: string | null
   error: string | null
   supported: boolean
   supportMessage: string | null
@@ -63,7 +84,7 @@ export interface NiimbotServiceState {
   autoReconnectDone: boolean
   /** True when a saved printer exists but is not currently connected. */
   needsReconnect: boolean
-  /** True while a test print job is in progress. */
+  /** True while a print job is in progress. */
   isPrinting: boolean
   /** Last progress string from the driver (e.g. "sending image…"). */
   printProgress: string | null

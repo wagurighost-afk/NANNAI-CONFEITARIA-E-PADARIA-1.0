@@ -46,9 +46,8 @@ export function ConfirmDialog({
         </>
       }
     >
-      <p className="text-sm text-muted-foreground">
-        {description ?? 'Confirme para continuar.'}
-      </p>
+      {/* Avoid duplicating `description` in the body — Modal already renders it. */}
+      <span className="sr-only">{description ?? 'Confirme para continuar.'}</span>
     </Modal>
   )
 }

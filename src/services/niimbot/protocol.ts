@@ -323,12 +323,11 @@ export async function attachNiimbotDisconnectListener(
 }
 
 /**
- * Silent reconnect to a previously permitted printer (no chooser UI).
- * Requires Chrome getDevices() permission persistence.
+ * Finds an already-permitted BluetoothDevice for a saved printer (no chooser).
  */
-export async function reconnectSavedNiimbotDevice(
-  saved: NiimbotPersistedPrinter,
-): Promise<NiimbotSessionInfo> {
+export async function resolvePermittedNiimbotDevice(
+  saved: Pick<NiimbotPersistedPrinter, 'name' | 'bluetoothDeviceId'>,
+): Promise<BluetoothDevice> {
   const devices = await listPermittedNiimbotDevices()
   if (devices.length === 0) {
     throw new Error('NO_PERMITTED_DEVICE')
@@ -344,6 +343,21 @@ export async function reconnectSavedNiimbotDevice(
   if (!device) {
     throw new Error('NO_PERMITTED_DEVICE')
   }
+
+  return device
+}
+
+/**
+ * Silent reconnect to a previously permitted printer (no chooser UI).
+ * Requires Chrome getDevices() permission persistence.
+ *
+ * Prefer handing the device to the driver via `withPermittedBluetoothDevice`
+ * so print jobs share the same GATT session.
+ */
+export async function reconnectSavedNiimbotDevice(
+  saved: NiimbotPersistedPrinter,
+): Promise<NiimbotSessionInfo> {
+  const device = await resolvePermittedNiimbotDevice(saved)
 
   // Best-effort presence scan (may require experimental flags).
   try {

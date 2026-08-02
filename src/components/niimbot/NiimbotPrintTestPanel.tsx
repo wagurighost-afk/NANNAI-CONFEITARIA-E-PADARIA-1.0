@@ -5,6 +5,7 @@ import { NiimbotDeviceInfoCard } from '@/components/niimbot/NiimbotDeviceInfoCar
 import { NiimbotStatusIndicator } from '@/components/niimbot/NiimbotStatusIndicator'
 import { APP_ROUTES } from '@/core/constants'
 import { useNiimbot } from '@/hooks/useNiimbot'
+import { displayDeviceFromPersisted } from '@/services/niimbot/displayDevice'
 import { formatDateTimeBr } from '@/utils/formatDate'
 
 /**
@@ -31,22 +32,7 @@ export function NiimbotPrintTestPanel() {
     clearError,
   } = useNiimbot({ autoReconnect: true })
 
-  const displayDevice =
-    device ??
-    (persisted
-      ? {
-          model: persisted.model,
-          name: persisted.name,
-          modelId: persisted.modelId,
-          protocolVersion: null,
-          dpi: null,
-          batteryPercent: null,
-          firmware: null,
-          status: 'disconnected' as const,
-          lastConnectedAt: persisted.lastConnectedAt,
-          bluetoothDeviceId: persisted.bluetoothDeviceId,
-        }
-      : null)
+  const displayDevice = displayDeviceFromPersisted(persisted, device)
 
   const canPrint = supported && !isPrinting && !isConnecting && Boolean(persisted || isConnected)
 

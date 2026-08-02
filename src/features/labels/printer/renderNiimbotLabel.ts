@@ -1,16 +1,8 @@
 import QRCode from 'qrcode'
 import type { LabelFieldData } from '@/features/labels/types/label.types'
+import { loadImage, truncateCanvasText } from '@/services/niimbot/canvas'
 import type { NiimbotPrintSize } from '@/services/niimbot/printModels'
 import { formatDateBr } from '@/utils/formatDate'
-
-function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const image = new Image()
-    image.onload = () => resolve(image)
-    image.onerror = () => reject(new Error('Falha ao gerar o QR Code da etiqueta.'))
-    image.src = src
-  })
-}
 
 /**
  * Renders a production label for NIIMBOT (50×30 mm) as a PNG data URL.
@@ -71,7 +63,7 @@ export async function renderNiimbotLabelDataUrl(input: {
     if (y + Math.round(16 * scale) > height - padding) {
       break
     }
-    ctx.fillText(truncateText(ctx, row, maxTextWidth), padding, y, maxTextWidth)
+    ctx.fillText(truncateCanvasText(ctx, row, maxTextWidth), padding, y, maxTextWidth)
     y += Math.round(16 * scale)
   }
 
@@ -119,19 +111,8 @@ function wrapText(
     lines.push(current)
   } else {
     const lastIndex = lines.length - 1
-    lines[lastIndex] = truncateText(ctx, `${lines[lastIndex]} ${current}`, maxWidth)
+    lines[lastIndex] = truncateCanvasText(ctx, `${lines[lastIndex]} ${current}`, maxWidth)
   }
 
-  return lines.map((line) => truncateText(ctx, line, maxWidth))
-}
-
-function truncateText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
-  if (ctx.measureText(text).width <= maxWidth) {
-    return text
-  }
-  let truncated = text
-  while (truncated.length > 1 && ctx.measureText(`${truncated}…`).width > maxWidth) {
-    truncated = truncated.slice(0, -1)
-  }
-  return `${truncated}…`
+  return lines.map((line) => truncateCanvasText(ctx, line, maxWidth))
 }

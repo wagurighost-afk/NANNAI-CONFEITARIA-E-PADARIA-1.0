@@ -3,6 +3,7 @@ import { NiimbotDeviceInfoCard } from '@/components/niimbot/NiimbotDeviceInfoCar
 import { NiimbotReconnectButton } from '@/components/niimbot/NiimbotReconnectButton'
 import { NiimbotStatusIndicator } from '@/components/niimbot/NiimbotStatusIndicator'
 import { useNiimbot } from '@/hooks/useNiimbot'
+import { displayDeviceFromPersisted } from '@/services/niimbot/displayDevice'
 
 /**
  * Compact connection panel with auto-reconnect + Reconectar fallback.
@@ -19,22 +20,7 @@ export function NiimbotConnectionPanel() {
     clearError,
   } = useNiimbot({ autoReconnect: true })
 
-  const displayDevice =
-    device ??
-    (persisted
-      ? {
-          model: persisted.model,
-          name: persisted.name,
-          modelId: persisted.modelId,
-          protocolVersion: null,
-          dpi: null,
-          batteryPercent: null,
-          firmware: null,
-          status: 'disconnected' as const,
-          lastConnectedAt: persisted.lastConnectedAt,
-          bluetoothDeviceId: persisted.bluetoothDeviceId,
-        }
-      : null)
+  const displayDevice = displayDeviceFromPersisted(persisted, device)
 
   return (
     <div className="space-y-4">

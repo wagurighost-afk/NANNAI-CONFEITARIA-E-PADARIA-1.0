@@ -57,9 +57,9 @@ export function useNiimbot(options?: { autoReconnect?: boolean }) {
     }
   }, [push])
 
-  const reconnect = useCallback(async (): Promise<NiimbotDeviceInfo> => {
+  const reconnect = useCallback(async (printerId?: string): Promise<NiimbotDeviceInfo> => {
     try {
-      const device = await NiimbotService.reconnect()
+      const device = await NiimbotService.reconnect(printerId)
       push({
         title: 'NIIMBOT reconectada',
         description: `${device.model} · ${device.name}`,
@@ -99,6 +99,15 @@ export function useNiimbot(options?: { autoReconnect?: boolean }) {
     }
   }, [push])
 
+  const setActivePrinter = useCallback(async (printerId: string) => {
+    await NiimbotService.setActivePrinter(printerId)
+    push({
+      title: 'Impressora ativa alterada',
+      description: 'A impressora selecionada será usada nas próximas impressões.',
+      variant: 'default',
+    })
+  }, [push])
+
   const disconnect = useCallback(async () => {
     await NiimbotService.disconnect()
     push({
@@ -108,8 +117,8 @@ export function useNiimbot(options?: { autoReconnect?: boolean }) {
     })
   }, [push])
 
-  const forgetPrinter = useCallback(async () => {
-    await NiimbotService.forgetPrinter()
+  const forgetPrinter = useCallback(async (printerId?: string) => {
+    await NiimbotService.forgetPrinter(printerId)
     push({
       title: 'Impressora removida',
       description: 'A NIIMBOT foi desconectada e removida das configurações.',
@@ -151,6 +160,8 @@ export function useNiimbot(options?: { autoReconnect?: boolean }) {
     status: state.status,
     device: state.device,
     persisted: state.persisted,
+    printers: state.printers,
+    activePrinterId: state.activePrinterId,
     error: state.error,
     supported: state.supported,
     supportMessage: state.supportMessage,
@@ -164,6 +175,7 @@ export function useNiimbot(options?: { autoReconnect?: boolean }) {
     connect,
     reconnect,
     changePrinter,
+    setActivePrinter,
     disconnect,
     forgetPrinter,
     printTestLabel,
