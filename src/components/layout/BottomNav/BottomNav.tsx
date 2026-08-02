@@ -30,7 +30,7 @@ export function BottomNav({ items, onOpenMenu }: BottomNavProps) {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 pb-safe backdrop-blur-md lg:hidden"
+      className="z-30 shrink-0 border-t border-border bg-surface pb-safe lg:hidden"
       aria-label="Navegação rápida"
     >
       <div className="flex h-16 items-stretch justify-around px-safe">

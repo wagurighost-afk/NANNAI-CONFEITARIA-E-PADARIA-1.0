@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { PageShell } from '@/components/common/PageShell'
 import { Calculator, ExternalLink, Save } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Breadcrumb, EmptyState, PageHeader } from '@/components/common'
@@ -268,7 +268,7 @@ export function BreadControlPage() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+    <PageShell>
       <Breadcrumb
         items={[
           { label: 'Início', href: APP_ROUTES.dashboard },
@@ -365,6 +365,6 @@ export function BreadControlPage() {
           </TabsContent>
         ) : null}
       </Tabs>
-    </motion.div>
+    </PageShell>
   )
 }

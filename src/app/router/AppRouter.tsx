@@ -1,25 +1,73 @@
+import { lazy, type ComponentType, type LazyExoticComponent } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { APP_ROUTES } from '@/core/constants'
-import { LoginPage, ChangePasswordPage } from '@/features/auth'
-import { CleaningSchedulePage } from '@/features/cleaning-schedule'
-import { DashboardPage } from '@/features/dashboard'
-import { EmployeesPage } from '@/features/employees'
-import { IngredientsPage } from '@/features/ingredients'
-import { NotFoundPage } from '@/features/errors'
-import { PopPage } from '@/features/pop'
-import { CommentsPage } from '@/features/comments'
-import { ProductionPage } from '@/features/production'
-import { BreadControlPage } from '@/features/bread-control'
-import { WasteControlPage } from '@/features/waste-control'
-import { IntelligencePage } from '@/features/intelligence'
-import { AuditPage } from '@/features/audit'
-import { RecipesPage } from '@/features/recipes/pages/RecipesPage'
-import { RecipeDetailPage } from '@/features/recipes/pages/RecipeDetailPage'
-import { SchedulePage } from '@/features/schedule'
 import { PermissionRoute } from '@/app/router/PermissionRoute'
 import { ProtectedRoute } from '@/app/router/ProtectedRoute'
 import { PublicOnlyRoute } from '@/app/router/PublicOnlyRoute'
+
+function lazyPage(
+  factory: () => Promise<{ default: ComponentType }>,
+): LazyExoticComponent<ComponentType> {
+  return lazy(factory)
+}
+
+const LoginPage = lazyPage(() =>
+  import('@/features/auth/pages/LoginPage').then((m) => ({ default: m.LoginPage })),
+)
+const ChangePasswordPage = lazyPage(() =>
+  import('@/features/auth/pages/ChangePasswordPage').then((m) => ({ default: m.ChangePasswordPage })),
+)
+const DashboardPage = lazyPage(() =>
+  import('@/features/dashboard/pages/DashboardPage').then((m) => ({ default: m.DashboardPage })),
+)
+const ProductionPage = lazyPage(() =>
+  import('@/features/production/pages/ProductionPage').then((m) => ({ default: m.ProductionPage })),
+)
+const BreadControlPage = lazyPage(() =>
+  import('@/features/bread-control/pages/BreadControlPage').then((m) => ({ default: m.BreadControlPage })),
+)
+const WasteControlPage = lazyPage(() =>
+  import('@/features/waste-control/pages/WasteControlPage').then((m) => ({ default: m.WasteControlPage })),
+)
+const IntelligencePage = lazyPage(() =>
+  import('@/features/intelligence/pages/IntelligencePage').then((m) => ({ default: m.IntelligencePage })),
+)
+const AuditPage = lazyPage(() =>
+  import('@/features/audit/pages/AuditPage').then((m) => ({ default: m.AuditPage })),
+)
+const CommentsPage = lazyPage(() =>
+  import('@/features/comments/pages/CommentsPage').then((m) => ({ default: m.CommentsPage })),
+)
+const SchedulePage = lazyPage(() =>
+  import('@/features/schedule/pages/SchedulePage').then((m) => ({ default: m.SchedulePage })),
+)
+const CleaningSchedulePage = lazyPage(() =>
+  import('@/features/cleaning-schedule/pages/CleaningSchedulePage').then((m) => ({
+    default: m.CleaningSchedulePage,
+  })),
+)
+const RecipesPage = lazyPage(() =>
+  import('@/features/recipes/pages/RecipesPage').then((m) => ({ default: m.RecipesPage })),
+)
+const RecipeDetailPage = lazyPage(() =>
+  import('@/features/recipes/pages/RecipeDetailPage').then((m) => ({ default: m.RecipeDetailPage })),
+)
+const PopPage = lazyPage(() =>
+  import('@/features/pop/pages/PopPage').then((m) => ({ default: m.PopPage })),
+)
+const EmployeesPage = lazyPage(() =>
+  import('@/features/employees/pages/EmployeesPage').then((m) => ({ default: m.EmployeesPage })),
+)
+const IngredientsPage = lazyPage(() =>
+  import('@/features/ingredients/pages/IngredientsPage').then((m) => ({ default: m.IngredientsPage })),
+)
+const LabelsPage = lazyPage(() =>
+  import('@/features/labels/pages/LabelsPage').then((m) => ({ default: m.LabelsPage })),
+)
+const NotFoundPage = lazyPage(() =>
+  import('@/features/errors/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })),
+)
 
 function LegacyRecipeRedirect() {
   const { recipeId } = useParams()
@@ -38,6 +86,9 @@ export function AppRouter() {
           <Route element={<AppLayout />}>
             <Route path={APP_ROUTES.dashboard} element={<DashboardPage />} />
             <Route path={APP_ROUTES.production} element={<ProductionPage />} />
+            <Route element={<PermissionRoute permission="labels:view" />}>
+              <Route path={APP_ROUTES.labels} element={<LabelsPage />} />
+            </Route>
             <Route element={<PermissionRoute permission="bread-control:view" />}>
               <Route path={APP_ROUTES.breadControl} element={<BreadControlPage />} />
             </Route>

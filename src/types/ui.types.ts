@@ -5,6 +5,11 @@ export interface LoadingContextValue {
   hideLoading: () => void
 }
 
+export interface LoadingApi {
+  showLoading: (message?: string) => void
+  hideLoading: () => void
+}
+
 export interface BreadcrumbItem {
   label: string
   href?: string

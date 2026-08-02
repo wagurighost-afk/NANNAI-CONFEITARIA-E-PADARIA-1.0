@@ -8,6 +8,7 @@ export const AUDIT_ENTITY_LABELS: Record<AuditEntityType, string> = {
   auth: 'Autenticação',
   monthly_schedule: 'Escala Mensal',
   intelligence: 'Inteligência Operacional',
+  label: 'Etiqueta',
 }
 
 export const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
@@ -19,6 +20,7 @@ export const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
   password_change: 'Alteração de senha',
   password_reset: 'Redefinição de senha',
   refresh: 'Atualização de dados',
+  reprint: 'Reimpressão',
 }
 
 export const AUDIT_ENTITY_OPTIONS = Object.entries(AUDIT_ENTITY_LABELS).map(([value, label]) => ({

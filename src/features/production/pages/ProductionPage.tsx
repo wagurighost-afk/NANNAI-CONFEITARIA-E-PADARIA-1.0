@@ -1,7 +1,10 @@
 import { Plus } from 'lucide-react'
-import { motion } from 'framer-motion'
-import { Breadcrumb, EmptyState, PageHeader } from '@/components/common'
+import { useState } from 'react'
+import { Breadcrumb, EmptyState, PageHeader, PageShell } from '@/components/common'
 import { Button, ConfirmDialog, Modal, Skeleton } from '@/components/ui'
+import { LabelPrintDialogContent } from '@/features/labels/components/LabelPrintDialog'
+import { buildLabelDraftFromProduction } from '@/features/labels/utils/buildLabelFromProduction'
+import type { CreateLabelInput } from '@/features/labels/types/label.types'
 import { EMPLOYEES_MOCK } from '@/features/employees/mocks/employees.mock'
 import { DuplicateProductionDialog } from '@/features/production/components/DuplicateProductionDialog'
 import { ProductionCard } from '@/features/production/components/ProductionCard'
@@ -21,10 +24,14 @@ import { APP_ROUTES } from '@/core/constants'
 import { getErrorMessage } from '@/core/errors'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks'
+import { usePermission } from '@/hooks/usePermission'
 
 export function ProductionPage() {
   const { user } = useAuth()
+  const { hasPermission } = usePermission()
+  const canPrintLabels = hasPermission('labels:print')
   const { push } = useToast()
+  const [labelDraft, setLabelDraft] = useState<Omit<CreateLabelInput, 'copies'> | null>(null)
   const {
     productions,
     kpis,
@@ -64,6 +71,23 @@ export function ProductionPage() {
     id: e.id,
     name: e.name,
   }))
+
+  const openLabelDialog = (itemId: string) => {
+    if (!selectedProduction) {
+      return
+    }
+    const item = selectedProduction.items.find((entry) => entry.id === itemId)
+    if (!item) {
+      return
+    }
+    setLabelDraft(
+      buildLabelDraftFromProduction({
+        production: selectedProduction,
+        item,
+        responsibleName: user?.name ?? selectedProduction.employeeName,
+      }),
+    )
+  }
 
   const handleFormSubmit = async (values: ProductionFormSchema) => {
     const input = toCreateProductionInput(values)
@@ -109,11 +133,7 @@ export function ProductionPage() {
       : false
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <PageShell>
       <Breadcrumb
         items={[
           { label: 'Início', href: APP_ROUTES.dashboard },
@@ -231,6 +251,9 @@ export function ProductionPage() {
               itemId,
               status,
             })
+            if (status === 'Concluído' && canPrintLabels) {
+              openLabelDialog(itemId)
+            }
           } catch (error: unknown) {
             push({
               title: 'Erro ao atualizar item',
@@ -239,6 +262,8 @@ export function ProductionPage() {
             })
           }
         }}
+        onCreateLabel={openLabelDialog}
+        canPrintLabels={canPrintLabels}
         onReorder={async (itemIds) => {
           if (!selectedProduction) {
             return
@@ -277,6 +302,25 @@ export function ProductionPage() {
           }
         }}
       />
+
+      <Modal
+        open={Boolean(labelDraft)}
+        onClose={() => setLabelDraft(null)}
+        title="Gerar etiqueta"
+        description="A produção foi concluída. Revise os dados e imprima a etiqueta."
+        size="lg"
+      >
+        {labelDraft ? (
+          <LabelPrintDialogContent
+            initialDraft={labelDraft}
+            onCancel={() => setLabelDraft(null)}
+            onCompleted={() => {
+              setLabelDraft(null)
+              push({ title: 'Etiqueta registrada', variant: 'success' })
+            }}
+          />
+        ) : null}
+      </Modal>
 
       <Modal
         open={isFormOpen}
@@ -327,6 +371,6 @@ export function ProductionPage() {
           }
         }}
       />
-    </motion.div>
+    </PageShell>
   )
 }

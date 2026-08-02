@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import { InstallAppButton } from '@/components/common/InstallAppButton'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -20,12 +19,7 @@ export function LoginPage() {
         aria-hidden
       />
 
-      <motion.div
-        className="relative z-10 w-full max-w-md"
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35 }}
-      >
+      <div className="relative z-10 w-full max-w-md">
         <div className="mb-8 text-center">
           <p className="font-display text-4xl text-foreground">NANNAI</p>
           <p className="mt-1 text-sm text-muted-foreground">{env.appName}</p>
@@ -78,7 +72,7 @@ export function LoginPage() {
             </form>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
     </div>
   )
 }

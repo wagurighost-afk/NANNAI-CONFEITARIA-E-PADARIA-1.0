@@ -81,12 +81,13 @@ export interface CreateProductionInput {
 }
 
 export interface RealtimeEvent {
-  scope: 'production' | 'auth' | 'recipes' | 'monthly-schedule' | 'bread-control' | 'waste-control' | 'intelligence'
+  scope: 'production' | 'auth' | 'recipes' | 'monthly-schedule' | 'bread-control' | 'waste-control' | 'intelligence' | 'labels'
   action: string
   productionId?: string
   recipeId?: string
   scheduleId?: string
   dayId?: string
+  labelId?: string
 }
 
 export type WasteBuffetType = 'cafe' | 'cha' | 'jantar'
@@ -362,4 +363,72 @@ export interface BreadControlMonthlySummary {
   }>
   sectionTotals: Record<string, number>
   monthTotal: number
+}
+
+export type LabelTemplateId =
+  | 'producao'
+  | 'buffet'
+  | 'camara-fria'
+  | 'congelados'
+  | 'ingredientes'
+  | 'produtos-abertos'
+
+export interface LabelFieldData {
+  productName: string
+  category: string
+  productionDate: string
+  productionTime: string
+  expiryDate: string
+  responsible: string
+  batchNumber: string
+  weight: string
+  internalCode: string
+}
+
+export interface LabelRecord {
+  id: string
+  templateId: LabelTemplateId
+  data: LabelFieldData
+  qrPayload: string
+  copies: number
+  productionId?: string
+  productionItemId?: string
+  recipeId?: string
+  reprintOfId?: string
+  printedById: string
+  printedByName: string
+  printedAt: string
+  createdAt: string
+}
+
+export interface CreateLabelInput {
+  templateId: LabelTemplateId
+  data: Partial<LabelFieldData>
+  copies?: number
+  productionId?: string
+  productionItemId?: string
+  recipeId?: string
+}
+
+export interface CreateLabelFromProductionInput {
+  productionId: string
+  itemId: string
+  templateId?: LabelTemplateId
+  copies?: number
+  weight?: string
+}
+
+export interface LabelListQuery {
+  search?: string
+  templateId?: LabelTemplateId
+  from?: string
+  to?: string
+  productionId?: string
+  limit?: number
+  offset?: number
+}
+
+export interface LabelListResult {
+  total: number
+  items: LabelRecord[]
 }

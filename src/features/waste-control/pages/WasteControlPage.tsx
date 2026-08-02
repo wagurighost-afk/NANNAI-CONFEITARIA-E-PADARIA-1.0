@@ -1,7 +1,6 @@
-import { motion } from 'framer-motion'
 import { RefreshCw, Save, Search } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { Breadcrumb, PageHeader } from '@/components/common'
+import { Breadcrumb, PageHeader, PageShell } from '@/components/common'
 import {
   Badge,
   Button,
@@ -170,12 +169,7 @@ export function WasteControlPage() {
   const isLoading = productsQuery.isLoading || dayQuery.isLoading
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="pb-6"
-    >
+    <PageShell className="pb-6">
       <Breadcrumb
         items={[
           { label: 'Início', href: APP_ROUTES.dashboard },
@@ -316,6 +310,6 @@ export function WasteControlPage() {
           </TabsContent>
         ) : null}
       </Tabs>
-    </motion.div>
+    </PageShell>
   )
 }

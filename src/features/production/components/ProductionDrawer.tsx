@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowDown, ArrowUp, Copy, Pencil, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, Copy, Pencil, Tags, Trash2 } from 'lucide-react'
 import { ProgressBar } from '@/components/common/ProgressBar/ProgressBar'
 import {
   Badge,
@@ -34,6 +34,8 @@ export interface ProductionDrawerProps {
   onItemStatusChange?: (itemId: string, status: ProductionItemStatus) => void
   onReorder?: (itemIds: string[]) => void
   onAddComment?: (input: ShiftCommentSubmitInput) => Promise<void>
+  onCreateLabel?: (itemId: string) => void
+  canPrintLabels?: boolean
 }
 
 export function ProductionDrawer({
@@ -49,6 +51,8 @@ export function ProductionDrawer({
   onItemStatusChange,
   onReorder,
   onAddComment,
+  onCreateLabel,
+  canPrintLabels = false,
 }: ProductionDrawerProps) {
   const [isSending, setIsSending] = useState(false)
 
@@ -152,6 +156,17 @@ export function ProductionDrawer({
                           )
                         }}
                       />
+                      {canPrintLabels && item.status === 'Concluído' ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onCreateLabel?.(item.id)}
+                        >
+                          <Tags className="size-4" />
+                          Etiqueta
+                        </Button>
+                      ) : null}
                       {canManage ? (
                         <div className="flex gap-1">
                           <Button

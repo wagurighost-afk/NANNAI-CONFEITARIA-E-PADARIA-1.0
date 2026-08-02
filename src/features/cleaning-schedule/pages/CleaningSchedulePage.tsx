@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { motion } from 'framer-motion'
+import { PageShell } from '@/components/common/PageShell'
 import { Breadcrumb, PageHeader } from '@/components/common'
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Checkbox, Skeleton } from '@/components/ui'
 import { EMPLOYEES_MOCK } from '@/features/employees/mocks/employees.mock'
@@ -44,7 +44,7 @@ export function CleaningSchedulePage() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+    <PageShell>
       <Breadcrumb
         items={[
           { label: 'Início', href: APP_ROUTES.dashboard },
@@ -159,6 +159,6 @@ export function CleaningSchedulePage() {
           </CardContent>
         </Card>
       )}
-    </motion.div>
+    </PageShell>
   )
 }

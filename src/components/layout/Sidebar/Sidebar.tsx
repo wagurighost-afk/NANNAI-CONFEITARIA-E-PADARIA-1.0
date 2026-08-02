@@ -12,6 +12,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Sparkles,
+  Tags,
   Trash2,
   Users,
   Wheat,
@@ -34,6 +35,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   ChefHat,
   ClipboardList,
   FileText,
+  Tags,
   Trash2,
   Users,
   Wheat,
@@ -108,7 +110,7 @@ export function Sidebar({
 
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex flex-col bg-sidebar text-sidebar-foreground transition-all duration-300',
+          'fixed inset-y-0 left-0 z-50 flex flex-col bg-sidebar text-sidebar-foreground transition-[width,transform] duration-200',
           'w-[min(100vw,18rem)] pt-safe pb-safe lg:translate-x-0',
           isCollapsed ? 'lg:w-20' : 'lg:w-64',
           isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',

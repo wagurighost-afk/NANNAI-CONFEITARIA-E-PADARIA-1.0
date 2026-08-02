@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Archive, Clock, Search, Star } from 'lucide-react'
 import { Select } from '@/components/ui'
 import { RecipeSearchField } from '@/features/recipes/components/RecipeSearchField'
@@ -33,7 +34,7 @@ interface RecipeFiltersBarProps {
   onSortOrderToggle: () => void
 }
 
-export function RecipeFiltersBar({
+export const RecipeFiltersBar = memo(function RecipeFiltersBar({
   filters,
   total,
   isSearching = false,
@@ -152,4 +153,4 @@ export function RecipeFiltersBar({
       </p>
     </div>
   )
-}
+})

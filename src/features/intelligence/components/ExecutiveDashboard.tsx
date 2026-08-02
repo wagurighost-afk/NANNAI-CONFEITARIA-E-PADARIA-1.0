@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
 import {
   AlertCircle,
   DollarSign,
@@ -10,7 +9,7 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react'
-import { Breadcrumb, EmptyState, PageHeader } from '@/components/common'
+import { Breadcrumb, EmptyState, PageHeader, PageShell } from '@/components/common'
 import { Button, Skeleton } from '@/components/ui'
 import { getErrorMessage } from '@/core/errors'
 import { canRefreshIntelligence } from '@/core/permissions/intelligenceAccess'
@@ -61,7 +60,6 @@ export function ExecutiveDashboard() {
   const [period, setPeriod] = useState<IntelligencePeriod>(currentPeriod)
   const { user } = useAuth()
   const { push } = useToast()
-  const prefersReducedMotion = useReducedMotion()
   const {
     data: dashboard,
     isLoading,
@@ -178,10 +176,7 @@ export function ExecutiveDashboard() {
   }
 
   return (
-    <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
+    <PageShell>
       <Breadcrumb
         items={[
           { label: 'Início', href: '/' },
@@ -317,6 +312,6 @@ export function ExecutiveDashboard() {
       )}
 
       <AlertsPanel className="mt-8" alerts={alerts} isLoading={isLoading && !dashboard} />
-    </motion.div>
+    </PageShell>
   )
 }

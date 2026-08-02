@@ -170,6 +170,18 @@ export async function saveWasteControlDay(day: Parameters<DatabaseStore['saveWas
   await getStore().saveWasteControlDay(day)
 }
 
+export async function loadLabelRecord(id: string) {
+  return getStore().loadLabelRecord(id)
+}
+
+export async function loadAllLabelRecords() {
+  return getStore().loadAllLabelRecords()
+}
+
+export async function saveLabelRecord(record: Parameters<DatabaseStore['saveLabelRecord']>[0]): Promise<void> {
+  await getStore().saveLabelRecord(record)
+}
+
 export async function loadIntelligenceSnapshot<TData = unknown>(id: string) {
   const snapshot = await getStore().loadIntelligenceSnapshot(id)
   return snapshot as import('../intelligence/types.js').IntelligenceSnapshot<TData> | null

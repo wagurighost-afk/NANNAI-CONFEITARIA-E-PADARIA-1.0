@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { env } from '@/config/env'
+import { scheduleQueryInvalidation } from '@/core/realtime/scheduleQueryInvalidation'
 import { authService } from '@/services'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -24,28 +25,8 @@ export function useRealtimeSync(): void {
     source.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data) as { scope?: string }
-        if (payload.scope === 'production') {
-          void queryClient.invalidateQueries({ queryKey: ['production'] })
-          void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-          void queryClient.invalidateQueries({ queryKey: ['comments-feed'] })
-          void queryClient.invalidateQueries({ queryKey: ['intelligence'] })
-        }
-        if (payload.scope === 'recipes') {
-          void queryClient.invalidateQueries({ queryKey: ['recipes'] })
-        }
-        if (payload.scope === 'monthly-schedule') {
-          void queryClient.invalidateQueries({ queryKey: ['monthly-schedule'] })
-        }
-        if (payload.scope === 'bread-control') {
-          void queryClient.invalidateQueries({ queryKey: ['bread-control'] })
-          void queryClient.invalidateQueries({ queryKey: ['intelligence'] })
-        }
-        if (payload.scope === 'waste-control') {
-          void queryClient.invalidateQueries({ queryKey: ['waste-control'] })
-          void queryClient.invalidateQueries({ queryKey: ['intelligence'] })
-        }
-        if (payload.scope === 'intelligence') {
-          void queryClient.invalidateQueries({ queryKey: ['intelligence'] })
+        if (payload.scope) {
+          scheduleQueryInvalidation(queryClient, payload.scope)
         }
       } catch {
         // Ignore malformed events.

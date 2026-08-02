@@ -1,6 +1,5 @@
 import { Plus } from 'lucide-react'
-import { motion } from 'framer-motion'
-import { Breadcrumb, EmptyState, PageHeader } from '@/components/common'
+import { Breadcrumb, EmptyState, PageHeader, PageShell } from '@/components/common'
 import { Button, ConfirmDialog, Modal } from '@/components/ui'
 import { EmployeeCard } from '@/features/employees/components/EmployeeCard'
 import { EmployeeFiltersBar } from '@/features/employees/components/EmployeeFiltersBar'
@@ -96,12 +95,7 @@ export function EmployeesPage() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="pb-4"
-    >
+    <PageShell className="pb-4">
       <Breadcrumb
         items={[
           { label: 'Início', href: APP_ROUTES.dashboard },
@@ -236,6 +230,6 @@ export function EmployeesPage() {
         variant="danger"
         isConfirming={isDeleting}
       />
-    </motion.div>
+    </PageShell>
   )
 }

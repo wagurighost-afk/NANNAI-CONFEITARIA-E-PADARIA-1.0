@@ -16,6 +16,7 @@ function emptyDb(): DatabaseFile {
     monthly_schedules: [],
     bread_control_days: [],
     waste_control_days: [],
+    label_records: [],
     intelligence_snapshots: [],
     audit_logs: [],
     refresh_tokens: [],
@@ -31,6 +32,7 @@ function normalizeDb(parsed: Partial<DatabaseFile>): DatabaseFile {
     monthly_schedules: parsed.monthly_schedules ?? [],
     bread_control_days: parsed.bread_control_days ?? [],
     waste_control_days: parsed.waste_control_days ?? [],
+    label_records: parsed.label_records ?? [],
     intelligence_snapshots: parsed.intelligence_snapshots ?? [],
     audit_logs: parsed.audit_logs ?? [],
     refresh_tokens: parsed.refresh_tokens ?? [],
@@ -270,6 +272,25 @@ export function createJsonStore(): DatabaseStore {
         db.waste_control_days[index] = day
       } else {
         db.waste_control_days.push(day)
+      }
+      writeDb(db)
+    },
+
+    async loadLabelRecord(id) {
+      return readDb().label_records.find((record) => record.id === id) ?? null
+    },
+
+    async loadAllLabelRecords() {
+      return [...readDb().label_records]
+    },
+
+    async saveLabelRecord(record) {
+      const db = readDb()
+      const index = db.label_records.findIndex((item) => item.id === record.id)
+      if (index >= 0) {
+        db.label_records[index] = record
+      } else {
+        db.label_records.push(record)
       }
       writeDb(db)
     },

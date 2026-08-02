@@ -15,6 +15,7 @@ import { monthlyScheduleRouter } from './routes/monthlySchedule.routes.js'
 import { recipesRouter } from './routes/recipes.routes.js'
 import { intelligenceRouter } from './routes/intelligence.routes.js'
 import { auditRouter } from './routes/audit.routes.js'
+import { labelsRouter } from './routes/labels.routes.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const distPath = path.join(__dirname, '..', '..', 'dist')
@@ -51,6 +52,7 @@ app.use('/api/bread-control', breadControlRouter)
 app.use('/api/waste-control', wasteControlRouter)
 app.use('/api/intelligence', intelligenceRouter)
 app.use('/api/audit', auditRouter)
+app.use('/api/labels', labelsRouter)
 app.use('/api/events', eventsRouter)
 
 if (isProduction && fs.existsSync(distPath)) {

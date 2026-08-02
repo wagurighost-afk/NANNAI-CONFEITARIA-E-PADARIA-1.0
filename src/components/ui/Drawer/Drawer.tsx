@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
+import { lockAppScroll } from '@/core/layout/appScroll'
 import { duration } from '@/styles/tokens/animations'
 import { cn } from '@/utils/cn'
 
@@ -62,12 +63,11 @@ export function Drawer({
     }
 
     document.addEventListener('keydown', onKeyDown)
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    const unlockScroll = lockAppScroll()
 
     return () => {
       document.removeEventListener('keydown', onKeyDown)
-      document.body.style.overflow = previousOverflow
+      unlockScroll()
     }
   }, [open, onClose])
 

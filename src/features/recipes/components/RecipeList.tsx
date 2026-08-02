@@ -1,8 +1,11 @@
-import { useEffect, useRef } from 'react'
+import { memo, useCallback, useEffect, useRef } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { EmptyState } from '@/components/common'
 import { Pagination, Skeleton, Spinner } from '@/components/ui'
+import { getAppScrollElement } from '@/core/layout/appScroll'
 import { RecipeCard } from '@/features/recipes/components/RecipeCard'
 import { RecipeTable } from '@/features/recipes/components/RecipeTable'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import type { Recipe } from '@/features/recipes/types/recipe.types'
 
 interface RecipeListProps {
@@ -23,6 +26,47 @@ interface RecipeListProps {
   onToggleFavorite: (recipe: Recipe) => void
 }
 
+const CARD_ROW_HEIGHT = 172
+
+const RecipeCardItem = memo(function RecipeCardItem({
+  recipe,
+  selectionMode,
+  isSelected,
+  onRecipeClick,
+  onToggleSelection,
+  onToggleFavorite,
+}: {
+  recipe: Recipe
+  selectionMode: boolean
+  isSelected: boolean
+  onRecipeClick: (recipe: Recipe) => void
+  onToggleSelection: (id: string) => void
+  onToggleFavorite: (recipe: Recipe) => void
+}) {
+  const handleSelect = useCallback(() => {
+    onRecipeClick(recipe)
+  }, [onRecipeClick, recipe])
+
+  const handleToggleSelection = useCallback(() => {
+    onToggleSelection(recipe.id)
+  }, [onToggleSelection, recipe.id])
+
+  const handleToggleFavorite = useCallback(() => {
+    onToggleFavorite(recipe)
+  }, [onToggleFavorite, recipe])
+
+  return (
+    <RecipeCard
+      recipe={recipe}
+      selectionMode={selectionMode}
+      isSelected={isSelected}
+      onSelect={handleSelect}
+      onToggleSelection={handleToggleSelection}
+      onToggleFavorite={handleToggleFavorite}
+    />
+  )
+})
+
 function RecipeCardsSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -33,7 +77,7 @@ function RecipeCardsSkeleton() {
   )
 }
 
-function InfiniteScrollSentinel({
+function useScrollLoadMore({
   enabled,
   hasNextPage,
   isFetchingNextPage,
@@ -44,42 +88,121 @@ function InfiniteScrollSentinel({
   isFetchingNextPage?: boolean
   onLoadMore?: () => void
 }) {
-  const sentinelRef = useRef<HTMLDivElement | null>(null)
+  const isFetchingRef = useRef(isFetchingNextPage)
+  const onLoadMoreRef = useRef(onLoadMore)
+
+  isFetchingRef.current = isFetchingNextPage
+  onLoadMoreRef.current = onLoadMore
 
   useEffect(() => {
     if (!enabled || !hasNextPage || !onLoadMore) {
       return
     }
 
-    const element = sentinelRef.current
-    if (!element) {
+    const scrollEl = getAppScrollElement()
+    if (!scrollEl) {
       return
     }
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0]
-        if (entry?.isIntersecting && !isFetchingNextPage) {
-          onLoadMore()
-        }
-      },
-      { rootMargin: '200px' },
-    )
-
-    observer.observe(element)
-    return () => {
-      observer.disconnect()
+    const onScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = scrollEl
+      if (scrollHeight - scrollTop - clientHeight < 400 && !isFetchingRef.current) {
+        onLoadMoreRef.current?.()
+      }
     }
-  }, [enabled, hasNextPage, isFetchingNextPage, onLoadMore])
 
-  if (!enabled || !hasNextPage) {
-    return null
-  }
+    scrollEl.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      scrollEl.removeEventListener('scroll', onScroll)
+    }
+  }, [enabled, hasNextPage, onLoadMore])
+}
+
+function VirtualRecipeCards({
+  recipes,
+  selectionMode,
+  isSelected,
+  onRecipeClick,
+  onToggleSelection,
+  onToggleFavorite,
+  hasNextPage,
+  isFetchingNextPage,
+  onLoadMore,
+  total,
+}: {
+  recipes: Recipe[]
+  selectionMode: boolean
+  isSelected: (id: string) => boolean
+  onRecipeClick: (recipe: Recipe) => void
+  onToggleSelection: (id: string) => void
+  onToggleFavorite: (recipe: Recipe) => void
+  hasNextPage?: boolean
+  isFetchingNextPage?: boolean
+  onLoadMore?: () => void
+  total: number
+}) {
+  const isTwoColumns = useMediaQuery('(min-width: 640px)')
+  const columnCount = isTwoColumns ? 2 : 1
+  const rowCount = Math.ceil(recipes.length / columnCount)
+
+  const virtualizer = useVirtualizer({
+    count: rowCount,
+    getScrollElement: getAppScrollElement,
+    estimateSize: () => CARD_ROW_HEIGHT,
+    overscan: 5,
+  })
+
+  useScrollLoadMore({
+    enabled: Boolean(hasNextPage && onLoadMore),
+    ...(hasNextPage !== undefined ? { hasNextPage } : {}),
+    ...(isFetchingNextPage !== undefined ? { isFetchingNextPage } : {}),
+    ...(onLoadMore ? { onLoadMore } : {}),
+  })
 
   return (
-    <div ref={sentinelRef} className="flex justify-center py-6">
-      {isFetchingNextPage ? <Spinner className="size-6" /> : null}
-    </div>
+    <>
+      <div
+        className="relative w-full"
+        style={{ height: virtualizer.getTotalSize() }}
+      >
+        {virtualizer.getVirtualItems().map((virtualRow) => {
+          const startIndex = virtualRow.index * columnCount
+          const rowRecipes = recipes.slice(startIndex, startIndex + columnCount)
+
+          return (
+            <div
+              key={virtualRow.key}
+              data-index={virtualRow.index}
+              ref={virtualizer.measureElement}
+              className="absolute top-0 left-0 grid w-full grid-cols-1 gap-4 sm:grid-cols-2"
+              style={{ transform: `translateY(${virtualRow.start}px)` }}
+            >
+              {rowRecipes.map((recipe) => (
+                <RecipeCardItem
+                  key={recipe.id}
+                  recipe={recipe}
+                  selectionMode={selectionMode}
+                  isSelected={isSelected(recipe.id)}
+                  onRecipeClick={onRecipeClick}
+                  onToggleSelection={onToggleSelection}
+                  onToggleFavorite={onToggleFavorite}
+                />
+              ))}
+            </div>
+          )
+        })}
+      </div>
+      {hasNextPage && isFetchingNextPage ? (
+        <div className="flex justify-center py-4">
+          <Spinner className="size-6" />
+        </div>
+      ) : null}
+      {total > 0 ? (
+        <p className="pb-2 text-center text-xs text-muted-foreground">
+          Exibindo {recipes.length} de {total}
+        </p>
+      ) : null}
+    </>
   )
 }
 
@@ -110,34 +233,18 @@ export function RecipeList({
 
   if (isMobile) {
     return (
-      <>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {recipes.map((recipe) => (
-            <RecipeCard
-              key={recipe.id}
-              recipe={recipe}
-              selectionMode={selectionMode}
-              isSelected={isSelected(recipe.id)}
-              onSelect={() => onRecipeClick(recipe)}
-              onToggleSelection={() => onToggleSelection(recipe.id)}
-              onToggleFavorite={() => onToggleFavorite(recipe)}
-            />
-          ))}
-        </div>
-        {hasNextPage && onLoadMore ? (
-          <InfiniteScrollSentinel
-            enabled
-            hasNextPage={hasNextPage}
-            isFetchingNextPage={isFetchingNextPage ?? false}
-            onLoadMore={onLoadMore}
-          />
-        ) : null}
-        {total > 0 ? (
-          <p className="pb-2 text-center text-xs text-muted-foreground">
-            Exibindo {recipes.length} de {total}
-          </p>
-        ) : null}
-      </>
+      <VirtualRecipeCards
+        recipes={recipes}
+        selectionMode={selectionMode}
+        isSelected={isSelected}
+        onRecipeClick={onRecipeClick}
+        onToggleSelection={onToggleSelection}
+        onToggleFavorite={onToggleFavorite}
+        total={total}
+        {...(hasNextPage !== undefined ? { hasNextPage } : {})}
+        {...(isFetchingNextPage !== undefined ? { isFetchingNextPage } : {})}
+        {...(onLoadMore ? { onLoadMore } : {})}
+      />
     )
   }
 

@@ -9,5 +9,7 @@ export { GlobalLoading } from '@/components/common/GlobalLoading'
 export { Breadcrumb } from '@/components/common/Breadcrumb'
 export type { BreadcrumbProps } from '@/components/common/Breadcrumb'
 
+export { PageShell } from '@/components/common/PageShell'
+
 export { ProgressBar } from '@/components/common/ProgressBar/ProgressBar'
 export type { ProgressBarProps } from '@/components/common/ProgressBar/ProgressBar'

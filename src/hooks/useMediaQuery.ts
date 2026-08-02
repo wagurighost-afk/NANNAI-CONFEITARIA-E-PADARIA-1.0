@@ -1,26 +1,54 @@
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
+
+type Listener = () => void
+
+const queryCache = new Map<string, MediaQueryList>()
+const listenerMap = new Map<string, Set<Listener>>()
+
+function getMediaQuery(query: string): MediaQueryList {
+  let media = queryCache.get(query)
+  if (!media) {
+    media = window.matchMedia(query)
+    queryCache.set(query, media)
+    media.addEventListener('change', () => {
+      const listeners = listenerMap.get(query)
+      if (listeners) {
+        for (const listener of listeners) {
+          listener()
+        }
+      }
+    })
+  }
+  return media
+}
+
+function subscribe(query: string, listener: Listener): () => void {
+  getMediaQuery(query)
+  const listeners = listenerMap.get(query) ?? new Set<Listener>()
+  listeners.add(listener)
+  listenerMap.set(query, listeners)
+  return () => {
+    listeners.delete(listener)
+    if (listeners.size === 0) {
+      listenerMap.delete(query)
+    }
+  }
+}
+
+function getSnapshot(query: string): boolean {
+  return getMediaQuery(query).matches
+}
+
+function getServerSnapshot(): boolean {
+  return false
+}
 
 export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(() => {
-    if (typeof window === 'undefined') {
-      return false
-    }
-    return window.matchMedia(query).matches
-  })
-
-  useEffect(() => {
-    const media = window.matchMedia(query)
-    const onChange = () => {
-      setMatches(media.matches)
-    }
-    onChange()
-    media.addEventListener('change', onChange)
-    return () => {
-      media.removeEventListener('change', onChange)
-    }
-  }, [query])
-
-  return matches
+  return useSyncExternalStore(
+    (listener) => subscribe(query, listener),
+    () => getSnapshot(query),
+    getServerSnapshot,
+  )
 }
 
 export function useIsMobile(): boolean {

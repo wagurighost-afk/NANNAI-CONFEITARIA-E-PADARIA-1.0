@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { PageShell } from '@/components/common/PageShell'
 import { Breadcrumb, PageHeader } from '@/components/common'
 import { ProgressBar } from '@/components/common/ProgressBar/ProgressBar'
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, KpiCard, Skeleton } from '@/components/ui'
@@ -26,7 +26,7 @@ export function ChefDashboardPage() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+    <PageShell>
       <Breadcrumb items={[{ label: 'Início' }]} />
       <PageHeader
         title="Dashboard Chef"
@@ -140,6 +140,6 @@ export function ChefDashboardPage() {
           </CardContent>
         </Card>
       </div>
-    </motion.div>
+    </PageShell>
   )
 }

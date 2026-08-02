@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Star } from 'lucide-react'
 import { Badge, Card, CardContent, Checkbox } from '@/components/ui'
 import type { Recipe } from '@/features/recipes/types/recipe.types'
@@ -14,7 +15,7 @@ interface RecipeCardProps {
   onToggleFavorite?: () => void
 }
 
-export function RecipeCard({
+export const RecipeCard = memo(function RecipeCard({
   recipe,
   selectionMode = false,
   isSelected = false,
@@ -27,7 +28,12 @@ export function RecipeCard({
 
   return (
     <Card
-      className={cn('cursor-pointer transition hover:shadow-md', isSelected && 'ring-2 ring-accent')}
+      className={cn(
+        'cursor-pointer',
+        'max-lg:active:scale-[0.99] max-lg:transition-transform max-lg:duration-100',
+        'lg:transition lg:hover:shadow-md',
+        isSelected && 'ring-2 ring-accent',
+      )}
       onClick={() => {
         if (selectionMode) {
           onToggleSelection?.()
@@ -61,7 +67,7 @@ export function RecipeCard({
             {onToggleFavorite ? (
               <button
                 type="button"
-                className="rounded-lg p-2 text-muted-foreground transition hover:bg-muted/50 hover:text-accent"
+                className="touch-target rounded-lg p-2 text-muted-foreground hover:bg-muted/50 hover:text-accent"
                 aria-label={recipe.isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
                 onClick={(event) => {
                   event.stopPropagation()
@@ -88,4 +94,4 @@ export function RecipeCard({
       </CardContent>
     </Card>
   )
-}
+})

@@ -1,5 +1,5 @@
 import { Plus, Pencil, Trash2 } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { PageShell } from '@/components/common/PageShell'
 import { Breadcrumb, EmptyState, PageHeader } from '@/components/common'
 import { Badge, Button, Card, CardContent, ConfirmDialog, Modal, SearchInput, Select, Skeleton, Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui'
 import { EMPLOYEE_SECTORS, EMPLOYEE_SHIFTS, EMPLOYEE_STATUSES } from '@/features/employees/types/employee.types'
@@ -55,7 +55,7 @@ export function SchedulePage() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+    <PageShell>
       <Breadcrumb items={[{ label: 'Início', href: APP_ROUTES.dashboard }, { label: 'Escala' }]} />
       <PageHeader
         title="Escala"
@@ -177,6 +177,6 @@ export function SchedulePage() {
         isConfirming={isDeleting}
         variant="danger"
       />
-    </motion.div>
+    </PageShell>
   )
 }

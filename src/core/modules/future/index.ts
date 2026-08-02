@@ -24,12 +24,6 @@ export const FUTURE_MODULES: readonly FutureModuleDescriptor[] = [
     description: 'Pedidos de compra e fornecedores.',
   },
   {
-    id: 'labels',
-    label: 'Etiquetas',
-    status: 'planned',
-    description: 'Geração e impressão de etiquetas de validade.',
-  },
-  {
     id: 'costs',
     label: 'Custos',
     status: 'planned',

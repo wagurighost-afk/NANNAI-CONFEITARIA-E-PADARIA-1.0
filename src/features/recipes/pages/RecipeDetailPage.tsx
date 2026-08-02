@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { Breadcrumb, EmptyState } from '@/components/common'
+import { Breadcrumb, EmptyState, PageShell } from '@/components/common'
 import { Button, ConfirmDialog, Modal, Skeleton } from '@/components/ui'
 import { RecipeDetailToolbar } from '@/features/recipes/components/RecipeDetailToolbar'
 import { RecipeForm } from '@/features/recipes/components/RecipeForm'
@@ -111,11 +110,7 @@ export function RecipeDetailPage() {
   const formMode = isRecipeDocumentPrimary(recipe) ? 'document' : 'manual'
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="mx-auto w-full max-w-5xl space-y-5 overflow-x-hidden pb-10"
-    >
+    <PageShell className="mx-auto w-full max-w-5xl space-y-5 overflow-x-hidden pb-10">
       <Breadcrumb
         items={[
           { label: 'Início', href: APP_ROUTES.dashboard },
@@ -199,6 +194,6 @@ export function RecipeDetailPage() {
         isConfirming={isDeleting}
         variant="danger"
       />
-    </motion.div>
+    </PageShell>
   )
 }

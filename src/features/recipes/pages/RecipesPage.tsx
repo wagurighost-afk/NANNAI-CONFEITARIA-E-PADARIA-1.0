@@ -1,8 +1,7 @@
+import { useCallback, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
 import { FileText, Plus, ScrollText, Send } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { Breadcrumb, PageHeader } from '@/components/common'
 import {
   Button,
@@ -17,7 +16,6 @@ import { RecipeKpisSection } from '@/features/recipes/components/RecipeKpis'
 import { useRecipeBatchSelection } from '@/features/recipes/hooks/useRecipeBatchSelection'
 import { useRecipes } from '@/features/recipes/hooks/useRecipes'
 import { sendRecipesToProduction } from '@/features/recipes/services/sendRecipesToProduction'
-import { recipesService } from '@/features/recipes/services/recipes.service'
 import type { RecipeFormSubmitPayload } from '@/features/recipes/types/recipe.types'
 import { resolveRecipeFormValues } from '@/features/recipes/utils/resolveRecipeFormValues'
 import { APP_ROUTES } from '@/core/constants'
@@ -74,6 +72,7 @@ export function RecipesPage() {
     saveRecipe,
     isSaving,
     isDeleting,
+    toggleFavorite,
   } = useRecipes()
 
   const {
@@ -137,12 +136,26 @@ export function RecipesPage() {
     }
   }
 
+  const handleRecipeClick = useCallback(
+    (recipe: { id: string }) => {
+      navigate(`${APP_ROUTES.recipes}/${recipe.id}`)
+    },
+    [navigate],
+  )
+
+  const handleToggleFavorite = useCallback(
+    (recipe: { id: string }) => {
+      void toggleFavorite(recipe.id)
+    },
+    [toggleFavorite],
+  )
+
+  const handleLoadMore = useCallback(() => {
+    void fetchNextPage()
+  }, [fetchNextPage])
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={selectionMode ? 'pb-28 md:pb-0' : undefined}
-    >
+    <>
       <Breadcrumb items={[{ label: 'Início', href: APP_ROUTES.dashboard }, { label: 'Receitas' }]} />
       <PageHeader
         title="Receitas"
@@ -192,7 +205,7 @@ export function RecipesPage() {
       />
 
       {selectionMode && canSendToProduction ? (
-        <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] z-40 border-t border-border bg-surface-elevated p-4 pb-safe shadow-lg md:static md:bottom-auto md:mb-4 md:rounded-xl md:border md:shadow-none lg:bottom-auto">
+        <div className="sticky bottom-0 z-20 -mx-4 border-t border-border bg-surface-elevated p-4 sm:-mx-6 md:static md:mx-0 md:mb-4 md:rounded-xl md:border md:shadow-none">
           <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
               {selectedCount > 0
@@ -229,16 +242,12 @@ export function RecipesPage() {
         onPageChange={setPage}
         hasNextPage={hasNextPage}
         isFetchingNextPage={isFetchingNextPage}
-        onLoadMore={() => void fetchNextPage()}
+        onLoadMore={handleLoadMore}
         selectionMode={selectionMode}
         isSelected={isSelected}
-        onRecipeClick={(recipe) => navigate(`${APP_ROUTES.recipes}/${recipe.id}`)}
+        onRecipeClick={handleRecipeClick}
         onToggleSelection={toggleRecipe}
-        onToggleFavorite={(recipe) => {
-          void recipesService.toggleFavorite(recipe.id).then(() => {
-            void queryClient.invalidateQueries({ queryKey: ['recipes'] })
-          })
-        }}
+        onToggleFavorite={handleToggleFavorite}
       />
 
       <Modal
@@ -343,6 +352,6 @@ export function RecipesPage() {
         isConfirming={isDeleting}
         variant="danger"
       />
-    </motion.div>
+    </>
   )
 }

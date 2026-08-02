@@ -1,4 +1,4 @@
-import type { AppUser, BreadControlDay, MonthlySchedule, ProductionDay, Recipe, WasteControlDay } from '../types.js'
+import type { AppUser, BreadControlDay, LabelRecord, MonthlySchedule, ProductionDay, Recipe, WasteControlDay } from '../types.js'
 import type { AuditLogRecord } from '../audit/types.js'
 import type { IntelligenceSnapshot } from '../intelligence/types.js'
 import type { PaginatedRecipes, RecipeListQuery, RecipeStats } from '../types.js'
@@ -26,6 +26,7 @@ export interface DatabaseFile {
   monthly_schedules: MonthlySchedule[]
   bread_control_days: BreadControlDay[]
   waste_control_days: WasteControlDay[]
+  label_records: LabelRecord[]
   intelligence_snapshots: IntelligenceSnapshot[]
   audit_logs: AuditLogRecord[]
   refresh_tokens: RefreshTokenRow[]
@@ -69,6 +70,9 @@ export interface DatabaseStore {
   loadWasteControlDay(id: string): Promise<WasteControlDay | null>
   loadWasteControlDaysInMonth(year: number, month: number): Promise<WasteControlDay[]>
   saveWasteControlDay(day: WasteControlDay): Promise<void>
+  loadLabelRecord(id: string): Promise<LabelRecord | null>
+  loadAllLabelRecords(): Promise<LabelRecord[]>
+  saveLabelRecord(record: LabelRecord): Promise<void>
   loadIntelligenceSnapshot(id: string): Promise<IntelligenceSnapshot | null>
   loadIntelligenceSnapshotsByPeriod(
     year: number,

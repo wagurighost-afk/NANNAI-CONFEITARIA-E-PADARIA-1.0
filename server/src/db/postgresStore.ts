@@ -64,6 +64,16 @@ CREATE TABLE IF NOT EXISTS waste_control_days (
 CREATE INDEX IF NOT EXISTS idx_waste_control_days_record_date ON waste_control_days(record_date);
 CREATE INDEX IF NOT EXISTS idx_waste_control_days_buffet ON waste_control_days(buffet);
 
+CREATE TABLE IF NOT EXISTS label_records (
+  id TEXT PRIMARY KEY,
+  printed_at TIMESTAMPTZ NOT NULL,
+  payload JSONB NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_label_records_printed_at ON label_records (printed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_label_records_template ON label_records ((payload->>'templateId'));
+CREATE INDEX IF NOT EXISTS idx_label_records_production ON label_records ((payload->>'productionId'));
+
 CREATE TABLE IF NOT EXISTS intelligence_snapshots (
   id TEXT PRIMARY KEY,
   category TEXT NOT NULL,
@@ -596,6 +606,29 @@ export function createPostgresStore(): DatabaseStore {
         `INSERT INTO waste_control_days (id, record_date, buffet, payload) VALUES ($1, $2::date, $3, $4::jsonb)
          ON CONFLICT (id) DO UPDATE SET record_date = EXCLUDED.record_date, buffet = EXCLUDED.buffet, payload = EXCLUDED.payload`,
         [day.id, day.date, day.buffet, JSON.stringify(day)],
+      )
+    },
+
+    async loadLabelRecord(id) {
+      const { rows } = await pool.query<{ payload: import('../types.js').LabelRecord }>(
+        'SELECT payload FROM label_records WHERE id = $1',
+        [id],
+      )
+      return rows[0]?.payload ?? null
+    },
+
+    async loadAllLabelRecords() {
+      const { rows } = await pool.query<{ payload: import('../types.js').LabelRecord }>(
+        'SELECT payload FROM label_records ORDER BY printed_at DESC',
+      )
+      return rows.map((row) => row.payload)
+    },
+
+    async saveLabelRecord(record) {
+      await pool.query(
+        `INSERT INTO label_records (id, printed_at, payload) VALUES ($1, $2::timestamptz, $3::jsonb)
+         ON CONFLICT (id) DO UPDATE SET printed_at = EXCLUDED.printed_at, payload = EXCLUDED.payload`,
+        [record.id, record.printedAt, JSON.stringify(record)],
       )
     },
 

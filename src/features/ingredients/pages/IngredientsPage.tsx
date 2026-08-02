@@ -1,6 +1,5 @@
 import { Plus } from 'lucide-react'
-import { motion } from 'framer-motion'
-import { Breadcrumb, EmptyState, PageHeader } from '@/components/common'
+import { Breadcrumb, EmptyState, PageHeader, PageShell } from '@/components/common'
 import { Button, ConfirmDialog, Modal } from '@/components/ui'
 import { IngredientCard } from '@/features/ingredients/components/IngredientCard'
 import { IngredientDrawer } from '@/features/ingredients/components/IngredientDrawer'
@@ -95,12 +94,7 @@ export function IngredientsPage() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="pb-4"
-    >
+    <PageShell className="pb-4">
       <Breadcrumb
         items={[
           { label: 'Início', href: APP_ROUTES.dashboard },
@@ -223,6 +217,6 @@ export function IngredientsPage() {
         variant="danger"
         isConfirming={isDeleting}
       />
-    </motion.div>
+    </PageShell>
   )
 }

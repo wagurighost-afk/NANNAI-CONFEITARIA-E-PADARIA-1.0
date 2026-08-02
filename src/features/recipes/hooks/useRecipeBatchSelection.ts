@@ -31,6 +31,8 @@ export function useRecipeBatchSelection(recipes: Recipe[]) {
     [recipes, selectedIds],
   )
 
+  const isSelected = useCallback((recipeId: string) => selectedIds.has(recipeId), [selectedIds])
+
   return {
     selectionMode,
     setSelectionMode,
@@ -40,6 +42,6 @@ export function useRecipeBatchSelection(recipes: Recipe[]) {
     toggleRecipe,
     clearSelection,
     selectAllVisible,
-    isSelected: (recipeId: string) => selectedIds.has(recipeId),
+    isSelected,
   }
 }

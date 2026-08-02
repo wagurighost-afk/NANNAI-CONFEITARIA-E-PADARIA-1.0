@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { PageShell } from '@/components/common/PageShell'
 import { useMemo, useState } from 'react'
 import { Breadcrumb, EmptyState, PageHeader } from '@/components/common'
 import { Badge, Card, CardContent, Drawer, Skeleton } from '@/components/ui'
@@ -51,7 +51,7 @@ export function PopPage() {
   }, [data, filter])
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+    <PageShell>
       <Breadcrumb items={[{ label: 'Início', href: APP_ROUTES.dashboard }, { label: 'POP' }]} />
       <PageHeader
         title="POP"
@@ -107,6 +107,6 @@ export function PopPage() {
           </div>
         ) : null}
       </Drawer>
-    </motion.div>
+    </PageShell>
   )
 }

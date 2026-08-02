@@ -12,6 +12,8 @@ import { useAuth } from '@/hooks/useAuth'
 const OPERATIONAL_PERMISSIONS: Permission[] = [
   'production:manage',
   'recipes:manage',
+  'labels:view',
+  'labels:print',
   'schedule:manage',
   'cleaning-schedule:manage',
   'employees:manage',

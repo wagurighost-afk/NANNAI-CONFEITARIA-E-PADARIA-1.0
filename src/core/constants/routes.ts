@@ -15,6 +15,7 @@ export const APP_ROUTES = {
   changePassword: '/alterar-senha',
   intelligence: '/intelligence',
   audit: '/auditoria',
+  labels: '/etiquetas',
   notFound: '*',
 } as const
 

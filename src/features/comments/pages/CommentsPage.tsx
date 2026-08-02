@@ -1,5 +1,5 @@
 import { MessageSquare } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { PageShell } from '@/components/common/PageShell'
 import { Breadcrumb, EmptyState, PageHeader } from '@/components/common'
 import { Card, CardContent, Input, SearchInput, Skeleton } from '@/components/ui'
 import { useCommentsFeed } from '@/features/comments/hooks/useCommentsFeed'
@@ -45,7 +45,7 @@ export function CommentsPage() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+    <PageShell>
       <Breadcrumb
         items={[{ label: 'Início', href: APP_ROUTES.dashboard }, { label: 'Comentários' }]}
       />
@@ -115,6 +115,6 @@ export function CommentsPage() {
       ) : (
         <ShiftCommentList comments={feed} showContext />
       )}
-    </motion.div>
+    </PageShell>
   )
 }

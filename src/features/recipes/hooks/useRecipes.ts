@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient, type InfiniteData } from '@tanstack/react-query'
 import { recipesService } from '@/features/recipes/services/recipes.service'
 import type {
   Recipe,
   RecipeListQuery,
+  PaginatedRecipes,
   RecipeQuickFilter,
   RecipeSavePayload,
   RecipeSortBy,
@@ -175,8 +176,31 @@ export function useRecipes() {
 
   const favoriteMutation = useMutation({
     mutationFn: (id: string) => recipesService.toggleFavorite(id),
-    onSuccess: async (recipe) => {
-      await invalidate()
+    onSuccess: (recipe) => {
+      const patchItems = (items: Recipe[]) =>
+        items.map((item) => (item.id === recipe.id ? recipe : item))
+
+      queryClient.setQueriesData<PaginatedRecipes>(
+        { queryKey: [...QUERY_KEY, 'list'] },
+        (current) => (current ? { ...current, items: patchItems(current.items) } : current),
+      )
+
+      queryClient.setQueriesData<InfiniteData<PaginatedRecipes>>(
+        { queryKey: [...QUERY_KEY, 'infinite'] },
+        (current) =>
+          current
+            ? {
+                ...current,
+                pages: current.pages.map((page) => ({
+                  ...page,
+                  items: patchItems(page.items),
+                })),
+              }
+            : current,
+      )
+
+      void queryClient.invalidateQueries({ queryKey: [...QUERY_KEY, 'stats'] })
+
       if (selectedRecipeId === recipe.id) {
         queryClient.setQueryData([...QUERY_KEY, 'detail', recipe.id], recipe)
       }

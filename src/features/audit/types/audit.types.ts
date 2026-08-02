@@ -6,6 +6,7 @@ export type AuditEntityType =
   | 'auth'
   | 'monthly_schedule'
   | 'intelligence'
+  | 'label'
 
 export type AuditAction =
   | 'create'
@@ -16,6 +17,7 @@ export type AuditAction =
   | 'password_change'
   | 'password_reset'
   | 'refresh'
+  | 'reprint'
 
 export interface AuditActor {
   userId: string
