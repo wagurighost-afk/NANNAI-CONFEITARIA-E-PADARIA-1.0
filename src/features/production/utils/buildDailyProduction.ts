@@ -1,4 +1,4 @@
-import type { EmployeeSector, EmployeeShift } from '@/features/employees/types/employee.types'
+import type { EmployeeShift, ProductionSector } from '@/features/employees/types/employee.types'
 import { getAppDayStartIso, getAppNowIso } from '@/core/constants/appDate'
 import {
   ACTIVE_PRODUCTION_IDS,
@@ -42,7 +42,7 @@ export function buildDailyProduction(
     productionCode,
     date,
     shift: entry.shift as EmployeeShift,
-    sector: entry.sector as EmployeeSector,
+    sector: entry.sector as ProductionSector,
     employeeId: entry.employeeId,
     employeeName: entry.employeeName,
     items: buildProductionItems(entry, existing?.items),

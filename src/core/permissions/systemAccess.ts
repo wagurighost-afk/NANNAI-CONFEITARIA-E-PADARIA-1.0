@@ -1,7 +1,8 @@
 import type { User } from '@/types/auth.types'
 import { resolveEmployeeForUser } from '@/core/auth/employeeResolver'
+import { isLeadershipPosition } from '@/features/employees/constants/positionConfig'
 
-/** Acesso total ao sistema: apenas administrador e chef. */
+/** Acesso total ao sistema: administrador e cargos de liderança. */
 export function hasFullSystemAccess(user: User | null): boolean {
   if (!user) {
     return false
@@ -12,10 +13,10 @@ export function hasFullSystemAccess(user: User | null): boolean {
   }
 
   const employee = resolveEmployeeForUser(user)
-  return employee?.position === 'Chef de Confeitaria'
+  return Boolean(employee && isLeadershipPosition(employee.position))
 }
 
-/** Dashboard Chef — somente admin ou chef de confeitaria. */
+/** Dashboard Chef — admin e liderança operacional. */
 export function canViewChefDashboard(user: User | null): boolean {
   return hasFullSystemAccess(user)
 }

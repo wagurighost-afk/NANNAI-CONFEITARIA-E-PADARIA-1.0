@@ -6,8 +6,15 @@ export interface SeedEmployee {
   role: 'admin' | 'staff'
 }
 
+const LEADERSHIP_POSITIONS = new Set([
+  'Diretor de Operação',
+  'Gerente Geral',
+  'Chef Executivo',
+  'Chef de Confeitaria',
+])
+
 function email(name: string, position: string): string {
-  const domain = position === 'Chef de Confeitaria' ? 'nannai.com.br' : 'nannai.net.br'
+  const domain = LEADERSHIP_POSITIONS.has(position) ? 'nannai.com.br' : 'nannai.net.br'
   const local = name
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')

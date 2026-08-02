@@ -1,5 +1,6 @@
 import type { User } from '@/types/auth.types'
 import { EMPLOYEES_MOCK } from '@/features/employees/mocks/employees.mock'
+import { isLeadershipPosition } from '@/features/employees/constants/positionConfig'
 import { generateCorporateEmail } from '@/features/employees/utils/employeeEmail'
 
 /** Chef — acesso completo operacional. */
@@ -57,8 +58,14 @@ export function resolveMockUserByEmail(email: string): User {
 
   const employee = EMPLOYEES_MOCK.find((item) => item.email.toLowerCase() === normalized)
   if (employee) {
-    if (employee.position === 'Chef de Confeitaria') {
-      return { ...MOCK_CHEF_USER, email: employee.email }
+    if (isLeadershipPosition(employee.position)) {
+      return {
+        ...MOCK_CHEF_USER,
+        id: `usr-${employee.id}`,
+        name: employee.name,
+        email: employee.email,
+        employeeId: employee.id,
+      }
     }
     return staffUserFromEmployee(employee)
   }

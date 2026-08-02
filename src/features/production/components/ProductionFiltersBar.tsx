@@ -1,16 +1,16 @@
 import { LayoutGrid, List } from 'lucide-react'
 import { Button, SearchInput, Select } from '@/components/ui'
-import { EMPLOYEE_SECTORS, EMPLOYEE_SHIFTS } from '@/features/employees/types/employee.types'
+import { EMPLOYEE_SHIFTS, PRODUCTION_SECTORS } from '@/features/employees/types/employee.types'
 import { PRODUCTION_STATUS_OPTIONS } from '@/features/production/constants/productionOptions'
 import type {
   ProductionFilters,
   ProductionItemStatus,
   ProductionViewMode,
 } from '@/features/production/types/production.types'
-import type { EmployeeSector, EmployeeShift } from '@/features/employees/types/employee.types'
+import type { EmployeeShift, ProductionSector } from '@/features/employees/types/employee.types'
 
 const SHIFT_OPTIONS = [{ value: 'all', label: 'Todos os turnos' }, ...EMPLOYEE_SHIFTS.map((s) => ({ value: s, label: s }))]
-const SECTOR_OPTIONS = [{ value: 'all', label: 'Todos os setores' }, ...EMPLOYEE_SECTORS.map((s) => ({ value: s, label: s }))]
+const SECTOR_OPTIONS = [{ value: 'all', label: 'Todos os setores' }, ...PRODUCTION_SECTORS.map((s) => ({ value: s, label: s }))]
 const STATUS_OPTIONS = [{ value: 'all', label: 'Todos os status' }, ...PRODUCTION_STATUS_OPTIONS]
 
 export interface ProductionFiltersBarProps {
@@ -77,7 +77,7 @@ export function ProductionFiltersBar({
         onChange={(event) => {
           onFiltersChange({
             ...filters,
-            sector: event.target.value as EmployeeSector | 'all',
+            sector: event.target.value as ProductionSector | 'all',
           })
         }}
       />

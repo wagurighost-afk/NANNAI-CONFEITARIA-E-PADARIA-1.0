@@ -1,6 +1,6 @@
 import { env } from '@/config/env'
 import { apiClient } from '@/core/api/apiClient'
-import type { EmployeeSector, EmployeeShift } from '@/features/employees/types/employee.types'
+import type { EmployeeShift, ProductionSector } from '@/features/employees/types/employee.types'
 import { MockProductionRepository } from '@/features/production/repositories/MockProductionRepository'
 import { productionService } from '@/features/production/services/production.service'
 import type {
@@ -15,7 +15,7 @@ export interface SendRecipesToProductionOptions {
   recipes: Recipe[]
   date: string
   shift: EmployeeShift
-  sector: EmployeeSector
+  sector: ProductionSector
   employeeId: string
   appendToExisting: boolean
   notes?: string

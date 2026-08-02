@@ -78,7 +78,7 @@ export function EmployeeForm({
       <Input
         label="E-mail"
         type="email"
-        hint={`Domínio esperado para este cargo: @${emailDomainHint}`}
+        hint={`Domínio esperado para este cargo: @${emailDomainHint} (liderança usa @nannai.com.br)`}
         error={errors.email?.message}
         {...register('email')}
       />

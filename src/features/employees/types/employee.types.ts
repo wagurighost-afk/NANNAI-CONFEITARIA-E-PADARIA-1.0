@@ -1,8 +1,16 @@
-export const EMPLOYEE_SECTORS = ['Confeitaria', 'Padaria'] as const
+export const EMPLOYEE_SECTORS = ['Operações', 'Administração', 'Confeitaria', 'Padaria'] as const
 
 export type EmployeeSector = (typeof EMPLOYEE_SECTORS)[number]
 
+/** Setores usados em produção e escalas operacionais (confeitaria/padaria). */
+export const PRODUCTION_SECTORS = ['Confeitaria', 'Padaria'] as const
+
+export type ProductionSector = (typeof PRODUCTION_SECTORS)[number]
+
 export const EMPLOYEE_POSITIONS = [
+  'Diretor de Operação',
+  'Gerente Geral',
+  'Chef Executivo',
   'Chef de Confeitaria',
   'Confeiteiro',
   'Auxiliar de Confeitaria',
@@ -69,6 +77,7 @@ export interface EmployeeKpis {
   total: number
   active: number
   onVacation: number
+  management: number
   confectionery: number
   bakery: number
 }

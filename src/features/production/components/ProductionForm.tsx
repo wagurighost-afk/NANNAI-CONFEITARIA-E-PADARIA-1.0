@@ -2,7 +2,7 @@ import { Plus, Trash2 } from 'lucide-react'
 import { useFieldArray } from 'react-hook-form'
 import { Button, Input, Select, TextArea } from '@/components/ui'
 import { EMPLOYEES_MOCK } from '@/features/employees/mocks/employees.mock'
-import { EMPLOYEE_SECTORS, EMPLOYEE_SHIFTS } from '@/features/employees/types/employee.types'
+import { EMPLOYEE_SHIFTS, PRODUCTION_SECTORS } from '@/features/employees/types/employee.types'
 import { PRODUCTION_STATUS_OPTIONS } from '@/features/production/constants/productionOptions'
 import { useProductionForm } from '@/features/production/hooks/useProductionForm'
 import type { ProductionFormSchema } from '@/features/production/schemas/production.schema'
@@ -14,7 +14,7 @@ const EMPLOYEE_OPTIONS = EMPLOYEES_MOCK.filter((e) => e.status === 'Ativo').map(
 }))
 
 const SHIFT_OPTIONS = EMPLOYEE_SHIFTS.map((s) => ({ value: s, label: s }))
-const SECTOR_OPTIONS = EMPLOYEE_SECTORS.map((s) => ({ value: s, label: s }))
+const SECTOR_OPTIONS = PRODUCTION_SECTORS.map((s) => ({ value: s, label: s }))
 
 export interface ProductionFormProps {
   production: ProductionDay | null

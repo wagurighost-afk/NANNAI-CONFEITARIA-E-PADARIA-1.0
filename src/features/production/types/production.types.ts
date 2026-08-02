@@ -1,4 +1,4 @@
-import type { EmployeeSector, EmployeeShift } from '@/features/employees/types/employee.types'
+import type { EmployeeShift, ProductionSector } from '@/features/employees/types/employee.types'
 
 export const PRODUCTION_ITEM_STATUSES = [
   'Pendente',
@@ -37,7 +37,7 @@ export interface ProductionDay {
   productionCode: string
   date: string
   shift: EmployeeShift
-  sector: EmployeeSector
+  sector: ProductionSector
   employeeId: string
   employeeName: string
   items: ProductionItem[]
@@ -52,7 +52,7 @@ export interface ProductionFilters {
   search: string
   date: string
   shift: EmployeeShift | 'all'
-  sector: EmployeeSector | 'all'
+  sector: ProductionSector | 'all'
   employeeId: string | 'all'
   status: ProductionItemStatus | 'all'
 }
@@ -75,7 +75,7 @@ export type ProductionItemInput = {
 export type CreateProductionInput = {
   date: string
   shift: EmployeeShift
-  sector: EmployeeSector
+  sector: ProductionSector
   employeeId: string
   items: ProductionItemInput[]
   notes: string

@@ -1,4 +1,4 @@
-import { CakeSlice, Factory, Users, Umbrella } from 'lucide-react'
+import { Briefcase, CakeSlice, Factory, Users, Umbrella } from 'lucide-react'
 import { KpiCard, Skeleton } from '@/components/ui'
 import type { EmployeeKpis } from '@/features/employees/types/employee.types'
 
@@ -10,8 +10,8 @@ export interface EmployeeKpisProps {
 export function EmployeeKpisSection({ kpis, isLoading = false }: EmployeeKpisProps) {
   if (isLoading) {
     return (
-      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, index) => (
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        {Array.from({ length: 5 }).map((_, index) => (
           <Skeleton key={index} variant="rectangular" height={120} />
         ))}
       </div>
@@ -19,7 +19,7 @@ export function EmployeeKpisSection({ kpis, isLoading = false }: EmployeeKpisPro
   }
 
   return (
-    <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       <KpiCard
         label="Total na equipe"
         value={kpis.total}
@@ -33,17 +33,22 @@ export function EmployeeKpisSection({ kpis, isLoading = false }: EmployeeKpisPro
         icon={<Factory className="size-5" />}
       />
       <KpiCard
+        label="Gestão"
+        value={kpis.management}
+        description="Operações e administração"
+        icon={<Briefcase className="size-5" />}
+      />
+      <KpiCard
         label="Confeitaria"
         value={kpis.confectionery}
-        description="Setor de confeitaria"
+        description={`Padaria: ${kpis.bakery} colaboradores`}
         icon={<CakeSlice className="size-5" />}
       />
       <KpiCard
         label="Em férias"
         value={kpis.onVacation}
-        description={`Padaria: ${kpis.bakery} colaboradores`}
+        description="Colaboradores em férias"
         icon={<Umbrella className="size-5" />}
-        trend={<span className="text-muted-foreground">Padaria {kpis.bakery}</span>}
       />
     </div>
   )

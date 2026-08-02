@@ -14,7 +14,7 @@ export function canAccessBreadControl(user: User | null): boolean {
     return false
   }
 
-  if (user.role === 'admin') {
+  if (hasFullSystemAccess(user)) {
     return true
   }
 

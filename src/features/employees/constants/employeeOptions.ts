@@ -46,6 +46,9 @@ export const FILTER_STATUS_OPTIONS: SelectOption[] = [
 ]
 
 export const POSITION_LABELS: Record<EmployeePosition, string> = {
+  'Diretor de Operação': 'Diretor de Operação',
+  'Gerente Geral': 'Gerente Geral',
+  'Chef Executivo': 'Chef Executivo',
   'Chef de Confeitaria': 'Chef de Confeitaria',
   Confeiteiro: 'Confeiteiro',
   'Auxiliar de Confeitaria': 'Auxiliar de Confeitaria',
@@ -54,6 +57,8 @@ export const POSITION_LABELS: Record<EmployeePosition, string> = {
 }
 
 export const SECTOR_LABELS: Record<EmployeeSector, string> = {
+  Operações: 'Operações',
+  Administração: 'Administração',
   Confeitaria: 'Confeitaria',
   Padaria: 'Padaria',
 }

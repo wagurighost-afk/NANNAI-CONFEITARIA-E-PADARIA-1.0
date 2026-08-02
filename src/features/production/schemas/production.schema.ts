@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { EMPLOYEE_SECTORS, EMPLOYEE_SHIFTS } from '@/features/employees/types/employee.types'
+import { EMPLOYEE_SHIFTS, PRODUCTION_SECTORS } from '@/features/employees/types/employee.types'
 import { PRODUCTION_ITEM_STATUSES } from '@/features/production/types/production.types'
 
 const productionItemSchema = z.object({
@@ -11,7 +11,7 @@ const productionItemSchema = z.object({
 export const productionFormSchema = z.object({
   date: z.string().min(1, 'Informe a data.'),
   shift: z.enum(EMPLOYEE_SHIFTS),
-  sector: z.enum(EMPLOYEE_SECTORS),
+  sector: z.enum(PRODUCTION_SECTORS),
   employeeId: z.string().min(1, 'Selecione o responsável.'),
   items: z.array(productionItemSchema).min(1, 'Adicione ao menos um item de produção.'),
   notes: z.string().trim(),

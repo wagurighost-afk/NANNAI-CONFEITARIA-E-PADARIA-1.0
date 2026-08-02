@@ -21,7 +21,7 @@ export const employeeFormSchema = z
     notes: z.string().trim(),
   })
   .refine((data) => assertEmployeeEmailDomain(data.email, data.position), {
-    message: 'O domínio do e-mail não corresponde ao cargo (Chef → @nannai.com.br).',
+    message: 'O domínio do e-mail não corresponde ao cargo (liderança → @nannai.com.br).',
     path: ['email'],
   })
 

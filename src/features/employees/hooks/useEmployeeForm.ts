@@ -6,6 +6,7 @@ import {
   type EmployeeFormSchema,
 } from '@/features/employees/schemas/employee.schema'
 import type { Employee } from '@/features/employees/types/employee.types'
+import { POSITION_DEFAULTS } from '@/features/employees/constants/positionConfig'
 import { generateCorporateEmail } from '@/features/employees/utils/employeeEmail'
 
 const EMPTY_VALUES: EmployeeFormSchema = {
@@ -59,6 +60,10 @@ export function useEmployeeForm({ employee, onSubmit }: UseEmployeeFormOptions) 
   const name = form.watch('name')
 
   useEffect(() => {
+    const defaults = POSITION_DEFAULTS[position]
+    form.setValue('sector', defaults.sector)
+    form.setValue('shift', defaults.shift)
+
     if (employee) {
       return
     }

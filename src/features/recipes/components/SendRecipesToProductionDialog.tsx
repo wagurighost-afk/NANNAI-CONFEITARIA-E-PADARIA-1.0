@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { Button, Input, Modal, Select } from '@/components/ui'
 import { getAppTodayIso } from '@/core/constants/appDate'
 import { EMPLOYEES_MOCK } from '@/features/employees/mocks/employees.mock'
-import { EMPLOYEE_SECTORS, EMPLOYEE_SHIFTS } from '@/features/employees/types/employee.types'
-import type { EmployeeSector, EmployeeShift } from '@/features/employees/types/employee.types'
+import { EMPLOYEE_SHIFTS, PRODUCTION_SECTORS } from '@/features/employees/types/employee.types'
+import type { EmployeeShift, ProductionSector } from '@/features/employees/types/employee.types'
 import type { Recipe } from '@/features/recipes/types/recipe.types'
 
 const EMPLOYEE_OPTIONS = EMPLOYEES_MOCK.filter((employee) => employee.status === 'Ativo').map((employee) => ({
@@ -12,12 +12,12 @@ const EMPLOYEE_OPTIONS = EMPLOYEES_MOCK.filter((employee) => employee.status ===
 }))
 
 const SHIFT_OPTIONS = EMPLOYEE_SHIFTS.map((shift) => ({ value: shift, label: shift }))
-const SECTOR_OPTIONS = EMPLOYEE_SECTORS.map((sector) => ({ value: sector, label: sector }))
+const SECTOR_OPTIONS = PRODUCTION_SECTORS.map((sector) => ({ value: sector, label: sector }))
 
 export interface SendRecipesToProductionInput {
   date: string
   shift: EmployeeShift
-  sector: EmployeeSector
+  sector: ProductionSector
   employeeId: string
   appendToExisting: boolean
 }
@@ -39,7 +39,7 @@ export function SendRecipesToProductionDialog({
 }: SendRecipesToProductionDialogProps) {
   const [date, setDate] = useState(getAppTodayIso())
   const [shift, setShift] = useState<EmployeeShift>('Manhã')
-  const [sector, setSector] = useState<EmployeeSector>('Confeitaria')
+  const [sector, setSector] = useState<ProductionSector>('Confeitaria')
   const [employeeId, setEmployeeId] = useState('')
   const [appendToExisting, setAppendToExisting] = useState(true)
 
@@ -73,7 +73,7 @@ export function SendRecipesToProductionDialog({
           options={SECTOR_OPTIONS}
           value={sector}
           onChange={(event) => {
-            setSector(event.target.value as EmployeeSector)
+            setSector(event.target.value as ProductionSector)
           }}
         />
         <Select
