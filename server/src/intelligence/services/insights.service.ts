@@ -5,48 +5,69 @@
 
 import { buildSnapshotId, normalizeLimit } from '../constants.js'
 import { findSnapshotByCategory, upsertSnapshot } from '../repository/intelligence.repository.js'
-import { getIntelligenceKpis } from './kpis.service.js'
 import type { IntelligenceInsight, IntelligencePeriod } from '../types.js'
+import { getOperationalKpis } from './kpis.service.js'
 
 async function computeInsights(period: IntelligencePeriod, limit: number): Promise<IntelligenceInsight[]> {
-  const kpis = await getIntelligenceKpis(period)
+  const report = await getOperationalKpis(period)
   const generatedAt = new Date().toISOString()
   const insights: IntelligenceInsight[] = []
 
-  const wasteCost = kpis.find((item) => item.key === 'waste_cost')
-  if (wasteCost && wasteCost.value > 0) {
+  if (report.waste.totalCost > 0) {
     insights.push({
       id: 'insight-waste-cost',
       title: 'Custo de desperdício identificado',
-      description: `O custo acumulado de desperdício no período é R$ ${wasteCost.value.toFixed(2)}.`,
-      severity: wasteCost.value > 500 ? 'warning' : 'info',
+      description: `O custo acumulado de desperdício no período é R$ ${report.waste.totalCost.toFixed(2)}.`,
+      severity: report.waste.totalCost > 500 ? 'warning' : 'info',
       metricKey: 'waste_cost',
       period,
       createdAt: generatedAt,
     })
   }
 
-  const completion = kpis.find((item) => item.key === 'production_completion')
-  if (completion) {
+  if (report.production.efficiencyPercent > 0) {
     insights.push({
-      id: 'insight-production-completion',
-      title: 'Taxa de conclusão da produção',
-      description: `${completion.value}% dos itens de produção foram concluídos no período.`,
-      severity: completion.value < 70 ? 'warning' : 'success',
+      id: 'insight-production-efficiency',
+      title: 'Eficiência da produção',
+      description: `${report.production.efficiencyPercent}% dos itens de produção foram concluídos no período.`,
+      severity: report.production.efficiencyPercent < 70 ? 'warning' : 'success',
       metricKey: 'production_completion',
       period,
       createdAt: generatedAt,
     })
   }
 
-  const breadPax = kpis.find((item) => item.key === 'bread_pax')
-  if (breadPax && breadPax.value === 0) {
+  if (report.production.delayed > 0) {
     insights.push({
-      id: 'insight-bread-pax-empty',
-      title: 'Sem registros de PAX em pães',
+      id: 'insight-production-delayed',
+      title: 'Produções atrasadas',
+      description: `${report.production.delayed} produção(ões) com data passada ainda não concluída(s).`,
+      severity: 'warning',
+      metricKey: 'production_volume',
+      period,
+      createdAt: generatedAt,
+    })
+  }
+
+  if (report.bread.daysWithRecords === 0) {
+    insights.push({
+      id: 'insight-bread-empty',
+      title: 'Sem registros de pães',
       description: 'Não há lançamentos de controle de pães para o período selecionado.',
       severity: 'info',
       metricKey: 'bread_pax',
+      period,
+      createdAt: generatedAt,
+    })
+  }
+
+  if (report.bread.difference !== 0) {
+    insights.push({
+      id: 'insight-bread-gap',
+      title: 'Diferença entre previsto e produzido',
+      description: `Gap de ${report.bread.difference} unidades entre o previsto por PAX e o produzido.`,
+      severity: Math.abs(report.bread.difference) > 100 ? 'warning' : 'info',
+      metricKey: 'bread_units',
       period,
       createdAt: generatedAt,
     })

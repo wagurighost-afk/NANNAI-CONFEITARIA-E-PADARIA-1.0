@@ -5,10 +5,10 @@
 
 import { INTELLIGENCE_CATEGORIES } from '../constants.js'
 import { clearPeriodSnapshots } from '../repository/intelligence.repository.js'
+import type { OperationalKpisReport } from '../types/kpis.types.js'
 import type {
   IntelligenceDashboard,
   IntelligenceInsight,
-  IntelligenceKpi,
   IntelligenceMetricKey,
   IntelligencePeriod,
   IntelligenceRecommendation,
@@ -16,7 +16,7 @@ import type {
   IntelligenceTrend,
 } from '../types.js'
 import { getIntelligenceInsights, refreshIntelligenceInsights } from './insights.service.js'
-import { getIntelligenceKpis, refreshIntelligenceKpis } from './kpis.service.js'
+import { getOperationalKpis, refreshOperationalKpis } from './kpis.service.js'
 import {
   getIntelligenceRecommendations,
   refreshIntelligenceRecommendations,
@@ -27,8 +27,8 @@ export async function getIntelligenceDashboard(
   period: IntelligencePeriod,
   limit?: number,
 ): Promise<IntelligenceDashboard> {
-  const [kpis, insights, recommendations, trends] = await Promise.all([
-    getIntelligenceKpis(period),
+  const [operationalKpis, insights, recommendations, trends] = await Promise.all([
+    getOperationalKpis(period),
     getIntelligenceInsights(period, limit),
     getIntelligenceRecommendations(period, limit),
     getIntelligenceTrends(period, undefined, limit),
@@ -37,7 +37,7 @@ export async function getIntelligenceDashboard(
   return {
     period,
     generatedAt: new Date().toISOString(),
-    kpis,
+    operationalKpis,
     insights,
     recommendations,
     trends,
@@ -51,7 +51,7 @@ export async function refreshIntelligenceData(
   await clearPeriodSnapshots(period)
 
   await Promise.all([
-    refreshIntelligenceKpis(period),
+    refreshOperationalKpis(period),
     refreshIntelligenceInsights(period, limit),
     refreshIntelligenceRecommendations(period, limit),
     refreshIntelligenceTrends(period),
@@ -69,6 +69,8 @@ export {
   refreshIntelligenceInsights,
 } from './insights.service.js'
 export {
+  getOperationalKpis,
+  refreshOperationalKpis,
   getIntelligenceKpis,
   refreshIntelligenceKpis,
 } from './kpis.service.js'
@@ -84,10 +86,10 @@ export {
 export type {
   IntelligenceDashboard,
   IntelligenceInsight,
-  IntelligenceKpi,
   IntelligenceMetricKey,
   IntelligencePeriod,
   IntelligenceRecommendation,
   IntelligenceRefreshResult,
   IntelligenceTrend,
+  OperationalKpisReport,
 }

@@ -77,7 +77,7 @@ export interface IntelligenceTrend {
 export interface IntelligenceDashboard {
   period: IntelligencePeriod
   generatedAt: string
-  kpis: IntelligenceKpi[]
+  operationalKpis: import('@/features/intelligence/types/operationalKpis.types').OperationalKpisReport
   insights: IntelligenceInsight[]
   recommendations: IntelligenceRecommendation[]
   trends: IntelligenceTrend[]

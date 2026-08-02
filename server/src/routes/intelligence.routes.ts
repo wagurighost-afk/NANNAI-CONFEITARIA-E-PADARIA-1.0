@@ -10,7 +10,7 @@ import { normalizeLimit, normalizePeriod } from '../intelligence/constants.js'
 import {
   getIntelligenceDashboard,
   getIntelligenceInsights,
-  getIntelligenceKpis,
+  getOperationalKpis,
   getIntelligenceRecommendations,
   getIntelligenceTrends,
   refreshIntelligenceData,
@@ -46,7 +46,7 @@ intelligenceRouter.get('/health', (req: AuthedRequest, res) => {
     status: 'ok',
     module: 'intelligence',
     version: '1.0.0',
-    capabilities: ['kpis', 'insights', 'recommendations', 'trends', 'dashboard', 'refresh'],
+    capabilities: ['kpis', 'operational-kpis', 'insights', 'recommendations', 'trends', 'dashboard', 'refresh'],
   })
 })
 
@@ -73,10 +73,105 @@ intelligenceRouter.get('/kpis', async (req: AuthedRequest, res) => {
 
   try {
     const period = parsePeriod(req)
-    res.json(await getIntelligenceKpis(period))
+    res.json(await getOperationalKpis(period))
   } catch (error) {
     res.status(500).json({
       message: error instanceof Error ? error.message : 'Falha ao carregar KPIs.',
+    })
+  }
+})
+
+intelligenceRouter.get('/kpis/operational', async (req: AuthedRequest, res) => {
+  if (!assertIntelligenceAccess(req, res)) {
+    return
+  }
+
+  try {
+    const period = parsePeriod(req)
+    res.json(await getOperationalKpis(period))
+  } catch (error) {
+    res.status(500).json({
+      message: error instanceof Error ? error.message : 'Falha ao carregar KPIs operacionais.',
+    })
+  }
+})
+
+intelligenceRouter.get('/kpis/production', async (req: AuthedRequest, res) => {
+  if (!assertIntelligenceAccess(req, res)) {
+    return
+  }
+
+  try {
+    const period = parsePeriod(req)
+    const report = await getOperationalKpis(period)
+    res.json(report.production)
+  } catch (error) {
+    res.status(500).json({
+      message: error instanceof Error ? error.message : 'Falha ao carregar KPIs de produção.',
+    })
+  }
+})
+
+intelligenceRouter.get('/kpis/waste', async (req: AuthedRequest, res) => {
+  if (!assertIntelligenceAccess(req, res)) {
+    return
+  }
+
+  try {
+    const period = parsePeriod(req)
+    const report = await getOperationalKpis(period)
+    res.json(report.waste)
+  } catch (error) {
+    res.status(500).json({
+      message: error instanceof Error ? error.message : 'Falha ao carregar KPIs de desperdício.',
+    })
+  }
+})
+
+intelligenceRouter.get('/kpis/bread', async (req: AuthedRequest, res) => {
+  if (!assertIntelligenceAccess(req, res)) {
+    return
+  }
+
+  try {
+    const period = parsePeriod(req)
+    const report = await getOperationalKpis(period)
+    res.json(report.bread)
+  } catch (error) {
+    res.status(500).json({
+      message: error instanceof Error ? error.message : 'Falha ao carregar KPIs de pães.',
+    })
+  }
+})
+
+intelligenceRouter.get('/kpis/recipes', async (req: AuthedRequest, res) => {
+  if (!assertIntelligenceAccess(req, res)) {
+    return
+  }
+
+  try {
+    const period = parsePeriod(req)
+    const report = await getOperationalKpis(period)
+    res.json(report.recipes)
+  } catch (error) {
+    res.status(500).json({
+      message: error instanceof Error ? error.message : 'Falha ao carregar KPIs de receitas.',
+    })
+  }
+})
+
+intelligenceRouter.get('/kpis/employees', async (req: AuthedRequest, res) => {
+  if (!assertIntelligenceAccess(req, res)) {
+    return
+  }
+
+  try {
+    const period = parsePeriod(req)
+    const report = await getOperationalKpis(period)
+    res.json(report.employees)
+  } catch (error) {
+    res.status(500).json({
+      message: error instanceof Error ? error.message : 'Falha ao carregar KPIs de colaboradores.',
     })
   }
 })

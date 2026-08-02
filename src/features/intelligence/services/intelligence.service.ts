@@ -8,12 +8,19 @@ import type {
   IntelligenceDashboard,
   IntelligenceHealth,
   IntelligenceInsight,
-  IntelligenceKpi,
   IntelligenceQueryParams,
   IntelligenceRecommendation,
   IntelligenceRefreshResult,
   IntelligenceTrend,
 } from '@/features/intelligence/types/intelligence.types'
+import type {
+  BreadKpis,
+  EmployeeKpis,
+  OperationalKpisReport,
+  ProductionKpis,
+  RecipeKpis,
+  WasteKpis,
+} from '@/features/intelligence/types/operationalKpis.types'
 
 function buildQuery(params: IntelligenceQueryParams): Record<string, string | number> {
   const query: Record<string, string | number> = {
@@ -32,6 +39,10 @@ function buildQuery(params: IntelligenceQueryParams): Record<string, string | nu
   return query
 }
 
+function buildPeriodQuery(params: Pick<IntelligenceQueryParams, 'year' | 'month'>) {
+  return { year: params.year, month: params.month }
+}
+
 export const intelligenceService = {
   async getHealth(): Promise<IntelligenceHealth> {
     const { data } = await apiClient.get<IntelligenceHealth>('/intelligence/health')
@@ -45,9 +56,46 @@ export const intelligenceService = {
     return data
   },
 
-  async getKpis(params: Pick<IntelligenceQueryParams, 'year' | 'month'>): Promise<IntelligenceKpi[]> {
-    const { data } = await apiClient.get<IntelligenceKpi[]>('/intelligence/kpis', {
-      params: buildQuery(params),
+  async getOperationalKpis(
+    params: Pick<IntelligenceQueryParams, 'year' | 'month'>,
+  ): Promise<OperationalKpisReport> {
+    const { data } = await apiClient.get<OperationalKpisReport>('/intelligence/kpis', {
+      params: buildPeriodQuery(params),
+    })
+    return data
+  },
+
+  async getProductionKpis(params: Pick<IntelligenceQueryParams, 'year' | 'month'>): Promise<ProductionKpis> {
+    const { data } = await apiClient.get<ProductionKpis>('/intelligence/kpis/production', {
+      params: buildPeriodQuery(params),
+    })
+    return data
+  },
+
+  async getWasteKpis(params: Pick<IntelligenceQueryParams, 'year' | 'month'>): Promise<WasteKpis> {
+    const { data } = await apiClient.get<WasteKpis>('/intelligence/kpis/waste', {
+      params: buildPeriodQuery(params),
+    })
+    return data
+  },
+
+  async getBreadKpis(params: Pick<IntelligenceQueryParams, 'year' | 'month'>): Promise<BreadKpis> {
+    const { data } = await apiClient.get<BreadKpis>('/intelligence/kpis/bread', {
+      params: buildPeriodQuery(params),
+    })
+    return data
+  },
+
+  async getRecipeKpis(params: Pick<IntelligenceQueryParams, 'year' | 'month'>): Promise<RecipeKpis> {
+    const { data } = await apiClient.get<RecipeKpis>('/intelligence/kpis/recipes', {
+      params: buildPeriodQuery(params),
+    })
+    return data
+  },
+
+  async getEmployeeKpis(params: Pick<IntelligenceQueryParams, 'year' | 'month'>): Promise<EmployeeKpis> {
+    const { data } = await apiClient.get<EmployeeKpis>('/intelligence/kpis/employees', {
+      params: buildPeriodQuery(params),
     })
     return data
   },

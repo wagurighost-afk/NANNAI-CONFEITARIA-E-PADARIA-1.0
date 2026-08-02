@@ -84,7 +84,7 @@ export interface IntelligenceSnapshot<TData = unknown> {
 export interface IntelligenceDashboard {
   period: IntelligencePeriod
   generatedAt: string
-  kpis: IntelligenceKpi[]
+  operationalKpis: import('./types/kpis.types.js').OperationalKpisReport
   insights: IntelligenceInsight[]
   recommendations: IntelligenceRecommendation[]
   trends: IntelligenceTrend[]

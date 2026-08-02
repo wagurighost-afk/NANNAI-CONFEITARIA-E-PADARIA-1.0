@@ -26,21 +26,71 @@ export function useIntelligenceHealth() {
   })
 }
 
+export function useOperationalKpis(params: Pick<IntelligenceQueryParams, 'year' | 'month'>) {
+  return useQuery({
+    queryKey: INTELLIGENCE_QUERY_KEYS.operationalKpis(params),
+    queryFn: () => intelligenceService.getOperationalKpis(params),
+    enabled: Boolean(params.year && params.month),
+    staleTime: 1000 * 60 * 2,
+  })
+}
+
+export function useProductionKpis(params: Pick<IntelligenceQueryParams, 'year' | 'month'>) {
+  return useQuery({
+    queryKey: INTELLIGENCE_QUERY_KEYS.productionKpis(params),
+    queryFn: () => intelligenceService.getProductionKpis(params),
+    enabled: Boolean(params.year && params.month),
+    staleTime: 1000 * 60 * 2,
+  })
+}
+
+export function useWasteKpis(params: Pick<IntelligenceQueryParams, 'year' | 'month'>) {
+  return useQuery({
+    queryKey: INTELLIGENCE_QUERY_KEYS.wasteKpis(params),
+    queryFn: () => intelligenceService.getWasteKpis(params),
+    enabled: Boolean(params.year && params.month),
+    staleTime: 1000 * 60 * 2,
+  })
+}
+
+export function useBreadKpis(params: Pick<IntelligenceQueryParams, 'year' | 'month'>) {
+  return useQuery({
+    queryKey: INTELLIGENCE_QUERY_KEYS.breadKpis(params),
+    queryFn: () => intelligenceService.getBreadKpis(params),
+    enabled: Boolean(params.year && params.month),
+    staleTime: 1000 * 60 * 2,
+  })
+}
+
+export function useRecipeKpis(params: Pick<IntelligenceQueryParams, 'year' | 'month'>) {
+  return useQuery({
+    queryKey: INTELLIGENCE_QUERY_KEYS.recipeKpis(params),
+    queryFn: () => intelligenceService.getRecipeKpis(params),
+    enabled: Boolean(params.year && params.month),
+    staleTime: 1000 * 60 * 2,
+  })
+}
+
+export function useEmployeeKpis(params: Pick<IntelligenceQueryParams, 'year' | 'month'>) {
+  return useQuery({
+    queryKey: INTELLIGENCE_QUERY_KEYS.employeeKpis(params),
+    queryFn: () => intelligenceService.getEmployeeKpis(params),
+    enabled: Boolean(params.year && params.month),
+    staleTime: 1000 * 60 * 2,
+  })
+}
+
+/** @deprecated Use useOperationalKpis */
+export function useIntelligenceKpis(params: Pick<IntelligenceQueryParams, 'year' | 'month'>) {
+  return useOperationalKpis(params)
+}
+
 export function useIntelligenceDashboard(params: IntelligenceQueryParams) {
   const safeParams = withDefaultLimit(params)
 
   return useQuery({
     queryKey: INTELLIGENCE_QUERY_KEYS.dashboard(safeParams),
     queryFn: () => intelligenceService.getDashboard(safeParams),
-    enabled: Boolean(params.year && params.month),
-    staleTime: 1000 * 60 * 2,
-  })
-}
-
-export function useIntelligenceKpis(params: Pick<IntelligenceQueryParams, 'year' | 'month'>) {
-  return useQuery({
-    queryKey: INTELLIGENCE_QUERY_KEYS.kpis(params),
-    queryFn: () => intelligenceService.getKpis(params),
     enabled: Boolean(params.year && params.month),
     staleTime: 1000 * 60 * 2,
   })

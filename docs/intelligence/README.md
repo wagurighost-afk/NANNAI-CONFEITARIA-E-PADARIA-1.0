@@ -53,7 +53,13 @@ Base: `GET|POST /api/intelligence` (autenticado)
 |--------|------|-----------|
 | `GET` | `/health` | Status do módulo |
 | `GET` | `/dashboard?year=&month=&limit=` | Painel agregado |
-| `GET` | `/kpis?year=&month=` | KPIs do período |
+| `GET` | `/kpis?year=&month=` | Relatório completo de KPIs |
+| `GET` | `/kpis/operational` | Alias do relatório completo |
+| `GET` | `/kpis/production` | KPIs de produção |
+| `GET` | `/kpis/waste` | KPIs de desperdício |
+| `GET` | `/kpis/bread` | KPIs de pães |
+| `GET` | `/kpis/recipes` | KPIs de receitas |
+| `GET` | `/kpis/employees` | KPIs de colaboradores |
 | `GET` | `/insights?year=&month=&limit=` | Insights |
 | `GET` | `/recommendations?year=&month=&limit=` | Recomendações |
 | `GET` | `/trends?year=&month=&metricKey=&limit=` | Tendências |
@@ -70,6 +76,34 @@ Authorization: Bearer <token>
 
 - **Backend:** `canAccessIntelligence` — admin e cargos de liderança
 - **Frontend RBAC:** `intelligence:view`, `intelligence:refresh`
+
+## KPIs operacionais (dados reais)
+
+### Produção
+- `completed` — produções 100% concluídas
+- `pending` — produções futuras/hoje incompletas
+- `delayed` — produções com data passada incompletas
+- `averageCompletionHours` — tempo médio (createdAt → updatedAt)
+- `efficiencyPercent` — itens concluídos / total de itens
+
+### Desperdício
+- `totalKg`, `totalCost`
+- `byBuffet[]` — kg e custo por buffet
+- `byProduct[]` — top 20 produtos
+- `kgPerPax` — kg / PAX único por dia
+
+### Pães
+- `plannedUnits` — PAX × multiplicador do catálogo
+- `producedUnits` — unidades registradas
+- `difference` — produzido − previsto
+
+### Receitas
+- `mostProduced` / `leastProduced` — por `recipeId` em produção
+- `highestWaste` — produto com maior kg (vinculado à receita quando o nome coincide)
+
+### Colaboradores
+- `rows[]` — produtividade, pendências e atrasos por colaborador
+- `averageProductivityPercent`, `totalPending`, `totalDelayed`
 
 ## Hooks disponíveis
 

@@ -8,6 +8,18 @@ import type { IntelligenceQueryParams } from '@/features/intelligence/types/inte
 export const INTELLIGENCE_QUERY_KEYS = {
   root: ['intelligence'] as const,
   health: ['intelligence', 'health'] as const,
+  operationalKpis: (params: Pick<IntelligenceQueryParams, 'year' | 'month'>) =>
+    ['intelligence', 'operational-kpis', params.year, params.month] as const,
+  productionKpis: (params: Pick<IntelligenceQueryParams, 'year' | 'month'>) =>
+    ['intelligence', 'kpis', 'production', params.year, params.month] as const,
+  wasteKpis: (params: Pick<IntelligenceQueryParams, 'year' | 'month'>) =>
+    ['intelligence', 'kpis', 'waste', params.year, params.month] as const,
+  breadKpis: (params: Pick<IntelligenceQueryParams, 'year' | 'month'>) =>
+    ['intelligence', 'kpis', 'bread', params.year, params.month] as const,
+  recipeKpis: (params: Pick<IntelligenceQueryParams, 'year' | 'month'>) =>
+    ['intelligence', 'kpis', 'recipes', params.year, params.month] as const,
+  employeeKpis: (params: Pick<IntelligenceQueryParams, 'year' | 'month'>) =>
+    ['intelligence', 'kpis', 'employees', params.year, params.month] as const,
   dashboard: (params: IntelligenceQueryParams) =>
     ['intelligence', 'dashboard', params.year, params.month, params.limit ?? null] as const,
   kpis: (params: Pick<IntelligenceQueryParams, 'year' | 'month'>) =>

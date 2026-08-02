@@ -5,24 +5,23 @@
 
 import { buildSnapshotId, normalizeLimit } from '../constants.js'
 import { findSnapshotByCategory, upsertSnapshot } from '../repository/intelligence.repository.js'
-import { getIntelligenceKpis } from './kpis.service.js'
 import type { IntelligencePeriod, IntelligenceRecommendation } from '../types.js'
+import { getOperationalKpis } from './kpis.service.js'
 
 async function computeRecommendations(
   period: IntelligencePeriod,
   limit: number,
 ): Promise<IntelligenceRecommendation[]> {
-  const kpis = await getIntelligenceKpis(period)
+  const report = await getOperationalKpis(period)
   const generatedAt = new Date().toISOString()
   const recommendations: IntelligenceRecommendation[] = []
 
-  const wasteKg = kpis.find((item) => item.key === 'waste_kg')
-  if (wasteKg && wasteKg.value > 0) {
+  if (report.waste.totalKg > 0) {
     recommendations.push({
       id: 'rec-waste-review',
       title: 'Revisar produtos com maior desperdício',
       description: 'Analise os itens de finalização com maior volume em kg e ajuste reposição nos buffets.',
-      priority: wasteKg.value > 50 ? 'high' : 'medium',
+      priority: report.waste.totalKg > 50 ? 'high' : 'medium',
       actionLabel: 'Abrir controle de desperdício',
       metricKey: 'waste_kg',
       period,
@@ -30,8 +29,7 @@ async function computeRecommendations(
     })
   }
 
-  const completion = kpis.find((item) => item.key === 'production_completion')
-  if (completion && completion.value < 80) {
+  if (report.production.efficiencyPercent < 80) {
     recommendations.push({
       id: 'rec-production-followup',
       title: 'Acompanhar pendências de produção',
@@ -44,8 +42,7 @@ async function computeRecommendations(
     })
   }
 
-  const breadUnits = kpis.find((item) => item.key === 'bread_units')
-  if (breadUnits && breadUnits.value === 0) {
+  if (report.bread.producedUnits === 0 && report.bread.daysWithRecords === 0) {
     recommendations.push({
       id: 'rec-bread-register',
       title: 'Registrar produção de pães',
@@ -53,6 +50,19 @@ async function computeRecommendations(
       priority: 'medium',
       actionLabel: 'Abrir controle de pães',
       metricKey: 'bread_units',
+      period,
+      createdAt: generatedAt,
+    })
+  }
+
+  if (report.employees.totalDelayed > 0) {
+    recommendations.push({
+      id: 'rec-employee-delays',
+      title: 'Tratar atrasos por colaborador',
+      description: `${report.employees.totalDelayed} produção(ões) atrasada(s) vinculada(s) à equipe.`,
+      priority: 'high',
+      actionLabel: 'Ver colaboradores',
+      metricKey: 'production_volume',
       period,
       createdAt: generatedAt,
     })
