@@ -1,4 +1,3 @@
-import { Fragment } from 'react'
 import { Input } from '@/components/ui'
 import {
   WASTE_PHASE_LABELS,
@@ -18,6 +17,12 @@ export interface WasteDailyColumnsTableProps {
   search: string
 }
 
+const PHASE_HINTS: Record<WastePhase, string> = {
+  entrada: 'und',
+  reposicao: 'und',
+  finalizacao: 'kg',
+}
+
 function getEntry(
   drafts: Record<WastePhase, WastePhaseDraft>,
   phase: WastePhase,
@@ -26,13 +31,19 @@ function getEntry(
   return drafts[phase][productId] ?? { units: 0, wasteKg: 0 }
 }
 
+/** Um número por etapa: entrada/reposição = unidades, finalização = desperdício (kg). */
+function getPhaseValue(
+  drafts: Record<WastePhase, WastePhaseDraft>,
+  phase: WastePhase,
+  productId: string,
+): number {
+  const entry = getEntry(drafts, phase, productId)
+  return phase === 'finalizacao' ? entry.wasteKg : entry.units
+}
+
 function rowTotal(product: WasteControlProduct, drafts: Record<WastePhase, WastePhaseDraft>) {
-  return roundWasteMoney(
-    WASTE_PHASES.reduce((sum, phase) => {
-      const entry = getEntry(drafts, phase, product.id)
-      return sum + entry.wasteKg * product.unitPrice
-    }, 0),
-  )
+  const wasteKg = getPhaseValue(drafts, 'finalizacao', product.id)
+  return roundWasteMoney(wasteKg * product.unitPrice)
 }
 
 export function WasteDailyColumnsTable({
@@ -48,134 +59,163 @@ export function WasteDailyColumnsTable({
 
   const phaseTotals = WASTE_PHASES.reduce(
     (acc, phase) => {
-      let wasteKg = 0
+      let amount = 0
       let cost = 0
       for (const product of filtered) {
-        const entry = getEntry(phaseDrafts, phase, product.id)
-        wasteKg += entry.wasteKg
-        cost += entry.wasteKg * product.unitPrice
+        const value = getPhaseValue(phaseDrafts, phase, product.id)
+        amount += value
+        if (phase === 'finalizacao') {
+          cost += value * product.unitPrice
+        }
       }
-      acc[phase] = { wasteKg: roundWasteKg(wasteKg), cost: roundWasteMoney(cost) }
+      acc[phase] = {
+        amount: phase === 'finalizacao' ? roundWasteKg(amount) : Math.round(amount),
+        cost: roundWasteMoney(cost),
+      }
       return acc
     },
-    {} as Record<WastePhase, { wasteKg: number; cost: number }>,
+    {} as Record<WastePhase, { amount: number; cost: number }>,
   )
 
-  const dayTotal = roundWasteMoney(
-    WASTE_PHASES.reduce((sum, phase) => sum + phaseTotals[phase].cost, 0),
-  )
-  const dayWasteKg = roundWasteKg(
-    WASTE_PHASES.reduce((sum, phase) => sum + phaseTotals[phase].wasteKg, 0),
-  )
+  const dayTotal = phaseTotals.finalizacao.cost
+  const dayWasteKg = phaseTotals.finalizacao.amount
+
+  const handleValueChange = (phase: WastePhase, productId: string, value: number) => {
+    if (phase === 'finalizacao') {
+      onChange(phase, productId, 'wasteKg', value)
+      return
+    }
+    onChange(phase, productId, 'units', value)
+  }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      <div className="rounded-xl border border-border bg-muted/30 px-4 py-3 text-center text-sm font-medium tracking-wide text-foreground">
+        {WASTE_PHASE_LABELS.entrada}
+        <span className="mx-2 text-muted-foreground">→</span>
+        {WASTE_PHASE_LABELS.reposicao}
+        <span className="mx-2 text-muted-foreground">→</span>
+        {WASTE_PHASE_LABELS.finalizacao}
+      </div>
+
       <div className="flex flex-wrap gap-2 text-sm">
-        {WASTE_PHASES.map((phase) => (
-          <span key={phase} className="rounded-lg bg-muted px-3 py-1">
-            <strong>{WASTE_PHASE_LABELS[phase]}:</strong>{' '}
-            {phaseTotals[phase].wasteKg} kg · {formatWasteMoney(phaseTotals[phase].cost)}
-          </span>
-        ))}
+        <span className="rounded-lg bg-muted px-3 py-1">
+          <strong>Entrada:</strong> {phaseTotals.entrada.amount} und
+        </span>
+        <span className="rounded-lg bg-muted px-3 py-1">
+          <strong>Reposição:</strong> {phaseTotals.reposicao.amount} und
+        </span>
+        <span className="rounded-lg bg-muted px-3 py-1">
+          <strong>Finalização:</strong> {phaseTotals.finalizacao.amount} kg ·{' '}
+          {formatWasteMoney(phaseTotals.finalizacao.cost)}
+        </span>
         <span className="rounded-lg bg-accent/10 px-3 py-1 text-accent">
-          Dia: <strong>{formatWasteMoney(dayTotal)}</strong> · {dayWasteKg} kg
+          Custo do dia: <strong>{formatWasteMoney(dayTotal)}</strong> · {dayWasteKg} kg
         </span>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-border">
-        <table className="w-full min-w-[1100px] text-sm">
+      {/* Desktop: tabela */}
+      <div className="hidden overflow-x-auto rounded-xl border border-border md:block">
+        <table className="w-full min-w-[640px] text-sm">
           <thead>
-            <tr className="border-b border-border bg-muted/40 text-left text-muted-foreground">
-              <th className="sticky left-0 z-10 bg-muted/95 px-3 py-2 font-medium" rowSpan={2}>
-                Item
+            <tr className="border-b border-border bg-muted/40 text-muted-foreground">
+              <th className="sticky left-0 z-10 bg-muted/95 px-4 py-3 text-left font-semibold">Item</th>
+              <th className="border-l border-border/80 px-3 py-3 text-center font-semibold text-foreground">
+                Entrada
+                <span className="mt-0.5 block text-xs font-normal text-muted-foreground">(und)</span>
               </th>
-              <th className="px-3 py-2 font-medium" rowSpan={2}>
-                Setor
+              <th className="border-l border-border/80 px-3 py-3 text-center font-semibold text-foreground">
+                Reposição
+                <span className="mt-0.5 block text-xs font-normal text-muted-foreground">(und)</span>
               </th>
-              <th className="px-3 py-2 font-medium" rowSpan={2}>
-                Preço/kg
+              <th className="border-l border-border/80 px-3 py-3 text-center font-semibold text-foreground">
+                Finalização
+                <span className="mt-0.5 block text-xs font-normal text-muted-foreground">(kg)</span>
               </th>
-              {WASTE_PHASES.map((phase) => (
-                <th
-                  key={phase}
-                  className="border-l border-border/80 px-2 py-2 text-center font-medium"
-                  colSpan={2}
-                >
-                  {WASTE_PHASE_LABELS[phase]}
-                </th>
-              ))}
-              <th className="border-l border-border/80 px-3 py-2 font-medium" rowSpan={2}>
-                Total (R$)
-              </th>
-            </tr>
-            <tr className="border-b border-border bg-muted/30 text-left text-xs text-muted-foreground">
-              {WASTE_PHASES.map((phase) => (
-                <Fragment key={phase}>
-                  <th className="border-l border-border/80 px-2 py-1.5 font-medium">Un</th>
-                  <th className="px-2 py-1.5 font-medium">Desp (kg)</th>
-                </Fragment>
-              ))}
+              <th className="border-l border-border/80 px-3 py-3 text-center font-semibold">Total (R$)</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map((product) => {
-              const total = rowTotal(product, phaseDrafts)
-              return (
-                <tr key={product.id} className="border-b border-border/60">
-                  <td className="sticky left-0 z-10 bg-surface px-3 py-2 font-medium">{product.name}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{product.sector}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{formatWasteMoney(product.unitPrice)}</td>
-                  {WASTE_PHASES.map((phase) => {
-                    const entry = getEntry(phaseDrafts, phase, product.id)
-                    return (
-                      <Fragment key={`${product.id}-${phase}`}>
-                        <td className="border-l border-border/50 px-2 py-1.5">
-                          <Input
-                            type="number"
-                            min={0}
-                            step={1}
-                            inputMode="numeric"
-                            className="h-8 w-16 min-w-16 px-2 text-center"
-                            value={entry.units || ''}
-                            onChange={(event) => {
-                              const value = Number(event.target.value)
-                              onChange(
-                                phase,
-                                product.id,
-                                'units',
-                                Number.isFinite(value) ? Math.max(0, value) : 0,
-                              )
-                            }}
-                          />
-                        </td>
-                        <td className="px-2 py-1.5">
-                          <Input
-                            type="number"
-                            min={0}
-                            step={0.001}
-                            inputMode="decimal"
-                            className="h-8 w-20 min-w-20 px-2 text-center"
-                            value={entry.wasteKg || ''}
-                            onChange={(event) => {
-                              const value = Number(event.target.value)
-                              onChange(
-                                phase,
-                                product.id,
-                                'wasteKg',
-                                Number.isFinite(value) ? Math.max(0, value) : 0,
-                              )
-                            }}
-                          />
-                        </td>
-                      </Fragment>
-                    )
-                  })}
-                  <td className="border-l border-border/50 px-3 py-2 font-medium">{formatWasteMoney(total)}</td>
-                </tr>
-              )
-            })}
+            {filtered.map((product) => (
+              <tr key={product.id} className="border-b border-border/60">
+                <td className="sticky left-0 z-10 bg-surface px-4 py-2.5">
+                  <p className="font-medium leading-snug">{product.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {product.sector} · {formatWasteMoney(product.unitPrice)}/kg
+                  </p>
+                </td>
+                {WASTE_PHASES.map((phase) => (
+                  <td key={`${product.id}-${phase}`} className="border-l border-border/50 px-2 py-2 text-center">
+                    <Input
+                      type="number"
+                      min={0}
+                      step={phase === 'finalizacao' ? 0.001 : 1}
+                      inputMode="decimal"
+                      className="mx-auto h-9 w-20 text-center"
+                      value={getPhaseValue(phaseDrafts, phase, product.id) || ''}
+                      onChange={(event) => {
+                        const value = Number(event.target.value)
+                        handleValueChange(
+                          phase,
+                          product.id,
+                          Number.isFinite(value) ? Math.max(0, value) : 0,
+                        )
+                      }}
+                    />
+                  </td>
+                ))}
+                <td className="border-l border-border/50 px-3 py-2 text-center font-medium">
+                  {formatWasteMoney(rowTotal(product, phaseDrafts))}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile: lista estilo anotação ENTRADA | REPOSIÇÃO | FINALIZAÇÃO */}
+      <div className="space-y-3 md:hidden">
+        <div className="grid grid-cols-[1fr_repeat(3,3.5rem)] gap-1 px-1 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <span className="text-left">Item</span>
+          <span>Ent.</span>
+          <span>Rep.</span>
+          <span>Fin.</span>
+        </div>
+        {filtered.map((product) => (
+          <div
+            key={product.id}
+            className="rounded-xl border border-border bg-surface p-3"
+          >
+            <p className="mb-2 text-sm font-medium leading-snug">{product.name}</p>
+            <div className="grid grid-cols-[1fr_repeat(3,3.5rem)] items-center gap-1">
+              <span className="text-xs text-muted-foreground">{product.sector}</span>
+              {WASTE_PHASES.map((phase) => (
+                <Input
+                  key={`${product.id}-m-${phase}`}
+                  type="number"
+                  min={0}
+                  step={phase === 'finalizacao' ? 0.001 : 1}
+                  inputMode="decimal"
+                  className="h-9 px-1 text-center text-sm"
+                  aria-label={`${product.name} ${WASTE_PHASE_LABELS[phase]}`}
+                  value={getPhaseValue(phaseDrafts, phase, product.id) || ''}
+                  onChange={(event) => {
+                    const value = Number(event.target.value)
+                    handleValueChange(
+                      phase,
+                      product.id,
+                      Number.isFinite(value) ? Math.max(0, value) : 0,
+                    )
+                  }}
+                />
+              ))}
+            </div>
+            <p className="mt-2 text-right text-xs text-muted-foreground">
+              Total: {formatWasteMoney(rowTotal(product, phaseDrafts))}
+              <span className="ml-1 text-[10px]">({PHASE_HINTS.finalizacao} na finalização)</span>
+            </p>
+          </div>
+        ))}
       </div>
     </div>
   )
