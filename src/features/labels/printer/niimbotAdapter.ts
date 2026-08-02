@@ -1,27 +1,47 @@
 import { buildNiimbotPrintPayload } from '@/features/labels/printer/types'
 import type { LabelPrinterAdapter, LabelPrintPayload } from '@/features/labels/printer/types'
+import { renderNiimbotLabelDataUrl } from '@/features/labels/printer/renderNiimbotLabel'
+import { NiimbotService } from '@/services/NiimbotService'
 
 /**
- * Adaptador preparado para integração futura com impressoras NIIMBOT via Bluetooth ou SDK oficial.
- * Hoje registra o payload estruturado e sinaliza indisponibilidade até a conexão ser implementada.
+ * Adaptador Bluetooth NIIMBOT via NiimbotService + niimbot-web-bluetooth.
  */
 export const niimbotBluetoothAdapter: LabelPrinterAdapter = {
   id: 'niimbot-bluetooth',
   name: 'NIIMBOT (Bluetooth)',
-  description: 'Integração Bluetooth com impressoras NIIMBOT — em preparação.',
+  description: 'Impressão Bluetooth na NIIMBOT B1 / B1 Pro.',
   isAvailable() {
     return typeof navigator !== 'undefined' && 'bluetooth' in navigator
   },
   async connect() {
-    throw new Error('Integração NIIMBOT Bluetooth ainda não configurada neste ambiente.')
+    await NiimbotService.connect()
   },
   async disconnect() {
-    return
+    await NiimbotService.disconnect()
   },
   async print(payload: LabelPrintPayload) {
     const structured = buildNiimbotPrintPayload(payload.record, payload.copies)
-    console.info('[labels] Payload NIIMBOT preparado:', structured)
-    throw new Error('Impressão NIIMBOT Bluetooth será habilitada em uma próxima versão.')
+    const productName = payload.record.data.productName
+
+    await NiimbotService.printWithRenderer(
+      (size) =>
+        renderNiimbotLabelDataUrl({
+          size,
+          data: payload.record.data,
+          qrPayload: payload.record.qrPayload,
+        }),
+      {
+        copies: payload.copies,
+        logContext: {
+          startMessage: `Imprimindo etiqueta de "${productName}".`,
+          successMessage: `Etiqueta de "${productName}" impressa com sucesso.`,
+          startAction: 'print_label_start',
+          successAction: 'print_label_success',
+          errorAction: 'print_label_error',
+          detail: `lote ${structured.fields.batchNumber} · ${payload.copies} cópia(s)`,
+        },
+      },
+    )
   },
 }
 

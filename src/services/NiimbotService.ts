@@ -347,19 +347,40 @@ class NiimbotServiceImpl {
   }
 
   /**
-   * Prints a fixed test label (NANNAI / Teste de Impressão / data / hora / QR).
-   * Does not integrate with Produção or Etiquetas Inteligentes.
+   * Connects (if needed), renders via callback at the correct pixel size, then prints.
+   * Used by test print and by Produção / Etiquetas adapters.
    */
-  async printTestLabel(options?: {
-    onProgress?: (status: string) => void
-  }): Promise<void> {
+  async printWithRenderer(
+    render: (size: ReturnType<typeof resolveNiimbotPrintProfile>['size']) => Promise<string>,
+    options?: {
+      copies?: number
+      onProgress?: (status: string) => void
+      logContext?: {
+        startMessage: string
+        successMessage: string
+        startAction: NiimbotPrintLogEntry['action']
+        successAction: NiimbotPrintLogEntry['action']
+        errorAction: NiimbotPrintLogEntry['action']
+        detail?: string
+      }
+    },
+  ): Promise<void> {
+    const copies = Math.max(1, options?.copies ?? 1)
+    const logContext = options?.logContext ?? {
+      startMessage: 'Iniciando impressão NIIMBOT.',
+      successMessage: 'Etiqueta impressa com sucesso.',
+      startAction: 'print_label_start' as const,
+      successAction: 'print_label_success' as const,
+      errorAction: 'print_label_error' as const,
+    }
+
     const support = supportProbe()
     if (!support.supported) {
       const message = support.message ?? 'Web Bluetooth indisponível.'
       this.error = message
       this.recordPrintLog({
         level: 'error',
-        action: 'print_test_error',
+        action: logContext.errorAction,
         message,
       })
       this.emit()
@@ -378,13 +399,18 @@ class NiimbotServiceImpl {
     const printerLabel = this.device?.name ?? this.persisted?.name
     this.recordPrintLog({
       level: 'info',
-      action: 'print_test_start',
-      message: 'Iniciando impressão da etiqueta de teste.',
-      ...(printerLabel ? { detail: printerLabel } : {}),
+      action: logContext.startAction,
+      message: logContext.startMessage,
+      ...(logContext.detail
+        ? { detail: logContext.detail }
+        : printerLabel
+          ? { detail: printerLabel }
+          : {}),
     })
-    logger.info('NIIMBOT print test started', {
-      printer: this.device?.name ?? this.persisted?.name ?? null,
-      modelId: this.device?.modelId ?? this.persisted?.modelId ?? null,
+    logger.info('NIIMBOT print started', {
+      printer: printerLabel ?? null,
+      copies,
+      action: logContext.startAction,
     })
 
     try {
@@ -392,7 +418,7 @@ class NiimbotServiceImpl {
         if (this.persisted) {
           await this.reconnect()
         } else {
-          throw new Error('Conecte a impressora NIIMBOT antes de imprimir a etiqueta de teste.')
+          throw new Error('Conecte a impressora NIIMBOT antes de imprimir.')
         }
       }
 
@@ -433,17 +459,16 @@ class NiimbotServiceImpl {
       this.status = 'connected'
 
       const { model, size } = resolveNiimbotPrintProfile(this.device)
-      const content = buildTestLabelContent()
       this.printProgress = 'gerando etiqueta…'
       this.emit()
       options?.onProgress?.('gerando etiqueta…')
 
-      const imageUrl = await renderTestLabelDataUrl(size, content)
+      const imageUrl = await render(size)
 
       await driver.printImage(imageUrl, {
         model,
         size,
-        copies: 1,
+        copies,
         onProgress: (status) => {
           this.printProgress = status
           this.emit()
@@ -465,13 +490,13 @@ class NiimbotServiceImpl {
       this.printProgress = 'ok'
       this.recordPrintLog({
         level: 'info',
-        action: 'print_test_success',
-        message: 'Etiqueta de teste impressa com sucesso.',
-        detail: `${content.dateLabel} ${content.timeLabel}`,
+        action: logContext.successAction,
+        message: logContext.successMessage,
+        ...(logContext.detail ? { detail: logContext.detail } : {}),
       })
-      logger.info('NIIMBOT print test succeeded', {
+      logger.info('NIIMBOT print succeeded', {
         printer: this.device?.name ?? null,
-        printedAt: content.printedAt,
+        copies,
       })
       this.emit()
     } catch (error) {
@@ -481,11 +506,11 @@ class NiimbotServiceImpl {
       const cause = error instanceof Error ? error.message : null
       this.recordPrintLog({
         level: 'error',
-        action: 'print_test_error',
+        action: logContext.errorAction,
         message: friendly,
         ...(cause ? { detail: cause } : {}),
       })
-      logger.error('NIIMBOT print test failed', {
+      logger.error('NIIMBOT print failed', {
         message: friendly,
         cause: error instanceof Error ? error.message : String(error),
       })
@@ -497,13 +522,34 @@ class NiimbotServiceImpl {
       throw new Error(friendly)
     } finally {
       this.isPrinting = false
-      if (this.printProgress === 'ok') {
-        // keep brief success cue; UI can clear via clearError/next action
-      } else if (this.printProgress === 'preparando…' || this.printProgress === 'conectando…') {
-        this.printProgress = null
+      if (this.printProgress !== 'ok') {
+        if (this.printProgress === 'preparando…' || this.printProgress === 'conectando…') {
+          this.printProgress = null
+        }
       }
       this.emit()
     }
+  }
+
+  /**
+   * Prints a fixed test label (NANNAI / Teste de Impressão / data / hora / QR).
+   */
+  async printTestLabel(options?: {
+    onProgress?: (status: string) => void
+  }): Promise<void> {
+    const content = buildTestLabelContent()
+    await this.printWithRenderer((size) => renderTestLabelDataUrl(size, content), {
+      copies: 1,
+      ...(options?.onProgress ? { onProgress: options.onProgress } : {}),
+      logContext: {
+        startMessage: 'Iniciando impressão da etiqueta de teste.',
+        successMessage: 'Etiqueta de teste impressa com sucesso.',
+        startAction: 'print_test_start',
+        successAction: 'print_test_success',
+        errorAction: 'print_test_error',
+        detail: `${content.dateLabel} ${content.timeLabel}`,
+      },
+    })
   }
 
   clearPrintLogs(): void {

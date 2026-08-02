@@ -1,10 +1,14 @@
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { Breadcrumb, EmptyState, PageHeader, PageShell } from '@/components/common'
 import { Button, ConfirmDialog, Modal, Skeleton } from '@/components/ui'
 import { LabelPrintDialogContent } from '@/features/labels/components/LabelPrintDialog'
-import { buildLabelDraftFromProduction } from '@/features/labels/utils/buildLabelFromProduction'
-import type { CreateLabelInput } from '@/features/labels/types/label.types'
+import {
+  printProductionItemLabel,
+  ProductionLabelPrintError,
+} from '@/features/labels/services/printProductionLabel'
+import type { CreateLabelInput, LabelRecord } from '@/features/labels/types/label.types'
 import { EMPLOYEES_MOCK } from '@/features/employees/mocks/employees.mock'
 import { DuplicateProductionDialog } from '@/features/production/components/DuplicateProductionDialog'
 import { ProductionCard } from '@/features/production/components/ProductionCard'
@@ -26,12 +30,24 @@ import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks'
 import { usePermission } from '@/hooks/usePermission'
 
+type PendingLabelPrompt = {
+  itemId: string
+  itemName: string
+  mode: 'create' | 'reprint-or-create'
+}
+
 export function ProductionPage() {
   const { user } = useAuth()
   const { hasPermission } = usePermission()
   const canPrintLabels = hasPermission('labels:print')
   const { push } = useToast()
-  const [labelDraft, setLabelDraft] = useState<Omit<CreateLabelInput, 'copies'> | null>(null)
+  const queryClient = useQueryClient()
+  const [pendingLabelPrompt, setPendingLabelPrompt] = useState<PendingLabelPrompt | null>(null)
+  const [isPrintingLabel, setIsPrintingLabel] = useState(false)
+  const [manualLabelDraft, setManualLabelDraft] = useState<Omit<CreateLabelInput, 'copies'> | null>(
+    null,
+  )
+  const [manualLabelRecord, setManualLabelRecord] = useState<LabelRecord | null>(null)
   const {
     productions,
     kpis,
@@ -72,7 +88,7 @@ export function ProductionPage() {
     name: e.name,
   }))
 
-  const openLabelDialog = (itemId: string) => {
+  const askPrintLabel = (itemId: string, mode: PendingLabelPrompt['mode'] = 'create') => {
     if (!selectedProduction) {
       return
     }
@@ -80,13 +96,63 @@ export function ProductionPage() {
     if (!item) {
       return
     }
-    setLabelDraft(
-      buildLabelDraftFromProduction({
-        production: selectedProduction,
-        item,
-        responsibleName: user?.name ?? selectedProduction.employeeName,
-      }),
-    )
+    setPendingLabelPrompt({
+      itemId,
+      itemName: item.name,
+      mode,
+    })
+  }
+
+  const handleConfirmPrintLabel = async () => {
+    if (!selectedProduction || !pendingLabelPrompt) {
+      return
+    }
+
+    const prompt = pendingLabelPrompt
+    setPendingLabelPrompt(null)
+    setIsPrintingLabel(true)
+
+    try {
+      const result = await printProductionItemLabel({
+        productionId: selectedProduction.id,
+        itemId: prompt.itemId,
+        copies: 1,
+        mode: prompt.mode,
+        adapterId: 'niimbot-bluetooth',
+      })
+      void queryClient.invalidateQueries({ queryKey: ['labels'] })
+      push({
+        title: result.mode === 'reprint' ? 'Etiqueta reimpressa' : 'Etiqueta impressa',
+        description: `${result.record.data.productName} · lote ${result.record.data.batchNumber}`,
+        variant: 'success',
+      })
+    } catch (error: unknown) {
+      void queryClient.invalidateQueries({ queryKey: ['labels'] })
+
+      const savedRecord =
+        error instanceof ProductionLabelPrintError ? error.record : undefined
+
+      push({
+        title: savedRecord ? 'Etiqueta salva, falha na impressão' : 'Falha ao imprimir etiqueta',
+        description: getErrorMessage(error),
+        variant: 'danger',
+      })
+
+      if (savedRecord) {
+        setManualLabelRecord(savedRecord)
+        setManualLabelDraft({
+          templateId: savedRecord.templateId,
+          data: savedRecord.data,
+          ...(savedRecord.productionId ? { productionId: savedRecord.productionId } : {}),
+          ...(savedRecord.productionItemId
+            ? { productionItemId: savedRecord.productionItemId }
+            : {}),
+          ...(savedRecord.recipeId ? { recipeId: savedRecord.recipeId } : {}),
+        })
+      }
+    } finally {
+      setIsPrintingLabel(false)
+    }
   }
 
   const handleFormSubmit = async (values: ProductionFormSchema) => {
@@ -252,7 +318,7 @@ export function ProductionPage() {
               status,
             })
             if (status === 'Concluído' && canPrintLabels) {
-              openLabelDialog(itemId)
+              askPrintLabel(itemId, 'create')
             }
           } catch (error: unknown) {
             push({
@@ -262,7 +328,7 @@ export function ProductionPage() {
             })
           }
         }}
-        onCreateLabel={openLabelDialog}
+        onCreateLabel={(itemId) => askPrintLabel(itemId, 'reprint-or-create')}
         canPrintLabels={canPrintLabels}
         onReorder={async (itemIds) => {
           if (!selectedProduction) {
@@ -303,20 +369,56 @@ export function ProductionPage() {
         }}
       />
 
+      <ConfirmDialog
+        open={Boolean(pendingLabelPrompt)}
+        onClose={() => setPendingLabelPrompt(null)}
+        onConfirm={() => void handleConfirmPrintLabel()}
+        title="Deseja imprimir etiqueta?"
+        description={
+          pendingLabelPrompt
+            ? `Gerar automaticamente a etiqueta de “${pendingLabelPrompt.itemName}” (produto, responsável, validade, lote, peso, categoria e QR) e enviar para a NIIMBOT.`
+            : undefined
+        }
+        confirmLabel="SIM"
+        cancelLabel="NÃO"
+        isConfirming={isPrintingLabel}
+      />
+
       <Modal
-        open={Boolean(labelDraft)}
-        onClose={() => setLabelDraft(null)}
-        title="Gerar etiqueta"
-        description="A produção foi concluída. Revise os dados e imprima a etiqueta."
+        open={isPrintingLabel}
+        onClose={() => undefined}
+        title="Imprimindo etiqueta"
+        description="Gerando dados e enviando para a NIIMBOT…"
+        size="sm"
+      >
+        <p className="text-sm text-muted-foreground">
+          Aguarde a conclusão da impressão. Não feche esta janela.
+        </p>
+      </Modal>
+
+      <Modal
+        open={Boolean(manualLabelDraft)}
+        onClose={() => {
+          setManualLabelDraft(null)
+          setManualLabelRecord(null)
+        }}
+        title="Reimprimir etiqueta"
+        description="A etiqueta foi salva no histórico. Você pode tentar imprimir novamente."
         size="lg"
       >
-        {labelDraft ? (
+        {manualLabelDraft ? (
           <LabelPrintDialogContent
-            initialDraft={labelDraft}
-            onCancel={() => setLabelDraft(null)}
+            initialDraft={manualLabelDraft}
+            mode={manualLabelRecord ? 'reprint' : 'create'}
+            {...(manualLabelRecord ? { existingRecord: manualLabelRecord } : {})}
+            onCancel={() => {
+              setManualLabelDraft(null)
+              setManualLabelRecord(null)
+            }}
             onCompleted={() => {
-              setLabelDraft(null)
-              push({ title: 'Etiqueta registrada', variant: 'success' })
+              setManualLabelDraft(null)
+              setManualLabelRecord(null)
+              push({ title: 'Etiqueta reimpressa', variant: 'success' })
             }}
           />
         ) : null}

@@ -5,8 +5,10 @@ import {
 } from '@/features/labels/printer/labelPrinterRegistry'
 import type { LabelRecord } from '@/features/labels/types/label.types'
 
-export function useLabelPrint(initialAdapterId = 'browser-print') {
-  const [adapterId, setAdapterId] = useState(initialAdapterId)
+export function useLabelPrint(initialAdapterId?: string) {
+  const [adapterId, setAdapterId] = useState(
+    initialAdapterId ?? getDefaultLabelPrinterAdapter().id,
+  )
   const [isPrinting, setIsPrinting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

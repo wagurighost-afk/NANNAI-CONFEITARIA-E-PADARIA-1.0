@@ -164,7 +164,7 @@ export function ProductionDrawer({
                           onClick={() => onCreateLabel?.(item.id)}
                         >
                           <Tags className="size-4" />
-                          Etiqueta
+                          Imprimir etiqueta
                         </Button>
                       ) : null}
                       {canManage ? (

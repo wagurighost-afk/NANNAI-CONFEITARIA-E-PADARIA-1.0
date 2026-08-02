@@ -39,6 +39,9 @@ export type NiimbotPrintLogAction =
   | 'print_test_progress'
   | 'print_test_success'
   | 'print_test_error'
+  | 'print_label_start'
+  | 'print_label_success'
+  | 'print_label_error'
 
 export interface NiimbotPrintLogEntry {
   id: string

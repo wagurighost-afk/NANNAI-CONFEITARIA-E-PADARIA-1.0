@@ -17,5 +17,8 @@ export function getLabelPrinterAdapter(id: string): LabelPrinterAdapter | undefi
 }
 
 export function getDefaultLabelPrinterAdapter(): LabelPrinterAdapter {
+  if (niimbotBluetoothAdapter.isAvailable()) {
+    return niimbotBluetoothAdapter
+  }
   return browserPrintAdapter
 }

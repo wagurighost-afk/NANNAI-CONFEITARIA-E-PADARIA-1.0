@@ -7,6 +7,7 @@ import { listLabelPrinterAdapters } from '@/features/labels/printer/labelPrinter
 import type { CreateLabelInput, LabelRecord, LabelTemplateId } from '@/features/labels/types/label.types'
 import { buildQrPayload, resolveLabelFieldData } from '@/features/labels/utils/labelData'
 import { useAuth } from '@/hooks/useAuth'
+import { useToast } from '@/hooks/useToast'
 import { useEffect, useMemo, useState } from 'react'
 
 export interface LabelPrintDialogContentProps {
@@ -25,6 +26,7 @@ export function LabelPrintDialogContent({
   onCancel,
 }: LabelPrintDialogContentProps) {
   const { user } = useAuth()
+  const { push } = useToast()
   const { createMutation, reprintMutation } = useLabelMutations()
   const { adapterId, setAdapterId, isPrinting, print } = useLabelPrint()
   const [templateId, setTemplateId] = useState<LabelTemplateId>(initialDraft.templateId)
@@ -71,10 +73,21 @@ export function LabelPrintDialogContent({
   }
 
   const handlePrint = async () => {
-    const record = savedRecord ?? (await persistRecord())
-    setSavedRecord(record)
-    await print(record, copies)
-    onCompleted?.(record)
+    try {
+      const record = savedRecord ?? (await persistRecord())
+      setSavedRecord(record)
+      await print(record, copies)
+      onCompleted?.(record)
+    } catch (error) {
+      // Keep the saved record so the user can retry / reprint without losing history.
+      const message =
+        error instanceof Error ? error.message : 'Não foi possível imprimir a etiqueta.'
+      push({
+        title: 'Falha na impressão',
+        description: message,
+        variant: 'danger',
+      })
+    }
   }
 
   return (
