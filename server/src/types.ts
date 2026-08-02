@@ -81,7 +81,7 @@ export interface CreateProductionInput {
 }
 
 export interface RealtimeEvent {
-  scope: 'production' | 'auth' | 'recipes' | 'monthly-schedule' | 'bread-control' | 'waste-control'
+  scope: 'production' | 'auth' | 'recipes' | 'monthly-schedule' | 'bread-control' | 'waste-control' | 'intelligence'
   action: string
   productionId?: string
   recipeId?: string

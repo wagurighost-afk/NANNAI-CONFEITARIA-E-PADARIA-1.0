@@ -60,6 +60,18 @@ CREATE TABLE IF NOT EXISTS waste_control_days (
 
 CREATE INDEX IF NOT EXISTS idx_waste_control_days_record_date ON waste_control_days(record_date);
 CREATE INDEX IF NOT EXISTS idx_waste_control_days_buffet ON waste_control_days(buffet);
+
+CREATE TABLE IF NOT EXISTS intelligence_snapshots (
+  id TEXT PRIMARY KEY,
+  category TEXT NOT NULL,
+  period_year INTEGER NOT NULL,
+  period_month INTEGER NOT NULL,
+  payload JSONB NOT NULL,
+  generated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_intelligence_snapshots_period ON intelligence_snapshots (period_year, period_month);
+CREATE INDEX IF NOT EXISTS idx_intelligence_snapshots_category ON intelligence_snapshots (category);
 `
 
 async function importJsonIfEmpty(pool: pg.Pool): Promise<void> {
@@ -411,6 +423,64 @@ export function createPostgresStore(): DatabaseStore {
         `INSERT INTO waste_control_days (id, record_date, buffet, payload) VALUES ($1, $2::date, $3, $4::jsonb)
          ON CONFLICT (id) DO UPDATE SET record_date = EXCLUDED.record_date, buffet = EXCLUDED.buffet, payload = EXCLUDED.payload`,
         [day.id, day.date, day.buffet, JSON.stringify(day)],
+      )
+    },
+
+    async loadIntelligenceSnapshot(id) {
+      const { rows } = await pool.query<{ payload: unknown }>(
+        'SELECT payload FROM intelligence_snapshots WHERE id = $1',
+        [id],
+      )
+      const snapshot = rows[0]?.payload as import('../intelligence/types.js').IntelligenceSnapshot | undefined
+      return snapshot ?? null
+    },
+
+    async loadIntelligenceSnapshotsByPeriod(year, month, category) {
+      const params: Array<string | number> = [year, month]
+      let sql = `SELECT payload FROM intelligence_snapshots
+         WHERE period_year = $1 AND period_month = $2`
+      if (category) {
+        sql += ' AND category = $3'
+        params.push(category)
+      }
+      sql += ' ORDER BY generated_at DESC'
+      const { rows } = await pool.query<{ payload: unknown }>(sql, params)
+      return rows.map((row) => row.payload as import('../intelligence/types.js').IntelligenceSnapshot)
+    },
+
+    async saveIntelligenceSnapshot(snapshot) {
+      await pool.query(
+        `INSERT INTO intelligence_snapshots (id, category, period_year, period_month, payload, generated_at)
+         VALUES ($1, $2, $3, $4, $5::jsonb, $6::timestamptz)
+         ON CONFLICT (id) DO UPDATE SET
+           category = EXCLUDED.category,
+           period_year = EXCLUDED.period_year,
+           period_month = EXCLUDED.period_month,
+           payload = EXCLUDED.payload,
+           generated_at = EXCLUDED.generated_at`,
+        [
+          snapshot.id,
+          snapshot.category,
+          snapshot.period.year,
+          snapshot.period.month,
+          JSON.stringify(snapshot),
+          snapshot.generatedAt,
+        ],
+      )
+    },
+
+    async deleteIntelligenceSnapshotsByPeriod(year, month, category) {
+      if (category) {
+        await pool.query(
+          'DELETE FROM intelligence_snapshots WHERE period_year = $1 AND period_month = $2 AND category = $3',
+          [year, month, category],
+        )
+        return
+      }
+
+      await pool.query(
+        'DELETE FROM intelligence_snapshots WHERE period_year = $1 AND period_month = $2',
+        [year, month],
       )
     },
   }

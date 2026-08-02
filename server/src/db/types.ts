@@ -1,4 +1,5 @@
 import type { AppUser, BreadControlDay, MonthlySchedule, ProductionDay, Recipe, WasteControlDay } from '../types.js'
+import type { IntelligenceSnapshot } from '../intelligence/types.js'
 
 export interface UserRow {
   id: string
@@ -23,6 +24,7 @@ export interface DatabaseFile {
   monthly_schedules: MonthlySchedule[]
   bread_control_days: BreadControlDay[]
   waste_control_days: WasteControlDay[]
+  intelligence_snapshots: IntelligenceSnapshot[]
   refresh_tokens: RefreshTokenRow[]
   meta: Record<string, string>
 }
@@ -61,4 +63,16 @@ export interface DatabaseStore {
   loadWasteControlDay(id: string): Promise<WasteControlDay | null>
   loadWasteControlDaysInMonth(year: number, month: number): Promise<WasteControlDay[]>
   saveWasteControlDay(day: WasteControlDay): Promise<void>
+  loadIntelligenceSnapshot(id: string): Promise<IntelligenceSnapshot | null>
+  loadIntelligenceSnapshotsByPeriod(
+    year: number,
+    month: number,
+    category?: IntelligenceSnapshot['category'],
+  ): Promise<IntelligenceSnapshot[]>
+  saveIntelligenceSnapshot(snapshot: IntelligenceSnapshot): Promise<void>
+  deleteIntelligenceSnapshotsByPeriod(
+    year: number,
+    month: number,
+    category?: IntelligenceSnapshot['category'],
+  ): Promise<void>
 }

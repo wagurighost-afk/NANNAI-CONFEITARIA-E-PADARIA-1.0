@@ -13,6 +13,7 @@ export const APP_ROUTES = {
   comments: '/comentarios',
   pop: '/pop',
   changePassword: '/alterar-senha',
+  intelligence: '/intelligence',
   notFound: '*',
 } as const
 

@@ -158,6 +158,33 @@ export async function saveWasteControlDay(day: Parameters<DatabaseStore['saveWas
   await getStore().saveWasteControlDay(day)
 }
 
+export async function loadIntelligenceSnapshot<TData = unknown>(id: string) {
+  const snapshot = await getStore().loadIntelligenceSnapshot(id)
+  return snapshot as import('../intelligence/types.js').IntelligenceSnapshot<TData> | null
+}
+
+export async function loadIntelligenceSnapshotsByPeriod(
+  year: number,
+  month: number,
+  category?: Parameters<DatabaseStore['loadIntelligenceSnapshotsByPeriod']>[2],
+) {
+  return getStore().loadIntelligenceSnapshotsByPeriod(year, month, category)
+}
+
+export async function saveIntelligenceSnapshot(
+  snapshot: Parameters<DatabaseStore['saveIntelligenceSnapshot']>[0],
+): Promise<void> {
+  await getStore().saveIntelligenceSnapshot(snapshot)
+}
+
+export async function deleteIntelligenceSnapshotsByPeriod(
+  year: number,
+  month: number,
+  category?: Parameters<DatabaseStore['deleteIntelligenceSnapshotsByPeriod']>[2],
+): Promise<void> {
+  await getStore().deleteIntelligenceSnapshotsByPeriod(year, month, category)
+}
+
 export function isPostgresEnabled(): boolean {
   return Boolean(config.databaseUrl)
 }

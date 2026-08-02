@@ -14,6 +14,7 @@ function emptyDb(): DatabaseFile {
     monthly_schedules: [],
     bread_control_days: [],
     waste_control_days: [],
+    intelligence_snapshots: [],
     refresh_tokens: [],
     meta: {},
   }
@@ -27,6 +28,7 @@ function normalizeDb(parsed: Partial<DatabaseFile>): DatabaseFile {
     monthly_schedules: parsed.monthly_schedules ?? [],
     bread_control_days: parsed.bread_control_days ?? [],
     waste_control_days: parsed.waste_control_days ?? [],
+    intelligence_snapshots: parsed.intelligence_snapshots ?? [],
     refresh_tokens: parsed.refresh_tokens ?? [],
     meta: parsed.meta ?? {},
   }
@@ -249,6 +251,48 @@ export function createJsonStore(): DatabaseStore {
       } else {
         db.waste_control_days.push(day)
       }
+      writeDb(db)
+    },
+
+    async loadIntelligenceSnapshot(id) {
+      const snapshot = readDb().intelligence_snapshots.find((item) => item.id === id) ?? null
+      return snapshot as import('../intelligence/types.js').IntelligenceSnapshot | null
+    },
+
+    async loadIntelligenceSnapshotsByPeriod(year, month, category) {
+      return readDb().intelligence_snapshots.filter((item) => {
+        if (item.period.year !== year || item.period.month !== month) {
+          return false
+        }
+        if (category && item.category !== category) {
+          return false
+        }
+        return true
+      })
+    },
+
+    async saveIntelligenceSnapshot(snapshot) {
+      const db = readDb()
+      const index = db.intelligence_snapshots.findIndex((item) => item.id === snapshot.id)
+      if (index >= 0) {
+        db.intelligence_snapshots[index] = snapshot
+      } else {
+        db.intelligence_snapshots.push(snapshot)
+      }
+      writeDb(db)
+    },
+
+    async deleteIntelligenceSnapshotsByPeriod(year, month, category) {
+      const db = readDb()
+      db.intelligence_snapshots = db.intelligence_snapshots.filter((item) => {
+        if (item.period.year !== year || item.period.month !== month) {
+          return true
+        }
+        if (category && item.category !== category) {
+          return true
+        }
+        return false
+      })
       writeDb(db)
     },
   }

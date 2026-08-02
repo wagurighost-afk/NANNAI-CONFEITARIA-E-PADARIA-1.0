@@ -41,6 +41,9 @@ export function useRealtimeSync(): void {
         if (payload.scope === 'waste-control') {
           void queryClient.invalidateQueries({ queryKey: ['waste-control'] })
         }
+        if (payload.scope === 'intelligence') {
+          void queryClient.invalidateQueries({ queryKey: ['intelligence'] })
+        }
       } catch {
         // Ignore malformed events.
       }

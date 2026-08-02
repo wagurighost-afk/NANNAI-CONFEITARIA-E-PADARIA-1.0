@@ -20,6 +20,8 @@ export type Permission =
   | 'bread-control:summary'
   | 'waste-control:view'
   | 'waste-control:summary'
+  | 'intelligence:view'
+  | 'intelligence:refresh'
   | 'inventory:view'
   | 'inventory:manage'
   | 'purchases:view'
