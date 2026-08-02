@@ -4,7 +4,6 @@ import { cleaningScheduleService } from '@/features/cleaning-schedule/services/c
 import { productionService } from '@/features/production/services/production.service'
 import { recipesService } from '@/features/recipes/services/recipes.service'
 import { scheduleService } from '@/features/schedule/services/schedule.service'
-import { computeRecipeKpis } from '@/features/recipes/utils/computeRecipeKpis'
 
 export function useChefDashboard() {
   const today = getAppTodayIso()
@@ -34,8 +33,8 @@ export function useChefDashboard() {
   })
 
   const recipesQuery = useQuery({
-    queryKey: ['dashboard', 'recipes'],
-    queryFn: () => recipesService.list(),
+    queryKey: ['dashboard', 'recipes', 'stats'],
+    queryFn: () => recipesService.getStats(),
   })
 
   const productions = productionQuery.data ?? []
@@ -61,7 +60,7 @@ export function useChefDashboard() {
     recentComments,
     activeSchedule,
     todayCleaning,
-    recipeKpis: computeRecipeKpis(recipesQuery.data ?? []),
+    recipeKpis: recipesQuery.data ?? { total: 0, active: 0, archived: 0, favorites: 0 },
     todayWeekDay,
     isLoading:
       productionQuery.isLoading ||

@@ -110,6 +110,14 @@ export async function loadAllRecipes() {
   return getStore().loadAllRecipes()
 }
 
+export async function listRecipesPaginated(query: Parameters<DatabaseStore['listRecipesPaginated']>[0]) {
+  return getStore().listRecipesPaginated(query)
+}
+
+export async function getRecipeStats() {
+  return getStore().getRecipeStats()
+}
+
 export async function loadRecipeRecord(id: string) {
   return getStore().loadRecipeRecord(id)
 }

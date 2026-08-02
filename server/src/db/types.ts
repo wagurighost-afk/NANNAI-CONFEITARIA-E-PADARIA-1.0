@@ -1,6 +1,7 @@
 import type { AppUser, BreadControlDay, MonthlySchedule, ProductionDay, Recipe, WasteControlDay } from '../types.js'
 import type { AuditLogRecord } from '../audit/types.js'
 import type { IntelligenceSnapshot } from '../intelligence/types.js'
+import type { PaginatedRecipes, RecipeListQuery, RecipeStats } from '../types.js'
 
 export interface UserRow {
   id: string
@@ -53,6 +54,8 @@ export interface DatabaseStore {
   findRefreshToken(token: string, userId: string): Promise<RefreshTokenRow | null>
   countRecipes(): Promise<number>
   loadAllRecipes(): Promise<Recipe[]>
+  listRecipesPaginated(query: RecipeListQuery): Promise<PaginatedRecipes>
+  getRecipeStats(): Promise<RecipeStats>
   loadRecipeRecord(id: string): Promise<Recipe | null>
   saveRecipeRecord(recipe: Recipe): Promise<void>
   deleteRecipeRecord(id: string): Promise<void>

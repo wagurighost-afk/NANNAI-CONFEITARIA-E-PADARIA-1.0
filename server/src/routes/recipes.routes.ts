@@ -8,11 +8,14 @@ import {
   archiveRecipe,
   createRecipe,
   getRecipeById,
-  listRecipes,
+  getRecipesStats,
+  listRecipesPage,
   removeRecipe,
+  toggleRecipeFavorite,
   updateRecipe,
 } from '../recipes.service.js'
 import type { RecipeInput } from '../recipes.service.js'
+import type { RecipeListQuery, RecipeQuickFilter, RecipeSortBy } from '../types.js'
 
 const upload = multer({
   dest: config.uploadsDir,
@@ -28,17 +31,36 @@ function parseRecipeInput(body: Record<string, unknown>): RecipeInput {
   return raw as RecipeInput
 }
 
-recipesRouter.get('/', async (req, res) => {
-  const recipes = await listRecipes({
+function parseListQuery(req: AuthedRequest): RecipeListQuery {
+  const sortBy = String(req.query.sortBy ?? 'date') as RecipeSortBy
+  const quickFilter = String(req.query.quickFilter ?? 'all') as RecipeQuickFilter
+  const sortOrder = req.query.sortOrder === 'asc' ? 'asc' : 'desc'
+
+  return {
     search: String(req.query.search ?? ''),
     category: String(req.query.category ?? 'all'),
     status: String(req.query.status ?? 'all'),
-  })
-  res.json(recipes)
+    quickFilter,
+    sortBy,
+    sortOrder,
+    page: Number(req.query.page ?? 1),
+    pageSize: Number(req.query.pageSize ?? 24),
+  }
+}
+
+recipesRouter.get('/stats', async (_req, res) => {
+  const stats = await getRecipesStats()
+  res.json(stats)
+})
+
+recipesRouter.get('/', async (req, res) => {
+  const result = await listRecipesPage(parseListQuery(req))
+  res.json(result)
 })
 
 recipesRouter.get('/:id', async (req, res) => {
-  const recipe = await getRecipeById(req.params.id)
+  const recordView = req.query.recordView === 'true' || req.query.recordView === '1'
+  const recipe = await getRecipeById(req.params.id, { recordView })
   if (!recipe) {
     res.status(404).json({ message: 'Receita não encontrada.' })
     return
@@ -74,6 +96,15 @@ recipesRouter.delete('/:id', requireManager, async (req: AuthedRequest, res) => 
     res.status(204).send()
   } catch (error) {
     res.status(404).json({ message: error instanceof Error ? error.message : 'Erro ao remover.' })
+  }
+})
+
+recipesRouter.patch('/:id/favorite', async (req: AuthedRequest, res) => {
+  try {
+    const recipe = await toggleRecipeFavorite(req.params.id, toAuditActor(req.user!))
+    res.json(recipe)
+  } catch (error) {
+    res.status(404).json({ message: error instanceof Error ? error.message : 'Erro ao favoritar.' })
   }
 })
 

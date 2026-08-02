@@ -1,34 +1,27 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { FileText, Plus, ScrollText, Send } from 'lucide-react'
+import { FileText, Plus, ScrollText, Send, Star } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Breadcrumb, EmptyState, PageHeader } from '@/components/common'
+import { Breadcrumb, PageHeader } from '@/components/common'
 import {
-  Badge,
   Button,
-  Card,
-  CardContent,
-  Checkbox,
   ConfirmDialog,
   Drawer,
   Modal,
-  SearchInput,
-  Select,
   Skeleton,
 } from '@/components/ui'
 import { RecipeAttachmentsList } from '@/features/recipes/components/RecipeDocumentViewer'
 import { RecipeForm } from '@/features/recipes/components/RecipeForm'
+import { RecipeFiltersBar } from '@/features/recipes/components/RecipeFiltersBar'
+import { RecipeList } from '@/features/recipes/components/RecipeList'
 import { RecipeReadableView } from '@/features/recipes/components/RecipeReadableView'
 import { SendRecipesToProductionDialog } from '@/features/recipes/components/SendRecipesToProductionDialog'
 import { RecipeKpisSection } from '@/features/recipes/components/RecipeKpis'
 import { useRecipeBatchSelection } from '@/features/recipes/hooks/useRecipeBatchSelection'
 import { useRecipes } from '@/features/recipes/hooks/useRecipes'
 import { sendRecipesToProduction } from '@/features/recipes/services/sendRecipesToProduction'
-import { RECIPE_CATEGORIES, RECIPE_STATUSES } from '@/features/recipes/types/recipe.types'
 import type { RecipeFormSubmitPayload } from '@/features/recipes/types/recipe.types'
-import { getRecipeAttachmentBadge } from '@/features/recipes/utils/getRecipeAttachmentLabel'
-import { isRecipeDocumentPrimary } from '@/features/recipes/utils/isRecipeDocumentPrimary'
 import { resolveRecipeFormValues } from '@/features/recipes/utils/resolveRecipeFormValues'
 import { APP_ROUTES } from '@/core/constants'
 import { getErrorMessage } from '@/core/errors'
@@ -49,11 +42,23 @@ export function RecipesPage() {
   const [isSendingToProduction, setIsSendingToProduction] = useState(false)
   const {
     recipes,
+    total,
+    totalPages,
+    page,
+    setPage,
     kpis,
     isLoading,
     isKpisLoading,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    isCompactList,
     filters,
     setFilters,
+    setSearch,
+    setQuickFilter,
+    setSortBy,
+    toggleSortOrder,
     selectedRecipe,
     isSelectedRecipeLoading,
     selectRecipe,
@@ -72,9 +77,11 @@ export function RecipesPage() {
     confirmDelete,
     saveRecipe,
     archiveRecipe,
+    toggleFavorite,
     isSaving,
     isDeleting,
     isArchiving,
+    isTogglingFavorite,
   } = useRecipes()
 
   const {
@@ -155,7 +162,7 @@ export function RecipesPage() {
       <Breadcrumb items={[{ label: 'Início', href: APP_ROUTES.dashboard }, { label: 'Receitas' }]} />
       <PageHeader
         title="Receitas"
-        description="Consulte fichas técnicas anexadas ou receitas cadastradas manualmente."
+        description="Busque, filtre e organize fichas técnicas — otimizado para centenas de receitas."
         actions={
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
             {canSendToProduction ? (
@@ -182,25 +189,19 @@ export function RecipesPage() {
           </div>
         }
       />
+
       <RecipeKpisSection kpis={kpis} isLoading={isKpisLoading} />
-      <div className="mb-6 grid gap-3 sm:grid-cols-3">
-        <SearchInput
-          placeholder="Buscar receita..."
-          value={filters.search}
-          onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-          onClear={() => setFilters({ ...filters, search: '' })}
-        />
-        <Select
-          options={[{ value: 'all', label: 'Todas categorias' }, ...RECIPE_CATEGORIES.map((c) => ({ value: c, label: c }))]}
-          value={filters.category}
-          onChange={(e) => setFilters({ ...filters, category: e.target.value as typeof filters.category })}
-        />
-        <Select
-          options={[{ value: 'all', label: 'Todos status' }, ...RECIPE_STATUSES.map((s) => ({ value: s, label: s }))]}
-          value={filters.status}
-          onChange={(e) => setFilters({ ...filters, status: e.target.value as typeof filters.status })}
-        />
-      </div>
+
+      <RecipeFiltersBar
+        filters={filters}
+        total={total}
+        onSearchChange={setSearch}
+        onQuickFilterChange={setQuickFilter}
+        onCategoryChange={(category) => setFilters({ category, page: 1 })}
+        onSortByChange={setSortBy}
+        onSortOrderToggle={toggleSortOrder}
+      />
+
       {selectionMode && canSendToProduction ? (
         <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] z-40 border-t border-border bg-surface-elevated p-4 pb-safe shadow-lg md:static md:bottom-auto md:mb-4 md:rounded-xl md:border md:shadow-none lg:bottom-auto">
           <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -211,7 +212,7 @@ export function RecipesPage() {
             </p>
             <div className="flex flex-wrap gap-2">
               <Button type="button" variant="outline" size="sm" onClick={selectAllVisible}>
-                Selecionar todas
+                Selecionar visíveis
               </Button>
               <Button
                 type="button"
@@ -228,69 +229,24 @@ export function RecipesPage() {
           </div>
         </div>
       ) : null}
-      {isLoading ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} variant="rectangular" height={160} />
-          ))}
-        </div>
-      ) : recipes.length === 0 ? (
-        <EmptyState title="Nenhuma receita encontrada" />
-      ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {recipes.map((recipe) => {
-            const attachmentBadge = getRecipeAttachmentBadge(recipe)
-            const documentPrimary = isRecipeDocumentPrimary(recipe)
 
-            return (
-              <Card
-                key={recipe.id}
-                className={`cursor-pointer hover:shadow-md ${isSelected(recipe.id) ? 'ring-2 ring-accent' : ''}`}
-                onClick={() => {
-                  if (selectionMode) {
-                    toggleRecipe(recipe.id)
-                    return
-                  }
-                  selectRecipe(recipe.id)
-                }}
-              >
-                <CardContent className="space-y-2 pt-6">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex min-w-0 items-start gap-3">
-                      {selectionMode ? (
-                        <div
-                          onClick={(event) => {
-                            event.stopPropagation()
-                          }}
-                        >
-                          <Checkbox
-                            checked={isSelected(recipe.id)}
-                            onChange={() => {
-                              toggleRecipe(recipe.id)
-                            }}
-                            aria-label={`Selecionar ${recipe.name}`}
-                          />
-                        </div>
-                      ) : null}
-                      <p className="font-medium">{recipe.name}</p>
-                    </div>
-                    <Badge variant={recipe.status === 'Ativa' ? 'success' : 'muted'}>{recipe.status}</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {recipe.category}
-                    {!documentPrimary ? ` · ${recipe.prepTimeMinutes} min · ${recipe.yield}` : ' · Ficha anexa'}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="muted">{recipe.recipeCode}</Badge>
-                    {attachmentBadge ? <Badge variant="accent">Ficha {attachmentBadge}</Badge> : null}
-                    {!attachmentBadge ? <Badge variant="muted">Cadastro manual</Badge> : null}
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
-      )}
+      <RecipeList
+        recipes={recipes}
+        total={total}
+        isLoading={isLoading}
+        isMobile={isCompactList}
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
+        onLoadMore={() => void fetchNextPage()}
+        selectionMode={selectionMode}
+        isSelected={isSelected}
+        onRecipeClick={(recipe) => selectRecipe(recipe.id)}
+        onToggleSelection={toggleRecipe}
+        onToggleFavorite={(recipe) => void toggleFavorite(recipe.id)}
+      />
 
       <Drawer
         open={drawerOpen}
@@ -307,6 +263,24 @@ export function RecipesPage() {
         ) : null}
         {selectedRecipe ? (
           <div className="space-y-6">
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                isLoading={isTogglingFavorite}
+                onClick={async () => {
+                  await toggleFavorite(selectedRecipe.id)
+                  push({
+                    title: selectedRecipe.isFavorite ? 'Removida dos favoritos' : 'Adicionada aos favoritos',
+                    variant: 'success',
+                  })
+                }}
+              >
+                <Star className={selectedRecipe.isFavorite ? 'size-4 fill-accent text-accent' : 'size-4'} />
+                {selectedRecipe.isFavorite ? 'Favorita' : 'Favoritar'}
+              </Button>
+            </div>
+
             {selectedRecipe.attachments.length > 0 ? (
               <div>
                 <p className="mb-3 text-sm font-medium">Ficha técnica</p>
@@ -462,6 +436,7 @@ export function RecipesPage() {
               ...input,
             })
             await queryClient.invalidateQueries({ queryKey: ['production'] })
+            await queryClient.invalidateQueries({ queryKey: ['recipes'] })
             push({
               title: 'Receitas enviadas',
               description: `${selectedRecipes.length} receita(s) adicionada(s) à produção.`,

@@ -3,6 +3,8 @@ import path from 'node:path'
 import { config } from '../config.js'
 import type { DatabaseFile, DatabaseStore, RefreshTokenRow, UserRow } from './types.js'
 import type { BreadControlDay, MonthlySchedule, ProductionDay, Recipe, WasteControlDay } from '../types.js'
+import type { PaginatedRecipes, RecipeListQuery, RecipeStats } from '../types.js'
+import { computeRecipeStats, listRecipesFromMemory } from '../recipes/recipeQuery.js'
 
 const dbPath = path.join(config.dataDir, 'nannai.json')
 
@@ -178,6 +180,14 @@ export function createJsonStore(): DatabaseStore {
 
     async loadAllRecipes() {
       return readDb().recipes
+    },
+
+    async listRecipesPaginated(query: RecipeListQuery): Promise<PaginatedRecipes> {
+      return listRecipesFromMemory(readDb().recipes, query)
+    },
+
+    async getRecipeStats(): Promise<RecipeStats> {
+      return computeRecipeStats(readDb().recipes)
     },
 
     async loadRecipeRecord(id) {

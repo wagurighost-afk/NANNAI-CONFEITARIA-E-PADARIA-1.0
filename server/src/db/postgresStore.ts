@@ -3,6 +3,8 @@ import { config } from '../config.js'
 import { readJsonDatabaseFile } from './jsonStore.js'
 import type { DatabaseFile, DatabaseStore } from './types.js'
 import type { BreadControlDay, MonthlySchedule, ProductionDay, Recipe, WasteControlDay } from '../types.js'
+import type { PaginatedRecipes, RecipeListQuery, RecipeStats } from '../types.js'
+import { normalizeRecipeListQuery } from '../recipes/recipeQuery.js'
 
 const { Pool } = pg
 
@@ -74,6 +76,13 @@ CREATE INDEX IF NOT EXISTS idx_intelligence_snapshots_period ON intelligence_sna
 CREATE INDEX IF NOT EXISTS idx_intelligence_snapshots_category ON intelligence_snapshots (category);
 CREATE INDEX IF NOT EXISTS idx_intelligence_snapshots_period_category ON intelligence_snapshots (period_year, period_month, category);
 CREATE INDEX IF NOT EXISTS idx_productions_date ON productions ((payload->>'date'));
+
+CREATE INDEX IF NOT EXISTS idx_recipes_status ON recipes ((payload->>'status'));
+CREATE INDEX IF NOT EXISTS idx_recipes_category ON recipes ((payload->>'category'));
+CREATE INDEX IF NOT EXISTS idx_recipes_name ON recipes ((payload->>'name'));
+CREATE INDEX IF NOT EXISTS idx_recipes_updated_at ON recipes ((payload->>'updatedAt'));
+CREATE INDEX IF NOT EXISTS idx_recipes_usage_count ON recipes ((COALESCE((payload->>'usageCount')::int, 0)));
+CREATE INDEX IF NOT EXISTS idx_recipes_last_viewed_at ON recipes ((payload->>'lastViewedAt'));
 
 CREATE TABLE IF NOT EXISTS audit_logs (
   id TEXT PRIMARY KEY,
@@ -356,6 +365,117 @@ export function createPostgresStore(): DatabaseStore {
     async loadAllRecipes() {
       const { rows } = await pool.query<{ payload: Recipe }>('SELECT payload FROM recipes')
       return rows.map((row) => row.payload)
+    },
+
+    async listRecipesPaginated(query: RecipeListQuery): Promise<PaginatedRecipes> {
+      const normalized = normalizeRecipeListQuery(query)
+      const conditions: string[] = []
+      const params: unknown[] = []
+      let paramIndex = 1
+
+      if (normalized.search) {
+        conditions.push(
+          `(payload->>'name' ILIKE $${paramIndex} OR payload->>'recipeCode' ILIKE $${paramIndex})`,
+        )
+        params.push(`%${normalized.search}%`)
+        paramIndex += 1
+      }
+
+      if (normalized.category !== 'all') {
+        conditions.push(`payload->>'category' = $${paramIndex}`)
+        params.push(normalized.category)
+        paramIndex += 1
+      }
+
+      if (normalized.status !== 'all') {
+        conditions.push(`payload->>'status' = $${paramIndex}`)
+        params.push(normalized.status)
+        paramIndex += 1
+      }
+
+      switch (normalized.quickFilter) {
+        case 'favorites':
+          conditions.push(`COALESCE((payload->>'isFavorite')::boolean, false) = true`)
+          break
+        case 'recent':
+          conditions.push(`payload->>'lastViewedAt' IS NOT NULL`)
+          break
+        case 'archived':
+          conditions.push(`payload->>'status' = 'Arquivada'`)
+          break
+        default:
+          break
+      }
+
+      const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+
+      let orderClause = 'ORDER BY payload->>\'updatedAt\' DESC'
+      if (normalized.quickFilter === 'recent') {
+        orderClause = 'ORDER BY payload->>\'lastViewedAt\' DESC NULLS LAST'
+      } else {
+        const direction = normalized.sortOrder === 'asc' ? 'ASC' : 'DESC'
+        switch (normalized.sortBy) {
+          case 'name':
+            orderClause = `ORDER BY payload->>'name' ${direction}`
+            break
+          case 'category':
+            orderClause = `ORDER BY payload->>'category' ${direction}, payload->>'name' ASC`
+            break
+          case 'usage':
+            orderClause = `ORDER BY COALESCE((payload->>'usageCount')::int, 0) ${direction}, payload->>'name' ASC`
+            break
+          case 'date':
+          default:
+            orderClause = `ORDER BY payload->>'updatedAt' ${direction}`
+            break
+        }
+      }
+
+      const countResult = await pool.query<{ count: string }>(
+        `SELECT COUNT(*)::text AS count FROM recipes ${whereClause}`,
+        params,
+      )
+      const total = Number(countResult.rows[0]?.count ?? 0)
+      const totalPages = total === 0 ? 0 : Math.max(1, Math.ceil(total / normalized.pageSize))
+      const page = total === 0 ? 1 : Math.min(normalized.page, totalPages)
+      const offset = (page - 1) * normalized.pageSize
+
+      const listParams = [...params, normalized.pageSize, offset]
+      const { rows } = await pool.query<{ payload: Recipe }>(
+        `SELECT payload FROM recipes ${whereClause} ${orderClause} LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+        listParams,
+      )
+
+      return {
+        items: rows.map((row) => row.payload),
+        total,
+        page,
+        pageSize: normalized.pageSize,
+        totalPages,
+      }
+    },
+
+    async getRecipeStats(): Promise<RecipeStats> {
+      const { rows } = await pool.query<{
+        total: string
+        active: string
+        archived: string
+        favorites: string
+      }>(
+        `SELECT
+          COUNT(*)::text AS total,
+          COUNT(*) FILTER (WHERE payload->>'status' = 'Ativa')::text AS active,
+          COUNT(*) FILTER (WHERE payload->>'status' = 'Arquivada')::text AS archived,
+          COUNT(*) FILTER (WHERE COALESCE((payload->>'isFavorite')::boolean, false) = true)::text AS favorites
+         FROM recipes`,
+      )
+      const row = rows[0]
+      return {
+        total: Number(row?.total ?? 0),
+        active: Number(row?.active ?? 0),
+        archived: Number(row?.archived ?? 0),
+        favorites: Number(row?.favorites ?? 0),
+      }
     },
 
     async loadRecipeRecord(id) {

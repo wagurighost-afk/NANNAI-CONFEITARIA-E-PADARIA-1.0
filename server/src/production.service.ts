@@ -3,6 +3,7 @@ import { safeAudit } from './audit/safeAudit.js'
 import type { AuditActor } from './audit/types.js'
 import { SEED_EMPLOYEES } from './data/employees.js'
 import { emitRealtime } from './events.js'
+import { incrementRecipesUsage } from './recipes.service.js'
 import {
   deleteProduction,
   loadAllProductions,
@@ -133,6 +134,14 @@ export async function listProductions(filters: ProductionFilters = {}): Promise<
     .sort((a, b) => b.date.localeCompare(a.date))
 }
 
+function extractRecipeIds(items: Array<{ recipeId?: string }>): string[] {
+  return items.map((item) => item.recipeId).filter((recipeId): recipeId is string => Boolean(recipeId))
+}
+
+async function trackRecipeUsage(items: Array<{ recipeId?: string }>): Promise<void> {
+  await incrementRecipesUsage(extractRecipeIds(items))
+}
+
 export async function getProductionById(id: string): Promise<ProductionDay | null> {
   await rolloverProductionsIfNeeded()
   const production = await loadProductionById(id)
@@ -183,6 +192,7 @@ export async function createProductionFromInput(
   })
   await saveProduction(production)
   notifyProduction('created', production.id)
+  await trackRecipeUsage(production.items)
   await safeAudit(actor, {
     entityType: 'production',
     entityId: production.id,
@@ -274,6 +284,7 @@ export async function appendRecipesToProduction(
   })
   await saveProduction(production)
   notifyProduction('updated', production.id)
+  await trackRecipeUsage(items)
   await safeAudit(actor, {
     entityType: 'production',
     entityId: production.id,

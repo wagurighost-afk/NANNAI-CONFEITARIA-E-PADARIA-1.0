@@ -5,7 +5,7 @@ import type { RecipeRepository } from '@/features/recipes/repositories/RecipeRep
 import type {
   CreateRecipeInput,
   Recipe,
-  RecipeFilters,
+  RecipeListQuery,
   RecipeSavePayload,
   UpdateRecipeInput,
 } from '@/features/recipes/types/recipe.types'
@@ -15,13 +15,16 @@ const repository: RecipeRepository = env.useMock
   : new ApiRecipeRepository()
 
 export const recipesService = {
-  list(filters?: RecipeFilters): Promise<Recipe[]> {
-    return repository.list(filters)
+  list(query: RecipeListQuery) {
+    return repository.list(query)
   },
-  getById(id: string): Promise<Recipe | null> {
-    return repository.getById(id)
+  getStats() {
+    return repository.getStats()
   },
-  create(input: CreateRecipeInput, attachment?: File): Promise<Recipe> {
+  getById(id: string, options?: { recordView?: boolean }) {
+    return repository.getById(id, options)
+  },
+  create(input: CreateRecipeInput, attachment?: File) {
     return repository.create(input, attachment)
   },
   update(
@@ -29,14 +32,17 @@ export const recipesService = {
     input: UpdateRecipeInput,
     attachment?: File,
     removeAttachment?: boolean,
-  ): Promise<Recipe> {
+  ) {
     return repository.update(id, input, attachment, removeAttachment)
   },
-  remove(id: string): Promise<void> {
+  remove(id: string) {
     return repository.remove(id)
   },
-  archive(id: string): Promise<Recipe> {
+  archive(id: string) {
     return repository.archive(id)
+  },
+  toggleFavorite(id: string) {
+    return repository.toggleFavorite(id)
   },
   saveFromForm(payload: RecipeSavePayload, recipeId?: string): Promise<Recipe> {
     if (recipeId) {

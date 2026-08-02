@@ -201,10 +201,45 @@ export interface Recipe {
   photoUrl?: string
   attachments: RecipeAttachment[]
   status: RecipeStatus
+  isFavorite?: boolean
+  usageCount?: number
+  lastViewedAt?: string | null
+  lastUsedAt?: string | null
   createdAt: string
   updatedAt: string
 }
 
+export type RecipeSortBy = 'name' | 'category' | 'date' | 'usage'
+
+export type RecipeQuickFilter = 'all' | 'favorites' | 'recent' | 'archived'
+
+export interface RecipeListQuery {
+  search?: string
+  category?: string
+  status?: string
+  quickFilter?: RecipeQuickFilter
+  sortBy?: RecipeSortBy
+  sortOrder?: 'asc' | 'desc'
+  page?: number
+  pageSize?: number
+}
+
+export interface PaginatedRecipes {
+  items: Recipe[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
+export interface RecipeStats {
+  total: number
+  active: number
+  archived: number
+  favorites: number
+}
+
+/** @deprecated Use RecipeListQuery */
 export interface RecipeFilters {
   search?: string
   category?: string

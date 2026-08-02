@@ -9,12 +9,15 @@ import {
 } from '@/features/recipes/storage/recipeStorePersistence'
 import type {
   CreateRecipeInput,
+  PaginatedRecipes,
   Recipe,
   RecipeAttachment,
-  RecipeFilters,
+  RecipeKpis,
+  RecipeListQuery,
   UpdateRecipeInput,
 } from '@/features/recipes/types/recipe.types'
 import { buildRecipeAttachmentFromFile } from '@/features/recipes/utils/buildRecipeAttachment'
+import { computeRecipeStatsFromStore, listRecipesFromStore } from '@/features/recipes/utils/recipeListQuery'
 import { getNextRecipeCode } from '@/features/recipes/utils/recipeCode'
 
 function delay(ms = 240): Promise<void> {
@@ -26,16 +29,30 @@ function delay(ms = 240): Promise<void> {
 let store: Recipe[] = RECIPES_MOCK.map((recipe) => ({
   ...recipe,
   attachments: recipe.attachments ?? [],
+  isFavorite: recipe.isFavorite ?? false,
+  usageCount: recipe.usageCount ?? 0,
+  lastViewedAt: recipe.lastViewedAt ?? null,
+  lastUsedAt: recipe.lastUsedAt ?? null,
 }))
 
 let storeReady: Promise<void> = loadPersistedRecipes()
   .then((recipes) => {
-    store = recipes
+    store = recipes.map((recipe) => ({
+      ...recipe,
+      isFavorite: recipe.isFavorite ?? false,
+      usageCount: recipe.usageCount ?? 0,
+      lastViewedAt: recipe.lastViewedAt ?? null,
+      lastUsedAt: recipe.lastUsedAt ?? null,
+    }))
   })
   .catch(() => {
     store = RECIPES_MOCK.map((recipe) => ({
       ...recipe,
       attachments: recipe.attachments ?? [],
+      isFavorite: false,
+      usageCount: 0,
+      lastViewedAt: null,
+      lastUsedAt: null,
     }))
   })
 
@@ -45,20 +62,6 @@ async function ensureStore(): Promise<void> {
 
 function saveStore(): void {
   persistRecipes(store)
-}
-
-function matches(recipe: Recipe, filters: RecipeFilters): boolean {
-  const search = filters.search.trim().toLowerCase()
-  if (search && !`${recipe.name} ${recipe.recipeCode}`.toLowerCase().includes(search)) {
-    return false
-  }
-  if (filters.category !== 'all' && recipe.category !== filters.category) {
-    return false
-  }
-  if (filters.status !== 'all' && recipe.status !== filters.status) {
-    return false
-  }
-  return true
 }
 
 async function removeAttachmentFiles(attachments: RecipeAttachment[]): Promise<void> {
@@ -71,6 +74,7 @@ function toRecipe(
   recipeCode: string,
   timestamps: { createdAt: string; updatedAt: string },
   attachments: RecipeAttachment[] = [],
+  meta: Pick<Recipe, 'isFavorite' | 'usageCount' | 'lastViewedAt' | 'lastUsedAt'> = {},
 ): Recipe {
   return {
     id,
@@ -85,23 +89,50 @@ function toRecipe(
     ...(input.photoUrl.trim() ? { photoUrl: input.photoUrl.trim() } : {}),
     attachments,
     status: input.status,
+    isFavorite: meta.isFavorite ?? false,
+    usageCount: meta.usageCount ?? 0,
+    lastViewedAt: meta.lastViewedAt ?? null,
+    lastUsedAt: meta.lastUsedAt ?? null,
     createdAt: timestamps.createdAt,
     updatedAt: timestamps.updatedAt,
   }
 }
 
 export class MockRecipeRepository implements RecipeRepository {
-  async list(filters?: RecipeFilters): Promise<Recipe[]> {
+  async list(query: RecipeListQuery): Promise<PaginatedRecipes> {
     await ensureStore()
     await delay()
-    const active = filters ?? { search: '', category: 'all', status: 'all' }
-    return store.filter((recipe) => matches(recipe, active))
+    return listRecipesFromStore(store, query)
   }
 
-  async getById(id: string): Promise<Recipe | null> {
+  async getStats(): Promise<RecipeKpis> {
     await ensureStore()
     await delay()
-    return store.find((recipe) => recipe.id === id) ?? null
+    return computeRecipeStatsFromStore(store)
+  }
+
+  async getById(id: string, options?: { recordView?: boolean }): Promise<Recipe | null> {
+    await ensureStore()
+    await delay()
+    const index = store.findIndex((recipe) => recipe.id === id)
+    if (index === -1) {
+      return null
+    }
+
+    if (options?.recordView) {
+      const existing = store[index]
+      if (!existing) {
+        return null
+      }
+      store[index] = {
+        ...existing,
+        lastViewedAt: new Date().toISOString(),
+      }
+      saveStore()
+      return store[index]
+    }
+
+    return store[index] ?? null
   }
 
   async create(input: CreateRecipeInput, attachment?: File): Promise<Recipe> {
@@ -153,7 +184,12 @@ export class MockRecipeRepository implements RecipeRepository {
     const updated = toRecipe(input, id, existing.recipeCode, {
       createdAt: existing.createdAt,
       updatedAt: now,
-    }, attachments)
+    }, attachments, {
+      isFavorite: existing.isFavorite ?? false,
+      usageCount: existing.usageCount ?? 0,
+      lastViewedAt: existing.lastViewedAt ?? null,
+      lastUsedAt: existing.lastUsedAt ?? null,
+    })
     store[index] = updated
     saveStore()
     return updated
@@ -184,6 +220,26 @@ export class MockRecipeRepository implements RecipeRepository {
     store[index] = {
       ...existing,
       status: 'Arquivada',
+      updatedAt: new Date().toISOString(),
+    }
+    saveStore()
+    return store[index]
+  }
+
+  async toggleFavorite(id: string): Promise<Recipe> {
+    await ensureStore()
+    await delay()
+    const index = store.findIndex((recipe) => recipe.id === id)
+    if (index === -1) {
+      throw new Error('Receita não encontrada.')
+    }
+    const existing = store[index]
+    if (!existing) {
+      throw new Error('Receita não encontrada.')
+    }
+    store[index] = {
+      ...existing,
+      isFavorite: !existing.isFavorite,
       updatedAt: new Date().toISOString(),
     }
     saveStore()

@@ -2,9 +2,11 @@ import { apiClient } from '@/core/api/apiClient'
 import type { RecipeRepository } from '@/features/recipes/repositories/RecipeRepository'
 import type {
   CreateRecipeInput,
+  PaginatedRecipes,
   Recipe,
   RecipeAttachment,
-  RecipeFilters,
+  RecipeKpis,
+  RecipeListQuery,
   UpdateRecipeInput,
 } from '@/features/recipes/types/recipe.types'
 
@@ -25,14 +27,24 @@ function mapRecipe(recipe: Recipe): Recipe {
 }
 
 export class ApiRecipeRepository implements RecipeRepository {
-  async list(filters?: RecipeFilters): Promise<Recipe[]> {
-    const { data } = await apiClient.get<Recipe[]>('/recipes', { params: filters })
-    return data.map(mapRecipe)
+  async list(query: RecipeListQuery): Promise<PaginatedRecipes> {
+    const { data } = await apiClient.get<PaginatedRecipes>('/recipes', { params: query })
+    return {
+      ...data,
+      items: data.items.map(mapRecipe),
+    }
   }
 
-  async getById(id: string): Promise<Recipe | null> {
+  async getStats(): Promise<RecipeKpis> {
+    const { data } = await apiClient.get<RecipeKpis>('/recipes/stats')
+    return data
+  }
+
+  async getById(id: string, options?: { recordView?: boolean }): Promise<Recipe | null> {
     try {
-      const { data } = await apiClient.get<Recipe>(`/recipes/${id}`)
+      const { data } = await apiClient.get<Recipe>(`/recipes/${id}`, {
+        params: options?.recordView ? { recordView: true } : undefined,
+      })
       return mapRecipe(data)
     } catch {
       return null
@@ -77,6 +89,11 @@ export class ApiRecipeRepository implements RecipeRepository {
 
   async archive(id: string): Promise<Recipe> {
     const { data } = await apiClient.patch<Recipe>(`/recipes/${id}/archive`)
+    return mapRecipe(data)
+  }
+
+  async toggleFavorite(id: string): Promise<Recipe> {
+    const { data } = await apiClient.patch<Recipe>(`/recipes/${id}/favorite`)
     return mapRecipe(data)
   }
 

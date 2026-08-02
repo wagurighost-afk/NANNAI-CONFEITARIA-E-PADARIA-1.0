@@ -1,9 +1,25 @@
-import type { Recipe } from '@/features/recipes/types/recipe.types'
+import type { Recipe, RecipeKpis } from '@/features/recipes/types/recipe.types'
 
-export function computeRecipeKpis(recipes: Recipe[]) {
+export function computeRecipeKpis(recipes: Recipe[]): RecipeKpis {
+  let active = 0
+  let archived = 0
+  let favorites = 0
+
+  for (const recipe of recipes) {
+    if (recipe.status === 'Arquivada') {
+      archived += 1
+    } else {
+      active += 1
+    }
+    if (recipe.isFavorite) {
+      favorites += 1
+    }
+  }
+
   return {
     total: recipes.length,
-    active: recipes.filter((r) => r.status === 'Ativa').length,
-    archived: recipes.filter((r) => r.status === 'Arquivada').length,
+    active,
+    archived,
+    favorites,
   }
 }

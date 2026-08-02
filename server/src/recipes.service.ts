@@ -6,17 +6,22 @@ import type { AuditActor } from './audit/types.js'
 import { config } from './config.js'
 import {
   deleteRecipeRecord,
+  getRecipeStats as loadRecipeStats,
+  listRecipesPaginated,
   loadAllRecipes,
   loadRecipeRecord,
   saveRecipeRecord,
 } from './db/index.js'
 import { emitRealtime } from './events.js'
 import type {
+  PaginatedRecipes,
   Recipe,
   RecipeAttachment,
   RecipeAttachmentKind,
   RecipeFilters,
   RecipeIngredient,
+  RecipeListQuery,
+  RecipeStats,
 } from './types.js'
 
 export interface RecipeInput {
@@ -64,20 +69,6 @@ function removeAttachmentFiles(attachments: RecipeAttachment[]): void {
   }
 }
 
-function matchesFilters(recipe: Recipe, filters: RecipeFilters): boolean {
-  const search = (filters.search ?? '').trim().toLowerCase()
-  if (search && !`${recipe.name} ${recipe.recipeCode}`.toLowerCase().includes(search)) {
-    return false
-  }
-  if (filters.category && filters.category !== 'all' && recipe.category !== filters.category) {
-    return false
-  }
-  if (filters.status && filters.status !== 'all' && recipe.status !== filters.status) {
-    return false
-  }
-  return true
-}
-
 function normalizeInput(input: RecipeInput): RecipeInput {
   return {
     name: input.name.trim(),
@@ -103,6 +94,7 @@ function toRecipe(
   recipeCode: string,
   timestamps: { createdAt: string; updatedAt: string },
   attachments: RecipeAttachment[] = [],
+  meta: Pick<Recipe, 'isFavorite' | 'usageCount' | 'lastViewedAt' | 'lastUsedAt'> = {},
 ): Recipe {
   return {
     id,
@@ -117,6 +109,10 @@ function toRecipe(
     ...(input.photoUrl ? { photoUrl: input.photoUrl } : {}),
     attachments,
     status: input.status,
+    isFavorite: meta.isFavorite ?? false,
+    usageCount: meta.usageCount ?? 0,
+    lastViewedAt: meta.lastViewedAt ?? null,
+    lastUsedAt: meta.lastUsedAt ?? null,
     createdAt: timestamps.createdAt,
     updatedAt: timestamps.updatedAt,
   }
@@ -134,15 +130,105 @@ export function buildAttachmentFromUpload(file: Express.Multer.File): RecipeAtta
   }
 }
 
+/** @deprecated Use listRecipesPaginated */
 export async function listRecipes(filters: RecipeFilters = {}): Promise<Recipe[]> {
-  const recipes = await loadAllRecipes()
-  return recipes
-    .filter((recipe) => matchesFilters(recipe, filters))
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+  const result = await listRecipesPaginated({
+    search: filters.search,
+    category: filters.category,
+    status: filters.status,
+    page: 1,
+    pageSize: 10_000,
+  })
+  return result.items
 }
 
-export async function getRecipeById(id: string): Promise<Recipe | null> {
-  return loadRecipeRecord(id)
+export async function listRecipesPage(query: RecipeListQuery = {}): Promise<PaginatedRecipes> {
+  return listRecipesPaginated(query)
+}
+
+export async function getRecipesStats(): Promise<RecipeStats> {
+  return loadRecipeStats()
+}
+
+export async function getRecipeById(id: string, options: { recordView?: boolean } = {}): Promise<Recipe | null> {
+  const recipe = await loadRecipeRecord(id)
+  if (!recipe) {
+    return null
+  }
+
+  if (options.recordView) {
+    return recordRecipeView(id)
+  }
+
+  return recipe
+}
+
+export async function recordRecipeView(id: string): Promise<Recipe> {
+  const existing = await loadRecipeRecord(id)
+  if (!existing) {
+    throw new Error('Receita não encontrada.')
+  }
+
+  const recipe: Recipe = {
+    ...existing,
+    lastViewedAt: new Date().toISOString(),
+    updatedAt: existing.updatedAt,
+  }
+
+  await saveRecipeRecord(recipe)
+  return recipe
+}
+
+export async function toggleRecipeFavorite(id: string, actor?: AuditActor): Promise<Recipe> {
+  const existing = await loadRecipeRecord(id)
+  if (!existing) {
+    throw new Error('Receita não encontrada.')
+  }
+
+  const recipe: Recipe = {
+    ...existing,
+    isFavorite: !existing.isFavorite,
+    updatedAt: new Date().toISOString(),
+  }
+
+  await saveRecipeRecord(recipe)
+  emitRealtime({ scope: 'recipes', action: 'updated', recipeId: recipe.id })
+  await safeAudit(actor, {
+    entityType: 'recipe',
+    entityId: recipe.id,
+    action: 'update',
+    summary: recipe.isFavorite
+      ? `Receita "${recipe.name}" marcada como favorita`
+      : `Receita "${recipe.name}" removida dos favoritos`,
+    before: existing,
+    after: recipe,
+  })
+  return recipe
+}
+
+export async function incrementRecipesUsage(recipeIds: string[]): Promise<void> {
+  const uniqueIds = [...new Set(recipeIds.filter(Boolean))]
+  if (uniqueIds.length === 0) {
+    return
+  }
+
+  const now = new Date().toISOString()
+  await Promise.all(
+    uniqueIds.map(async (id) => {
+      const existing = await loadRecipeRecord(id)
+      if (!existing) {
+        return
+      }
+
+      const recipe: Recipe = {
+        ...existing,
+        usageCount: (existing.usageCount ?? 0) + 1,
+        lastUsedAt: now,
+        updatedAt: now,
+      }
+      await saveRecipeRecord(recipe)
+    }),
+  )
 }
 
 export async function createRecipe(
@@ -204,6 +290,12 @@ export async function updateRecipe(
     existing.recipeCode,
     { createdAt: existing.createdAt, updatedAt: new Date().toISOString() },
     attachments,
+    {
+      isFavorite: existing.isFavorite,
+      usageCount: existing.usageCount,
+      lastViewedAt: existing.lastViewedAt,
+      lastUsedAt: existing.lastUsedAt,
+    },
   )
 
   await saveRecipeRecord(recipe)
