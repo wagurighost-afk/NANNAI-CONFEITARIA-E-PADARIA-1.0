@@ -5,7 +5,7 @@
     "unit": "KG",
     "unitPrice": 0.92,
     "buffets": [
-      "cafe",
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
@@ -16,13 +16,14 @@
     "unit": "KG",
     "unitPrice": 1.67,
     "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-003",
-    "name": "Amandine Amendoim",
+    "name": "AMANDINE AMENDOIM",
     "unit": "KG",
     "unitPrice": 1.8,
     "buffets": [
@@ -37,13 +38,14 @@
     "unit": "KG",
     "unitPrice": 1.8,
     "buffets": [
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-005",
-    "name": "Amandine De Pistache",
+    "name": "AMANDINE DE PISTACHE",
     "unit": "KG",
     "unitPrice": 1.8,
     "buffets": [
@@ -54,11 +56,10 @@
   },
   {
     "id": "waste-006",
-    "name": "Baguete Francesa",
+    "name": "BAGUETE FRANCESA",
     "unit": "KG",
     "unitPrice": 2.6,
     "buffets": [
-      "cafe",
       "cha",
       "jantar"
     ],
@@ -66,11 +67,10 @@
   },
   {
     "id": "waste-007",
-    "name": "Banana Brulle",
+    "name": "BANANA BRULLE",
     "unit": "KG",
     "unitPrice": 1.19,
     "buffets": [
-      "cafe",
       "cha",
       "jantar"
     ],
@@ -78,7 +78,7 @@
   },
   {
     "id": "waste-008",
-    "name": "Banoffe Verrine",
+    "name": "BANOFFE VERRINE",
     "unit": "KG",
     "unitPrice": 2.23,
     "buffets": [
@@ -89,7 +89,7 @@
   },
   {
     "id": "waste-009",
-    "name": "Beijinho",
+    "name": "BEIJINHO",
     "unit": "KG",
     "unitPrice": 0.88,
     "buffets": [
@@ -100,7 +100,7 @@
   },
   {
     "id": "waste-010",
-    "name": "Beijinho De Coco",
+    "name": "BEIJINHO DE COCO",
     "unit": "KG",
     "unitPrice": 0.88,
     "buffets": [
@@ -115,13 +115,14 @@
     "unit": "KG",
     "unitPrice": 1.15,
     "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-012",
-    "name": "Bolo Cenoura",
+    "name": "BOLO CENOURA",
     "unit": "KG",
     "unitPrice": 1.8,
     "buffets": [
@@ -136,16 +137,19 @@
     "unit": "KG",
     "unitPrice": 0.98,
     "buffets": [
-      "cha"
+      "cafe",
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-014",
-    "name": "Bolo Cuca",
+    "name": "BOLO CUCA",
     "unit": "KG",
     "unitPrice": 0.88,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -158,13 +162,14 @@
     "unitPrice": 0.98,
     "buffets": [
       "cafe",
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-016",
-    "name": "Bolo De Cenoura Restrição",
+    "name": "BOLO DE CENOURA RESTRIÇÃO",
     "unit": "KG",
     "unitPrice": 1.8,
     "buffets": [
@@ -180,7 +185,9 @@
     "unit": "KG",
     "unitPrice": 1.2,
     "buffets": [
-      "cha"
+      "cafe",
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
@@ -190,7 +197,9 @@
     "unit": "KG",
     "unitPrice": 0.9,
     "buffets": [
-      "cha"
+      "cafe",
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
@@ -200,7 +209,9 @@
     "unit": "KG",
     "unitPrice": 0.8,
     "buffets": [
-      "cha"
+      "cafe",
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
@@ -211,16 +222,18 @@
     "unitPrice": 0.8,
     "buffets": [
       "cafe",
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-021",
-    "name": "Bolo De Mirtillo Restrição",
+    "name": "BOLO DE MIRTILLO RESTRIÇÃO",
     "unit": "KG",
     "unitPrice": 1.6,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -232,7 +245,9 @@
     "unit": "KG",
     "unitPrice": 0.8,
     "buffets": [
-      "cha"
+      "cafe",
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
@@ -242,7 +257,9 @@
     "unit": "KG",
     "unitPrice": 0.8,
     "buffets": [
-      "cha"
+      "cafe",
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
@@ -252,13 +269,14 @@
     "unit": "KG",
     "unitPrice": 0.8,
     "buffets": [
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-025",
-    "name": "Bolo Prestigio",
+    "name": "BOLO PRESTIGIO",
     "unit": "KG",
     "unitPrice": 1.2,
     "buffets": [
@@ -269,7 +287,7 @@
   },
   {
     "id": "waste-026",
-    "name": "Bolo Pé De Moleque",
+    "name": "BOLO PÉ DE MOLEQUE",
     "unit": "KG",
     "unitPrice": 1.2,
     "buffets": [
@@ -284,7 +302,9 @@
     "unit": "KG",
     "unitPrice": 1.0,
     "buffets": [
-      "cha"
+      "cafe",
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
@@ -294,13 +314,14 @@
     "unit": "KG",
     "unitPrice": 1.9,
     "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-029",
-    "name": "Brigadeiro De Chocolate Com Amendoim",
+    "name": "BRIGADEIRO DE CHOCOLATE COM AMENDOIM",
     "unit": "KG",
     "unitPrice": 0.88,
     "buffets": [
@@ -315,13 +336,14 @@
     "unit": "KG",
     "unitPrice": 0.88,
     "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-031",
-    "name": "Brigadeiro De Ninho",
+    "name": "BRIGADEIRO DE NINHO",
     "unit": "KG",
     "unitPrice": 0.9,
     "buffets": [
@@ -332,11 +354,10 @@
   },
   {
     "id": "waste-032",
-    "name": "Brigadeiro De Ovo Maltine",
+    "name": "BRIGADEIRO DE OVO MALTINE",
     "unit": "KG",
     "unitPrice": 0.98,
     "buffets": [
-      "cafe",
       "cha",
       "jantar"
     ],
@@ -344,7 +365,7 @@
   },
   {
     "id": "waste-033",
-    "name": "Brigadeiro Gold",
+    "name": "BRIGADEIRO GOLD",
     "unit": "KG",
     "unitPrice": 3.82,
     "buffets": [
@@ -355,7 +376,7 @@
   },
   {
     "id": "waste-034",
-    "name": "Brigadeiro Maracujá",
+    "name": "BRIGADEIRO MARACUJÁ",
     "unit": "KG",
     "unitPrice": 0.88,
     "buffets": [
@@ -366,7 +387,7 @@
   },
   {
     "id": "waste-035",
-    "name": "Brigadeiro Ninho",
+    "name": "BRIGADEIRO NINHO",
     "unit": "KG",
     "unitPrice": 0.95,
     "buffets": [
@@ -377,11 +398,10 @@
   },
   {
     "id": "waste-036",
-    "name": "Brigadeiro Ovomaltine",
+    "name": "BRIGADEIRO OVOMALTINE",
     "unit": "KG",
     "unitPrice": 0.89,
     "buffets": [
-      "cafe",
       "cha",
       "jantar"
     ],
@@ -389,7 +409,7 @@
   },
   {
     "id": "waste-037",
-    "name": "Brigadeiro Tradicional",
+    "name": "BRIGADEIRO TRADICIONAL",
     "unit": "KG",
     "unitPrice": 0.88,
     "buffets": [
@@ -400,7 +420,7 @@
   },
   {
     "id": "waste-038",
-    "name": "Brigadeiro Vegano",
+    "name": "BRIGADEIRO VEGANO",
     "unit": "KG",
     "unitPrice": 0.98,
     "buffets": [
@@ -411,7 +431,7 @@
   },
   {
     "id": "waste-039",
-    "name": "Brigadeirão De Amendoas Zero Lactose Diet",
+    "name": "BRIGADEIRÃO DE AMENDOAS ZERO LACTOSE DIET",
     "unit": "KG",
     "unitPrice": 1.46,
     "buffets": [
@@ -422,7 +442,7 @@
   },
   {
     "id": "waste-040",
-    "name": "Brigadeirão De Amendoim",
+    "name": "BRIGADEIRÃO DE AMENDOIM",
     "unit": "KG",
     "unitPrice": 1.46,
     "buffets": [
@@ -437,13 +457,14 @@
     "unit": "KG",
     "unitPrice": 0.88,
     "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-042",
-    "name": "Brigadeirão De Pistache",
+    "name": "BRIGADEIRÃO DE PISTACHE",
     "unit": "KG",
     "unitPrice": 2.2,
     "buffets": [
@@ -458,13 +479,14 @@
     "unit": "KG",
     "unitPrice": 1.3,
     "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-044",
-    "name": "Broa De Milho",
+    "name": "BROA DE MILHO",
     "unit": "KG",
     "unitPrice": 0.8,
     "buffets": [
@@ -477,15 +499,16 @@
     "id": "waste-045",
     "name": "BROWNIE",
     "unit": "KG",
-    "unitPrice": 0.98,
+    "unitPrice": 1.67,
     "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-046",
-    "name": "Brownie Chocolate Com Nozes",
+    "name": "BROWNIE CHOCOLATE COM NOZES",
     "unit": "KG",
     "unitPrice": 1.67,
     "buffets": [
@@ -496,7 +519,7 @@
   },
   {
     "id": "waste-047",
-    "name": "Brownie De Chocolate",
+    "name": "BROWNIE DE CHOCOLATE",
     "unit": "KG",
     "unitPrice": 1.67,
     "buffets": [
@@ -507,7 +530,7 @@
   },
   {
     "id": "waste-048",
-    "name": "Brownie Diet E Vegano",
+    "name": "BROWNIE DIET E VEGANO",
     "unit": "KG",
     "unitPrice": 1.54,
     "buffets": [
@@ -518,7 +541,7 @@
   },
   {
     "id": "waste-049",
-    "name": "Brownie Restrição",
+    "name": "BROWNIE RESTRIÇÃO",
     "unit": "KG",
     "unitPrice": 1.67,
     "buffets": [
@@ -533,13 +556,14 @@
     "unit": "KG",
     "unitPrice": 1.67,
     "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-051",
-    "name": "Brulee Amendoim",
+    "name": "BRULEE AMENDOIM",
     "unit": "KG",
     "unitPrice": 0.87,
     "buffets": [
@@ -554,14 +578,14 @@
     "unit": "KG",
     "unitPrice": 0.98,
     "buffets": [
-      "cafe",
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-053",
-    "name": "Brulee Tradicional",
+    "name": "BRULEE TRADICIONAL",
     "unit": "KG",
     "unitPrice": 0.98,
     "buffets": [
@@ -576,13 +600,14 @@
     "unit": "KG",
     "unitPrice": 0.98,
     "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-055",
-    "name": "Brulle Pistache",
+    "name": "BRULLE PISTACHE",
     "unit": "KG",
     "unitPrice": 0.98,
     "buffets": [
@@ -597,13 +622,14 @@
     "unit": "KG",
     "unitPrice": 0.87,
     "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-057",
-    "name": "Bulgara",
+    "name": "BULGARA",
     "unit": "KG",
     "unitPrice": 1.8,
     "buffets": [
@@ -618,6 +644,7 @@
     "unit": "KG",
     "unitPrice": 2.5,
     "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
@@ -628,6 +655,8 @@
     "unit": "KG",
     "unitPrice": 2.48,
     "buffets": [
+      "cafe",
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
@@ -638,7 +667,9 @@
     "unit": "KG",
     "unitPrice": 1.6,
     "buffets": [
-      "cha"
+      "cafe",
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
@@ -648,33 +679,15 @@
     "unit": "KG",
     "unitPrice": 1.13,
     "buffets": [
+      "cafe",
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-062",
-    "name": "COCADA DA TIA",
-    "unit": "KG",
-    "unitPrice": 1.13,
-    "buffets": [
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-063",
-    "name": "COCADA DE FORNO",
-    "unit": "KG",
-    "unitPrice": 1.13,
-    "buffets": [
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-064",
-    "name": "Cocada De Forno Diet",
+    "name": "COCADA DA QUEIMADA",
     "unit": "KG",
     "unitPrice": 1.13,
     "buffets": [
@@ -684,8 +697,42 @@
     "sector": "Confeitaria"
   },
   {
+    "id": "waste-063",
+    "name": "COCADA DA TIA",
+    "unit": "KG",
+    "unitPrice": 1.13,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-064",
+    "name": "COCADA DE FORNO",
+    "unit": "KG",
+    "unitPrice": 1.13,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
     "id": "waste-065",
-    "name": "Croque Monsieur",
+    "name": "COCADA DE FORNO DIET",
+    "unit": "KG",
+    "unitPrice": 1.13,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-066",
+    "name": "CROQUE MONSIEUR",
     "unit": "KG",
     "unitPrice": 1.4,
     "buffets": [
@@ -695,7 +742,7 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-066",
+    "id": "waste-067",
     "name": "DOCE DE ABACAXI",
     "unit": "KG",
     "unitPrice": 1.25,
@@ -707,32 +754,24 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-067",
+    "id": "waste-068",
     "name": "DOCE DE BANANA",
     "unit": "KG",
     "unitPrice": 1.13,
     "buffets": [
       "cafe",
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-068",
-    "name": "DOCE DE CAJU",
-    "unit": "KG",
-    "unitPrice": 1.19,
-    "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-069",
-    "name": "DOCE DE MORANGO",
+    "name": "DOCE DE CAJU",
     "unit": "KG",
-    "unitPrice": 1.3,
+    "unitPrice": 1.19,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -740,7 +779,19 @@
   },
   {
     "id": "waste-070",
-    "name": "Dunuts Chocolate",
+    "name": "DOCE DE MORANGO",
+    "unit": "KG",
+    "unitPrice": 1.3,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-071",
+    "name": "DUNUTS CHOCOLATE",
     "unit": "KG",
     "unitPrice": 1.6,
     "buffets": [
@@ -750,29 +801,30 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-071",
+    "id": "waste-072",
     "name": "ECLAIR DE DOCE DE LEITE",
     "unit": "KG",
     "unitPrice": 1.8,
     "buffets": [
-      "cafe",
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-072",
+    "id": "waste-073",
     "name": "EMPADA DE FRANGO",
     "unit": "KG",
     "unitPrice": 0.98,
     "buffets": [
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-073",
-    "name": "Flan De Chocolate Zero",
+    "id": "waste-074",
+    "name": "FLAN DE CHOCOLATE ZERO",
     "unit": "KG",
     "unitPrice": 2.2,
     "buffets": [
@@ -782,19 +834,8 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-074",
-    "name": "FOCACCIA DE CARNE SECA",
-    "unit": "KG",
-    "unitPrice": 1.4,
-    "buffets": [
-      "cafe",
-      "cha"
-    ],
-    "sector": "Padaria"
-  },
-  {
     "id": "waste-075",
-    "name": "Focaccia De Tomate E Pesto",
+    "name": "FOCACCIA DE CARNE SECA",
     "unit": "KG",
     "unitPrice": 1.4,
     "buffets": [
@@ -806,7 +847,18 @@
   },
   {
     "id": "waste-076",
-    "name": "Focaccia Recheada",
+    "name": "FOCACCIA DE TOMATE E PESTO",
+    "unit": "KG",
+    "unitPrice": 1.4,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Padaria"
+  },
+  {
+    "id": "waste-077",
+    "name": "FOCACCIA RECHEADA",
     "unit": "KG",
     "unitPrice": 1.55,
     "buffets": [
@@ -817,19 +869,19 @@
     "sector": "Padaria"
   },
   {
-    "id": "waste-077",
+    "id": "waste-078",
     "name": "FOCACCIA RECHEADA BACON",
     "unit": "KG",
     "unitPrice": 1.7,
     "buffets": [
-      "cafe",
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Padaria"
   },
   {
-    "id": "waste-078",
-    "name": "Focaccia Recheada Gorgonzola",
+    "id": "waste-079",
+    "name": "FOCACCIA RECHEADA GORGONZOLA",
     "unit": "KG",
     "unitPrice": 1.85,
     "buffets": [
@@ -840,8 +892,8 @@
     "sector": "Padaria"
   },
   {
-    "id": "waste-079",
-    "name": "Folhado De Banana",
+    "id": "waste-080",
+    "name": "FOLHADO DE BANANA",
     "unit": "KG",
     "unitPrice": 1.15,
     "buffets": [
@@ -852,20 +904,10 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-080",
+    "id": "waste-081",
     "name": "FOLHADO DE CARNE SECA",
     "unit": "KG",
     "unitPrice": 2.0,
-    "buffets": [
-      "cha"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-081",
-    "name": "Folhado De Costela",
-    "unit": "KG",
-    "unitPrice": 1.9,
     "buffets": [
       "cha",
       "jantar"
@@ -874,48 +916,67 @@
   },
   {
     "id": "waste-082",
-    "name": "FOLHADO DE FRANGO",
+    "name": "FOLHADO DE COSTELA",
     "unit": "KG",
-    "unitPrice": 1.4,
+    "unitPrice": 1.9,
     "buffets": [
-      "cha"
+      "cafe",
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-083",
-    "name": "FOLHADO DE MAÇÃ",
+    "name": "FOLHADO DE FRANGO",
     "unit": "KG",
-    "unitPrice": 1.2,
+    "unitPrice": 1.4,
     "buffets": [
-      "cha"
+      "cafe",
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-084",
-    "name": "FOLHADO DE MORANGO",
+    "name": "FOLHADO DE MAÇÃ",
     "unit": "KG",
-    "unitPrice": 1.3,
+    "unitPrice": 1.2,
     "buffets": [
-      "cha"
+      "cafe",
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-085",
-    "name": "FOLHADO DE QUEIJO",
+    "name": "FOLHADO DE MORANGO",
     "unit": "KG",
-    "unitPrice": 1.4,
+    "unitPrice": 1.3,
     "buffets": [
       "cafe",
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-086",
-    "name": "Folhado De Romeu E Julieta",
+    "name": "FOLHADO DE QUEIJO",
+    "unit": "KG",
+    "unitPrice": 1.4,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-087",
+    "name": "FOLHADO DE ROMEU E JULIETA",
     "unit": "KG",
     "unitPrice": 1.4,
     "buffets": [
@@ -925,111 +986,130 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-087",
+    "id": "waste-088",
     "name": "FOLHADO DE SALAME",
     "unit": "KG",
     "unitPrice": 1.35,
     "buffets": [
-      "cha"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-088",
-    "name": "FOLHADO PRESUNTO E QUEIJO",
-    "unit": "KG",
-    "unitPrice": 1.4,
-    "buffets": [
-      "cafe",
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-089",
-    "name": "FOLHADO SALAMINHO",
+    "name": "FOLHADO PRESUNTO E QUEIJO",
     "unit": "KG",
     "unitPrice": 1.4,
     "buffets": [
-      "cha"
+      "cafe",
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-090",
-    "name": "FUDGE DE CHOCOLATE",
+    "name": "FOLHADO SALAMINHO",
     "unit": "KG",
-    "unitPrice": 0.98,
+    "unitPrice": 1.4,
     "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-091",
-    "name": "FUDGE DE DOCE DE LEITE",
+    "name": "FUDGE DE CHOCOLATE",
     "unit": "KG",
     "unitPrice": 0.98,
     "buffets": [
-      "cafe",
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-092",
-    "name": "FUDGE DE PISTACHE",
+    "name": "FUDGE DE DOCE DE LEITE",
     "unit": "KG",
-    "unitPrice": 1.6,
+    "unitPrice": 0.98,
     "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-093",
-    "name": "GATEAU BEM CASADO",
+    "name": "FUDGE DE PISTACHE",
     "unit": "KG",
-    "unitPrice": 1.9,
+    "unitPrice": 1.6,
     "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-094",
-    "name": "GATEAU DE BRIGADEIRO",
+    "name": "GATEAU BEM CASADO",
     "unit": "KG",
     "unitPrice": 1.9,
     "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-095",
-    "name": "GATEAU DE CUPUAÇU",
+    "name": "GATEAU DE BRIGADEIRO",
     "unit": "KG",
-    "unitPrice": 1.8,
+    "unitPrice": 1.9,
     "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-096",
-    "name": "GATEAU DE FRUTAS VERMELHAS",
+    "name": "GATEAU DE COCO",
     "unit": "KG",
-    "unitPrice": 1.8,
+    "unitPrice": 1.9,
     "buffets": [
-      "cafe",
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-097",
-    "name": "Gateau De Morango",
+    "name": "GATEAU DE CUPUAÇU",
+    "unit": "KG",
+    "unitPrice": 1.8,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-098",
+    "name": "GATEAU DE FRUTAS VERMELHAS",
+    "unit": "KG",
+    "unitPrice": 1.8,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-099",
+    "name": "GATEAU DE MORANGO",
     "unit": "KG",
     "unitPrice": 2.42,
     "buffets": [
@@ -1039,38 +1119,41 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-098",
+    "id": "waste-100",
     "name": "GATEAU PRESTIGIO",
     "unit": "KG",
     "unitPrice": 2.25,
     "buffets": [
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-099",
-    "name": "GATEUA DE PISTACHE",
-    "unit": "KG",
-    "unitPrice": 1.8,
-    "buffets": [
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-100",
-    "name": "MACARONS",
-    "unit": "KG",
-    "unitPrice": 1.25,
-    "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-101",
-    "name": "Macã Ao Vinho",
+    "name": "GATEUA DE PISTACHE",
+    "unit": "KG",
+    "unitPrice": 1.8,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-102",
+    "name": "MACARONS",
+    "unit": "KG",
+    "unitPrice": 1.25,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-103",
+    "name": "MACÃ AO VINHO",
     "unit": "KG",
     "unitPrice": 1.15,
     "buffets": [
@@ -1080,8 +1163,8 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-102",
-    "name": "Manjar De Chocolate Com Coco",
+    "id": "waste-104",
+    "name": "MANJAR DE CHOCOLATE COM COCO",
     "unit": "KG",
     "unitPrice": 1.67,
     "buffets": [
@@ -1091,18 +1174,19 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-103",
+    "id": "waste-105",
     "name": "MANJAR DE COCO",
     "unit": "KG",
     "unitPrice": 1.8,
     "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-104",
-    "name": "Manjar Vegano",
+    "id": "waste-106",
+    "name": "MANJAR VEGANO",
     "unit": "KG",
     "unitPrice": 2.2,
     "buffets": [
@@ -1112,8 +1196,8 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-105",
-    "name": "Maça Ao Vinho",
+    "id": "waste-107",
+    "name": "MAÇA AO VINHO",
     "unit": "KG",
     "unitPrice": 1.15,
     "buffets": [
@@ -1123,8 +1207,8 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-106",
-    "name": "Mini Baguete Rustica",
+    "id": "waste-108",
+    "name": "MINI BAGUETE RUSTICA",
     "unit": "KG",
     "unitPrice": 0.8,
     "buffets": [
@@ -1135,19 +1219,20 @@
     "sector": "Padaria"
   },
   {
-    "id": "waste-107",
+    "id": "waste-109",
     "name": "MINI BISNAGUINHA",
     "unit": "KG",
     "unitPrice": 0.5,
     "buffets": [
       "cafe",
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Padaria"
   },
   {
-    "id": "waste-108",
-    "name": "Mini Brioche",
+    "id": "waste-110",
+    "name": "MINI BRIOCHE",
     "unit": "KG",
     "unitPrice": 0.6,
     "buffets": [
@@ -1158,7 +1243,7 @@
     "sector": "Padaria"
   },
   {
-    "id": "waste-109",
+    "id": "waste-111",
     "name": "MINI COOKIES",
     "unit": "KG",
     "unitPrice": 0.85,
@@ -1170,41 +1255,44 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-110",
+    "id": "waste-112",
     "name": "MINI CROISSANT",
     "unit": "KG",
     "unitPrice": 1.6,
     "buffets": [
       "cafe",
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Padaria"
   },
   {
-    "id": "waste-111",
+    "id": "waste-113",
     "name": "MINI FOCACCIA RECEHADA TOMATE",
     "unit": "KG",
     "unitPrice": 1.45,
     "buffets": [
       "cafe",
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Padaria"
   },
   {
-    "id": "waste-112",
+    "id": "waste-114",
     "name": "MINI FOLHADO SALGADO",
     "unit": "KG",
     "unitPrice": 0.95,
     "buffets": [
       "cafe",
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-113",
-    "name": "Mini Pão Australiano",
+    "id": "waste-115",
+    "name": "MINI PÃO AUSTRALIANO",
     "unit": "KG",
     "unitPrice": 0.8,
     "buffets": [
@@ -1215,19 +1303,19 @@
     "sector": "Padaria"
   },
   {
-    "id": "waste-114",
+    "id": "waste-116",
     "name": "MINI PÃO CALABRESA",
     "unit": "KG",
     "unitPrice": 0.85,
     "buffets": [
-      "cafe",
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Padaria"
   },
   {
-    "id": "waste-115",
-    "name": "Mini Pão De Açucar",
+    "id": "waste-117",
+    "name": "MINI PÃO DE AÇUCAR",
     "unit": "KG",
     "unitPrice": 0.65,
     "buffets": [
@@ -1238,19 +1326,20 @@
     "sector": "Padaria"
   },
   {
-    "id": "waste-116",
+    "id": "waste-118",
     "name": "MINI PÃO DE CHOCOLATE",
     "unit": "KG",
     "unitPrice": 1.8,
     "buffets": [
       "cafe",
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Padaria"
   },
   {
-    "id": "waste-117",
-    "name": "Mini Pão De Coco",
+    "id": "waste-119",
+    "name": "MINI PÃO DE COCO",
     "unit": "KG",
     "unitPrice": 0.75,
     "buffets": [
@@ -1261,19 +1350,20 @@
     "sector": "Padaria"
   },
   {
-    "id": "waste-118",
+    "id": "waste-120",
     "name": "MINI PÃO DE FRIOS",
     "unit": "KG",
     "unitPrice": 0.8,
     "buffets": [
       "cafe",
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Padaria"
   },
   {
-    "id": "waste-119",
-    "name": "Mini Pão De Milho",
+    "id": "waste-121",
+    "name": "MINI PÃO DE MILHO",
     "unit": "KG",
     "unitPrice": 0.45,
     "buffets": [
@@ -1284,19 +1374,20 @@
     "sector": "Padaria"
   },
   {
-    "id": "waste-120",
+    "id": "waste-122",
     "name": "MINI PÃO DELICIA",
     "unit": "KG",
     "unitPrice": 0.7,
     "buffets": [
       "cafe",
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Padaria"
   },
   {
-    "id": "waste-121",
-    "name": "Mini Pão Doce",
+    "id": "waste-123",
+    "name": "MINI PÃO DOCE",
     "unit": "KG",
     "unitPrice": 0.8,
     "buffets": [
@@ -1307,8 +1398,8 @@
     "sector": "Padaria"
   },
   {
-    "id": "waste-122",
-    "name": "Mini Pão Francês",
+    "id": "waste-124",
+    "name": "MINI PÃO FRANCÊS",
     "unit": "KG",
     "unitPrice": 0.4,
     "buffets": [
@@ -1319,8 +1410,8 @@
     "sector": "Padaria"
   },
   {
-    "id": "waste-123",
-    "name": "Mini Pão Gergelim",
+    "id": "waste-125",
+    "name": "MINI PÃO GERGELIM",
     "unit": "KG",
     "unitPrice": 0.45,
     "buffets": [
@@ -1331,8 +1422,8 @@
     "sector": "Padaria"
   },
   {
-    "id": "waste-124",
-    "name": "Mini Pão Integral",
+    "id": "waste-126",
+    "name": "MINI PÃO INTEGRAL",
     "unit": "KG",
     "unitPrice": 0.6,
     "buffets": [
@@ -1343,80 +1434,55 @@
     "sector": "Padaria"
   },
   {
-    "id": "waste-125",
-    "name": "Mini Roseta De Queijo",
+    "id": "waste-127",
+    "name": "MINI ROSETA DE QUEIJO",
     "unit": "KG",
     "unitPrice": 1.35,
     "buffets": [
-      "cafe",
       "cha",
       "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-126",
-    "name": "Mini Roseta De Queijo Coalho",
-    "unit": "KG",
-    "unitPrice": 1.1,
-    "buffets": [
-      "cafe",
-      "cha",
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-127",
-    "name": "MINI SANDUICHE COM QUEIJO E RICOTA",
-    "unit": "KG",
-    "unitPrice": 1.55,
-    "buffets": [
-      "cafe",
-      "cha"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-128",
-    "name": "MINI SANDUICHE MISTO",
+    "name": "MINI ROSETA DE QUEIJO COALHO",
     "unit": "KG",
-    "unitPrice": 1.8,
+    "unitPrice": 1.1,
     "buffets": [
-      "cafe",
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-129",
-    "name": "MINI SANDUICHE PERU COM QUEIJO",
+    "name": "MINI SANDUICHE COM QUEIJO E RICOTA",
     "unit": "KG",
-    "unitPrice": 1.8,
+    "unitPrice": 1.55,
     "buffets": [
-      "cafe",
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-130",
-    "name": "MINI SONHO",
+    "name": "MINI SANDUICHE MISTO",
     "unit": "KG",
-    "unitPrice": 0.8,
+    "unitPrice": 1.8,
     "buffets": [
-      "cafe",
-      "cha"
+      "cha",
+      "jantar"
     ],
-    "sector": "Padaria"
+    "sector": "Confeitaria"
   },
   {
     "id": "waste-131",
-    "name": "Mini Tiger",
+    "name": "MINI SANDUICHE PERU COM QUEIJO",
     "unit": "KG",
-    "unitPrice": 0.4,
+    "unitPrice": 1.8,
     "buffets": [
-      "cafe",
       "cha",
       "jantar"
     ],
@@ -1424,7 +1490,31 @@
   },
   {
     "id": "waste-132",
-    "name": "Mms - Pacores 500G Cada",
+    "name": "MINI SONHO",
+    "unit": "KG",
+    "unitPrice": 0.8,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Padaria"
+  },
+  {
+    "id": "waste-133",
+    "name": "MINI TIGER",
+    "unit": "KG",
+    "unitPrice": 0.4,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Padaria"
+  },
+  {
+    "id": "waste-134",
+    "name": "MMS - PACORES 500G CADA",
     "unit": "KG",
     "unitPrice": 19.9,
     "buffets": [
@@ -1434,8 +1524,8 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-133",
-    "name": "Mousse De Cartola",
+    "id": "waste-135",
+    "name": "MOUSSE DE CARTOLA",
     "unit": "KG",
     "unitPrice": 1.8,
     "buffets": [
@@ -1445,30 +1535,8 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-134",
-    "name": "Mousse De Chocolate",
-    "unit": "KG",
-    "unitPrice": 1.6,
-    "buffets": [
-      "cha",
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-135",
-    "name": "Mousse De Coco",
-    "unit": "KG",
-    "unitPrice": 1.3,
-    "buffets": [
-      "cha",
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
     "id": "waste-136",
-    "name": "Mousse De Limão",
+    "name": "MOUSSE DE CHOCOLATE",
     "unit": "KG",
     "unitPrice": 1.6,
     "buffets": [
@@ -1479,7 +1547,29 @@
   },
   {
     "id": "waste-137",
-    "name": "Mousse Vegano De Laranja",
+    "name": "MOUSSE DE COCO",
+    "unit": "KG",
+    "unitPrice": 1.3,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-138",
+    "name": "MOUSSE DE LIMÃO",
+    "unit": "KG",
+    "unitPrice": 1.6,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-139",
+    "name": "MOUSSE VEGANO DE LARANJA",
     "unit": "KG",
     "unitPrice": 1.36,
     "buffets": [
@@ -1489,28 +1579,32 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-138",
+    "id": "waste-140",
     "name": "MUFFIM BAUNILHA RESTRIÇÃO",
     "unit": "KG",
     "unitPrice": 3.2,
     "buffets": [
-      "cha"
+      "cafe",
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-139",
+    "id": "waste-141",
     "name": "MUFFIM CHOCOLATE RESTRICÃO",
     "unit": "KG",
     "unitPrice": 3.2,
     "buffets": [
-      "cha"
+      "cafe",
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-140",
-    "name": "Palha Italiana",
+    "id": "waste-142",
+    "name": "PALHA ITALIANA",
     "unit": "KG",
     "unitPrice": 0.92,
     "buffets": [
@@ -1520,8 +1614,8 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-141",
-    "name": "Paris Brest",
+    "id": "waste-143",
+    "name": "PARIS BREST",
     "unit": "KG",
     "unitPrice": 1.8,
     "buffets": [
@@ -1531,8 +1625,8 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-142",
-    "name": "Pastel De Nata",
+    "id": "waste-144",
+    "name": "PASTEL DE NATA",
     "unit": "KG",
     "unitPrice": 0.95,
     "buffets": [
@@ -1542,31 +1636,10 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-143",
+    "id": "waste-145",
     "name": "PERA AO VINHO",
     "unit": "KG",
     "unitPrice": 1.25,
-    "buffets": [
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-144",
-    "name": "Pessego",
-    "unit": "KG",
-    "unitPrice": 1.19,
-    "buffets": [
-      "cha",
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-145",
-    "name": "Pessego Em Calda",
-    "unit": "KG",
-    "unitPrice": 1.19,
     "buffets": [
       "cha",
       "jantar"
@@ -1575,19 +1648,20 @@
   },
   {
     "id": "waste-146",
-    "name": "PROFITEROLES",
+    "name": "PESSEGO",
     "unit": "KG",
-    "unitPrice": 1.8,
+    "unitPrice": 1.19,
     "buffets": [
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-147",
-    "name": "Profiteroles Amendoim",
+    "name": "PESSEGO EM CALDA",
     "unit": "KG",
-    "unitPrice": 1.8,
+    "unitPrice": 1.19,
     "buffets": [
       "cha",
       "jantar"
@@ -1596,19 +1670,20 @@
   },
   {
     "id": "waste-148",
-    "name": "PUDIM",
+    "name": "PROFITEROLES",
     "unit": "KG",
-    "unitPrice": 2.52,
+    "unitPrice": 1.8,
     "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-149",
-    "name": "Pudim 1Kg",
+    "name": "PROFITEROLES AMENDOIM",
     "unit": "KG",
-    "unitPrice": 2.52,
+    "unitPrice": 1.8,
     "buffets": [
       "cha",
       "jantar"
@@ -1617,63 +1692,7 @@
   },
   {
     "id": "waste-150",
-    "name": "PUDIM DE CLARAS",
-    "unit": "KG",
-    "unitPrice": 1.9,
-    "buffets": [
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-151",
-    "name": "Pudim De Milho",
-    "unit": "KG",
-    "unitPrice": 1.9,
-    "buffets": [
-      "cha",
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-152",
-    "name": "Pudim De Ninho",
-    "unit": "KG",
-    "unitPrice": 2.6,
-    "buffets": [
-      "cha",
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-153",
-    "name": "Pudim De Ninho Mini",
-    "unit": "KG",
-    "unitPrice": 2.6,
-    "buffets": [
-      "cafe",
-      "cha",
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-154",
-    "name": "Pudim Diet E Vegano Mini",
-    "unit": "KG",
-    "unitPrice": 1.89,
-    "buffets": [
-      "cafe",
-      "cha",
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-155",
-    "name": "Pudim Tradicional",
+    "name": "PUDIM",
     "unit": "KG",
     "unitPrice": 2.52,
     "buffets": [
@@ -1683,8 +1702,85 @@
     "sector": "Confeitaria"
   },
   {
+    "id": "waste-151",
+    "name": "PUDIM 1KG",
+    "unit": "KG",
+    "unitPrice": 2.52,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-152",
+    "name": "PUDIM DE CLARAS",
+    "unit": "KG",
+    "unitPrice": 0.9,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-153",
+    "name": "PUDIM DE MILHO",
+    "unit": "KG",
+    "unitPrice": 1.9,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-154",
+    "name": "PUDIM DE NINHO",
+    "unit": "KG",
+    "unitPrice": 2.6,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-155",
+    "name": "PUDIM DE NINHO MINI",
+    "unit": "KG",
+    "unitPrice": 2.6,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
     "id": "waste-156",
-    "name": "Pudim Zero",
+    "name": "PUDIM DIET E VEGANO MINI",
+    "unit": "KG",
+    "unitPrice": 1.89,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-157",
+    "name": "PUDIM TRADICIONAL",
+    "unit": "KG",
+    "unitPrice": 2.52,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-158",
+    "name": "PUDIM ZERO",
     "unit": "KG",
     "unitPrice": 2.2,
     "buffets": [
@@ -1694,32 +1790,32 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-157",
-    "name": "Pão De Forma Integral",
-    "unit": "KG",
-    "unitPrice": 3.0,
-    "buffets": [
-      "cafe",
-      "cha",
-      "jantar"
-    ],
-    "sector": "Padaria"
-  },
-  {
-    "id": "waste-158",
-    "name": "Pão De Forma Maritoso",
-    "unit": "KG",
-    "unitPrice": 3.0,
-    "buffets": [
-      "cafe",
-      "cha",
-      "jantar"
-    ],
-    "sector": "Padaria"
-  },
-  {
     "id": "waste-159",
-    "name": "Pão De Forma Tradicional",
+    "name": "PÃO DE FORMA INTEGRAL",
+    "unit": "KG",
+    "unitPrice": 3.0,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Padaria"
+  },
+  {
+    "id": "waste-160",
+    "name": "PÃO DE FORMA MARITOSO",
+    "unit": "KG",
+    "unitPrice": 3.0,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Padaria"
+  },
+  {
+    "id": "waste-161",
+    "name": "PÃO DE FORMA TRADICIONAL",
     "unit": "KG",
     "unitPrice": 2.8,
     "buffets": [
@@ -1730,35 +1826,11 @@
     "sector": "Padaria"
   },
   {
-    "id": "waste-160",
-    "name": "Pão De Leite 50G",
+    "id": "waste-162",
+    "name": "PÃO DE LEITE 50g",
     "unit": "KG",
     "unitPrice": 0.8,
     "buffets": [
-      "cafe",
-      "cha",
-      "jantar"
-    ],
-    "sector": "Padaria"
-  },
-  {
-    "id": "waste-161",
-    "name": "PÃO DE QUEIJO",
-    "unit": "KG",
-    "unitPrice": 0.65,
-    "buffets": [
-      "cafe",
-      "cha"
-    ],
-    "sector": "Padaria"
-  },
-  {
-    "id": "waste-162",
-    "name": "Pão Francês 50G",
-    "unit": "KG",
-    "unitPrice": 0.65,
-    "buffets": [
-      "cafe",
       "cha",
       "jantar"
     ],
@@ -1766,7 +1838,30 @@
   },
   {
     "id": "waste-163",
-    "name": "Pão Rustico Fermentação 500G",
+    "name": "PÃO DE QUEIJO",
+    "unit": "KG",
+    "unitPrice": 0.65,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Padaria"
+  },
+  {
+    "id": "waste-164",
+    "name": "PÃO FRANCÊS 50g",
+    "unit": "KG",
+    "unitPrice": 0.65,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Padaria"
+  },
+  {
+    "id": "waste-165",
+    "name": "PÃO RUSTICO FERMENTAÇÃO 500g",
     "unit": "KG",
     "unitPrice": 3.8,
     "buffets": [
@@ -1777,70 +1872,74 @@
     "sector": "Padaria"
   },
   {
-    "id": "waste-164",
+    "id": "waste-166",
     "name": "PÉ DE MOLEQUE",
     "unit": "KG",
     "unitPrice": 1.2,
     "buffets": [
+      "cha",
       "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-165",
-    "name": "QUEBRA QUEBRA",
-    "unit": "KG",
-    "unitPrice": 1.19,
-    "buffets": [
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-166",
-    "name": "QUEIJADINHA",
-    "unit": "KG",
-    "unitPrice": 1.4,
-    "buffets": [
-      "cha"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-167",
-    "name": "QUICHE DE FRANGO COM QUEIJO",
+    "name": "QUEBRA QUEBRA",
     "unit": "KG",
-    "unitPrice": 1.2,
+    "unitPrice": 1.19,
     "buffets": [
-      "cafe",
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-168",
-    "name": "QUICHE DE FRIOS",
+    "name": "QUEIJADINHA",
     "unit": "KG",
-    "unitPrice": 1.2,
+    "unitPrice": 1.4,
     "buffets": [
-      "cafe",
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-169",
-    "name": "QUINDIM",
+    "name": "QUICHE DE FRANGO COM QUEIJO",
     "unit": "KG",
-    "unitPrice": 2.2,
+    "unitPrice": 1.2,
     "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-170",
-    "name": "Rocambole De Amendoim",
+    "name": "QUICHE DE FRIOS",
+    "unit": "KG",
+    "unitPrice": 1.2,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-171",
+    "name": "QUINDIM",
+    "unit": "KG",
+    "unitPrice": 2.2,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-172",
+    "name": "ROCAMBOLE DE AMENDOIM",
     "unit": "KG",
     "unitPrice": 1.56,
     "buffets": [
@@ -1850,51 +1949,52 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-171",
+    "id": "waste-173",
     "name": "ROCAMBOLE DE CHOCOLATE",
     "unit": "KG",
     "unitPrice": 2.2,
     "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-172",
+    "id": "waste-174",
     "name": "SANDUICHE DE ATUM",
     "unit": "KG",
     "unitPrice": 1.8,
     "buffets": [
-      "cafe",
-      "cha"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-173",
-    "name": "SANDUICHE DE QUEIJO COM RUCULA",
-    "unit": "KG",
-    "unitPrice": 1.8,
-    "buffets": [
-      "cafe",
-      "cha"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-174",
-    "name": "SANDUICHE DE SALMÃO",
-    "unit": "KG",
-    "unitPrice": 1.8,
-    "buffets": [
-      "cafe",
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-175",
-    "name": "Tartelete De Chocolate Vegano",
+    "name": "SANDUICHE DE QUEIJO COM RUCULA",
+    "unit": "KG",
+    "unitPrice": 1.8,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-176",
+    "name": "SANDUICHE DE SALMÃO",
+    "unit": "KG",
+    "unitPrice": 1.8,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-177",
+    "name": "TARTELETE DE CHOCOLATE VEGANO",
     "unit": "KG",
     "unitPrice": 2.22,
     "buffets": [
@@ -1904,40 +2004,41 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-176",
-    "name": "Tartelete Pistache",
-    "unit": "KG",
-    "unitPrice": 1.98,
-    "buffets": [
-      "cha",
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-177",
-    "name": "Tartelete Veganamorango",
-    "unit": "KG",
-    "unitPrice": 1.98,
-    "buffets": [
-      "cha",
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
     "id": "waste-178",
-    "name": "TORTA BULGARA",
+    "name": "TARTELETE PISTACHE",
     "unit": "KG",
-    "unitPrice": 1.8,
+    "unitPrice": 1.98,
     "buffets": [
+      "cha",
       "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
     "id": "waste-179",
-    "name": "Torta De Amendoas",
+    "name": "TARTELETE VEGANAMORANGO",
+    "unit": "KG",
+    "unitPrice": 1.98,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-180",
+    "name": "TORTA BULGARA",
+    "unit": "KG",
+    "unitPrice": 1.8,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-181",
+    "name": "TORTA DE AMENDOAS",
     "unit": "KG",
     "unitPrice": 1.9,
     "buffets": [
@@ -1947,8 +2048,8 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-180",
-    "name": "Torta De Amendoim",
+    "id": "waste-182",
+    "name": "TORTA DE AMENDOIM",
     "unit": "KG",
     "unitPrice": 1.67,
     "buffets": [
@@ -1958,33 +2059,10 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-181",
+    "id": "waste-183",
     "name": "TORTA DE BANANA",
     "unit": "KG",
     "unitPrice": 1.98,
-    "buffets": [
-      "cafe",
-      "cha"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-182",
-    "name": "Torta De Banana Com Açucar Sem Gluten",
-    "unit": "KG",
-    "unitPrice": 1.69,
-    "buffets": [
-      "cafe",
-      "cha",
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-183",
-    "name": "Torta De Banana Sem Glutem Sem Lactose",
-    "unit": "KG",
-    "unitPrice": 1.69,
     "buffets": [
       "cafe",
       "cha",
@@ -1994,7 +2072,29 @@
   },
   {
     "id": "waste-184",
-    "name": "Torta De Brigadeiro",
+    "name": "TORTA DE BANANA COM AÇUCAR SEM GLUTEN",
+    "unit": "KG",
+    "unitPrice": 1.69,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-185",
+    "name": "TORTA DE BANANA SEM GLUTEM SEM LACTOSE",
+    "unit": "KG",
+    "unitPrice": 1.69,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-186",
+    "name": "TORTA DE BRIGADEIRO",
     "unit": "KG",
     "unitPrice": 2.25,
     "buffets": [
@@ -2004,8 +2104,8 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-185",
-    "name": "Torta De Chocolate",
+    "id": "waste-187",
+    "name": "TORTA DE CHOCOLATE",
     "unit": "KG",
     "unitPrice": 2.22,
     "buffets": [
@@ -2015,8 +2115,8 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-186",
-    "name": "Torta De Chocolate Diet",
+    "id": "waste-188",
+    "name": "TORTA DE CHOCOLATE DIET",
     "unit": "KG",
     "unitPrice": 2.1,
     "buffets": [
@@ -2026,32 +2126,8 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-187",
-    "name": "Torta De Frutas",
-    "unit": "KG",
-    "unitPrice": 1.69,
-    "buffets": [
-      "cafe",
-      "cha",
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-188",
-    "name": "Torta De Leite Condensado",
-    "unit": "KG",
-    "unitPrice": 1.69,
-    "buffets": [
-      "cafe",
-      "cha",
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
     "id": "waste-189",
-    "name": "Torta De Maçã",
+    "name": "TORTA DE FRUTAS",
     "unit": "KG",
     "unitPrice": 1.69,
     "buffets": [
@@ -2062,7 +2138,29 @@
   },
   {
     "id": "waste-190",
-    "name": "Torta De Morango",
+    "name": "TORTA DE LEITE CONDENSADO",
+    "unit": "KG",
+    "unitPrice": 1.69,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-191",
+    "name": "TORTA DE MAÇÃ",
+    "unit": "KG",
+    "unitPrice": 1.69,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-192",
+    "name": "TORTA DE MORANGO",
     "unit": "KG",
     "unitPrice": 1.98,
     "buffets": [
@@ -2072,8 +2170,8 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-191",
-    "name": "Torta De Nozes",
+    "id": "waste-193",
+    "name": "TORTA DE NOZES",
     "unit": "KG",
     "unitPrice": 1.8,
     "buffets": [
@@ -2083,18 +2181,19 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-192",
+    "id": "waste-194",
     "name": "TRUFA CHOCOLATE",
     "unit": "KG",
     "unitPrice": 1.88,
     "buffets": [
-      "cha"
+      "cha",
+      "jantar"
     ],
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-193",
-    "name": "Trufa De Chocolate Ao Rum",
+    "id": "waste-195",
+    "name": "TRUFA DE CHOCOLATE AO RUM",
     "unit": "KG",
     "unitPrice": 1.98,
     "buffets": [
@@ -2104,8 +2203,8 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-194",
-    "name": "Trufas De Chocolate",
+    "id": "waste-196",
+    "name": "TRUFAS DE CHOCOLATE",
     "unit": "KG",
     "unitPrice": 1.9,
     "buffets": [
@@ -2115,18 +2214,8 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-195",
+    "id": "waste-197",
     "name": "VERRINE DE BAUNILHA",
-    "unit": "KG",
-    "unitPrice": 1.6,
-    "buffets": [
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-196",
-    "name": "Verrine De Champagne",
     "unit": "KG",
     "unitPrice": 1.6,
     "buffets": [
@@ -2136,8 +2225,19 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-197",
-    "name": "Verrine De Chocolate",
+    "id": "waste-198",
+    "name": "VERRINE DE CHAMPAGNE",
+    "unit": "KG",
+    "unitPrice": 1.6,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-199",
+    "name": "VERRINE DE CHOCOLATE",
     "unit": "KG",
     "unitPrice": 1.36,
     "buffets": [
@@ -2147,8 +2247,8 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-198",
-    "name": "Verrine De Coco",
+    "id": "waste-200",
+    "name": "VERRINE DE COCO",
     "unit": "KG",
     "unitPrice": 0.88,
     "buffets": [
@@ -2158,29 +2258,8 @@
     "sector": "Confeitaria"
   },
   {
-    "id": "waste-199",
-    "name": "VERRINE DE FRUTAS VERMELHAS",
-    "unit": "KG",
-    "unitPrice": 1.6,
-    "buffets": [
-      "cafe",
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
-    "id": "waste-200",
-    "name": "VERRINE DE MARACUJÁ",
-    "unit": "KG",
-    "unitPrice": 0.98,
-    "buffets": [
-      "jantar"
-    ],
-    "sector": "Confeitaria"
-  },
-  {
     "id": "waste-201",
-    "name": "Verrine De Morango Vegano",
+    "name": "VERRINE DE FRUTAS VERMELHAS",
     "unit": "KG",
     "unitPrice": 1.6,
     "buffets": [
@@ -2191,7 +2270,29 @@
   },
   {
     "id": "waste-202",
-    "name": "Verrine De Ninho",
+    "name": "VERRINE DE MARACUJÁ",
+    "unit": "KG",
+    "unitPrice": 0.98,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-203",
+    "name": "VERRINE DE MORANGO VEGANO",
+    "unit": "KG",
+    "unitPrice": 1.6,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-204",
+    "name": "VERRINE DE NINHO",
     "unit": "KG",
     "unitPrice": 1.6,
     "buffets": [
