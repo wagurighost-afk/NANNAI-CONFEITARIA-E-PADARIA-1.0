@@ -7,7 +7,6 @@ import { apiClient } from '@/core/api/apiClient'
 import type {
   IntelligenceDashboard,
   IntelligenceHealth,
-  IntelligenceInsight,
   IntelligenceQueryParams,
   IntelligenceRecommendation,
   IntelligenceRefreshResult,
@@ -21,6 +20,10 @@ import type {
   RecipeKpis,
   WasteKpis,
 } from '@/features/intelligence/types/operationalKpis.types'
+import type {
+  SmartInsight,
+  SmartInsightsReport,
+} from '@/features/intelligence/types/smartInsights.types'
 
 function buildQuery(params: IntelligenceQueryParams): Record<string, string | number> {
   const query: Record<string, string | number> = {
@@ -100,8 +103,29 @@ export const intelligenceService = {
     return data
   },
 
-  async getInsights(params: IntelligenceQueryParams): Promise<IntelligenceInsight[]> {
-    const { data } = await apiClient.get<IntelligenceInsight[]>('/intelligence/insights', {
+  async getSmartInsightsReport(
+    params: Pick<IntelligenceQueryParams, 'year' | 'month'>,
+  ): Promise<SmartInsightsReport> {
+    const { data } = await apiClient.get<SmartInsightsReport>('/intelligence/insights/smart', {
+      params: buildPeriodQuery(params),
+    })
+    return data
+  },
+
+  async getInsights(params: IntelligenceQueryParams): Promise<SmartInsight[] | SmartInsightsReport> {
+    const query = buildQuery(params)
+    if (params.limit !== undefined) {
+      const { data } = await apiClient.get<SmartInsight[]>('/intelligence/insights', { params: query })
+      return data
+    }
+    const { data } = await apiClient.get<SmartInsightsReport>('/intelligence/insights', {
+      params: { year: params.year, month: params.month },
+    })
+    return data
+  },
+
+  async getInsightsList(params: IntelligenceQueryParams): Promise<SmartInsight[]> {
+    const { data } = await apiClient.get<SmartInsight[]>('/intelligence/insights', {
       params: buildQuery(params),
     })
     return data

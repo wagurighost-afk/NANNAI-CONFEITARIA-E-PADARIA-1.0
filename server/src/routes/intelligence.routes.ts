@@ -10,9 +10,11 @@ import { normalizeLimit, normalizePeriod } from '../intelligence/constants.js'
 import {
   getIntelligenceDashboard,
   getIntelligenceInsights,
+  getIntelligenceInsightsReport,
   getOperationalKpis,
   getIntelligenceRecommendations,
   getIntelligenceTrends,
+  getSmartInsightsReport,
   refreshIntelligenceData,
 } from '../intelligence/services/intelligence.service.js'
 import type { IntelligenceMetricKey } from '../intelligence/types.js'
@@ -46,7 +48,7 @@ intelligenceRouter.get('/health', (req: AuthedRequest, res) => {
     status: 'ok',
     module: 'intelligence',
     version: '1.0.0',
-    capabilities: ['kpis', 'operational-kpis', 'insights', 'recommendations', 'trends', 'dashboard', 'refresh'],
+    capabilities: ['kpis', 'operational-kpis', 'smart-insights', 'insights', 'recommendations', 'trends', 'dashboard', 'refresh'],
   })
 })
 
@@ -183,11 +185,30 @@ intelligenceRouter.get('/insights', async (req: AuthedRequest, res) => {
 
   try {
     const period = parsePeriod(req)
-    const limit = normalizeLimit(Number(req.query.limit))
-    res.json(await getIntelligenceInsights(period, limit))
+    const limit = req.query.limit !== undefined ? normalizeLimit(Number(req.query.limit)) : undefined
+    if (limit !== undefined) {
+      res.json(await getIntelligenceInsights(period, limit))
+      return
+    }
+    res.json(await getIntelligenceInsightsReport(period))
   } catch (error) {
     res.status(500).json({
-      message: error instanceof Error ? error.message : 'Falha ao carregar insights.',
+      message: error instanceof Error ? error.message : 'Falha ao carregar insights inteligentes.',
+    })
+  }
+})
+
+intelligenceRouter.get('/insights/smart', async (req: AuthedRequest, res) => {
+  if (!assertIntelligenceAccess(req, res)) {
+    return
+  }
+
+  try {
+    const period = parsePeriod(req)
+    res.json(await getSmartInsightsReport(period))
+  } catch (error) {
+    res.status(500).json({
+      message: error instanceof Error ? error.message : 'Falha ao carregar insights inteligentes.',
     })
   }
 })

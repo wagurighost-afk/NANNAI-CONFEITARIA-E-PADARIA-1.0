@@ -85,7 +85,9 @@ export interface IntelligenceDashboard {
   period: IntelligencePeriod
   generatedAt: string
   operationalKpis: import('./types/kpis.types.js').OperationalKpisReport
-  insights: IntelligenceInsight[]
+  smartInsights: import('./types/smartInsights.types.js').SmartInsightsReport
+  /** Lista plana de insights (atalho de smartInsights.insights) */
+  insights: import('./types/smartInsights.types.js').SmartInsight[]
   recommendations: IntelligenceRecommendation[]
   trends: IntelligenceTrend[]
 }

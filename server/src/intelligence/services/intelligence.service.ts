@@ -6,16 +6,16 @@
 import { INTELLIGENCE_CATEGORIES } from '../constants.js'
 import { clearPeriodSnapshots } from '../repository/intelligence.repository.js'
 import type { OperationalKpisReport } from '../types/kpis.types.js'
+import type { SmartInsight, SmartInsightsReport } from '../types/smartInsights.types.js'
 import type {
   IntelligenceDashboard,
-  IntelligenceInsight,
   IntelligenceMetricKey,
   IntelligencePeriod,
   IntelligenceRecommendation,
   IntelligenceRefreshResult,
   IntelligenceTrend,
 } from '../types.js'
-import { getIntelligenceInsights, refreshIntelligenceInsights } from './insights.service.js'
+import { getIntelligenceInsightsReport, refreshIntelligenceInsights } from './insights.service.js'
 import { getOperationalKpis, refreshOperationalKpis } from './kpis.service.js'
 import {
   getIntelligenceRecommendations,
@@ -27,9 +27,9 @@ export async function getIntelligenceDashboard(
   period: IntelligencePeriod,
   limit?: number,
 ): Promise<IntelligenceDashboard> {
-  const [operationalKpis, insights, recommendations, trends] = await Promise.all([
+  const [operationalKpis, smartInsights, recommendations, trends] = await Promise.all([
     getOperationalKpis(period),
-    getIntelligenceInsights(period, limit),
+    getIntelligenceInsightsReport(period),
     getIntelligenceRecommendations(period, limit),
     getIntelligenceTrends(period, undefined, limit),
   ])
@@ -38,7 +38,8 @@ export async function getIntelligenceDashboard(
     period,
     generatedAt: new Date().toISOString(),
     operationalKpis,
-    insights,
+    smartInsights,
+    insights: smartInsights.insights,
     recommendations,
     trends,
   }
@@ -52,7 +53,7 @@ export async function refreshIntelligenceData(
 
   await Promise.all([
     refreshOperationalKpis(period),
-    refreshIntelligenceInsights(period, limit),
+    refreshIntelligenceInsights(period),
     refreshIntelligenceRecommendations(period, limit),
     refreshIntelligenceTrends(period),
   ])
@@ -66,8 +67,14 @@ export async function refreshIntelligenceData(
 
 export {
   getIntelligenceInsights,
+  getIntelligenceInsightsReport,
   refreshIntelligenceInsights,
 } from './insights.service.js'
+export {
+  getSmartInsights,
+  getSmartInsightsReport,
+  refreshSmartInsights,
+} from './smartInsights.service.js'
 export {
   getOperationalKpis,
   refreshOperationalKpis,
@@ -85,11 +92,12 @@ export {
 
 export type {
   IntelligenceDashboard,
-  IntelligenceInsight,
   IntelligenceMetricKey,
   IntelligencePeriod,
   IntelligenceRecommendation,
   IntelligenceRefreshResult,
   IntelligenceTrend,
   OperationalKpisReport,
+  SmartInsight,
+  SmartInsightsReport,
 }
