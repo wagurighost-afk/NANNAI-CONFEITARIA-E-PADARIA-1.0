@@ -1,4 +1,6 @@
 export { LabelsPage } from '@/features/labels/pages/LabelsPage'
 export { LabelPrintDialogContent } from '@/features/labels/components/LabelPrintDialog'
 export { buildLabelDraftFromProduction } from '@/features/labels/utils/buildLabelFromProduction'
+export { getLabelExpiryInfo } from '@/features/labels/utils/labelExpiry'
 export type { LabelRecord, LabelTemplateId } from '@/features/labels/types/label.types'
+export type { LabelExpiryStatus } from '@/features/labels/utils/labelExpiry'

@@ -1,4 +1,7 @@
-import { apiClient } from '@/core/api/apiClient'
+import { env } from '@/config/env'
+import { ApiLabelRepository } from '@/features/labels/repositories/ApiLabelRepository'
+import { MockLabelRepository } from '@/features/labels/repositories/MockLabelRepository'
+import type { LabelRepository } from '@/features/labels/repositories/LabelRepository'
 import type {
   CreateLabelFromProductionInput,
   CreateLabelInput,
@@ -8,34 +11,45 @@ import type {
   LabelTemplateConfig,
 } from '@/features/labels/types/label.types'
 
+const repository: LabelRepository = env.useMock
+  ? new MockLabelRepository()
+  : new ApiLabelRepository()
+
 export async function fetchLabelTemplates(): Promise<LabelTemplateConfig[]> {
-  const { data } = await apiClient.get<{ templates: LabelTemplateConfig[] }>('/labels/templates')
-  return data.templates
+  return repository.listTemplates()
 }
 
 export async function fetchLabels(query: LabelListQuery = {}): Promise<LabelListResult> {
-  const { data } = await apiClient.get<LabelListResult>('/labels', { params: query })
-  return data
+  return repository.list(query)
 }
 
 export async function fetchLabelById(id: string): Promise<LabelRecord> {
-  const { data } = await apiClient.get<LabelRecord>(`/labels/${id}`)
-  return data
+  const record = await repository.getById(id)
+  if (!record) {
+    throw new Error('Etiqueta não encontrada.')
+  }
+  return record
 }
 
 export async function createLabel(input: CreateLabelInput): Promise<LabelRecord> {
-  const { data } = await apiClient.post<LabelRecord>('/labels', input)
-  return data
+  return repository.create(input)
 }
 
 export async function createLabelFromProduction(
   input: CreateLabelFromProductionInput,
 ): Promise<LabelRecord> {
-  const { data } = await apiClient.post<LabelRecord>('/labels/from-production', input)
-  return data
+  return repository.createFromProduction(input)
 }
 
 export async function reprintLabel(id: string, copies: number): Promise<LabelRecord> {
-  const { data } = await apiClient.post<LabelRecord>(`/labels/${id}/reprint`, { copies })
-  return data
+  return repository.reprint(id, copies)
+}
+
+export const labelsService = {
+  fetchLabelTemplates,
+  fetchLabels,
+  fetchLabelById,
+  createLabel,
+  createLabelFromProduction,
+  reprintLabel,
 }

@@ -25,6 +25,7 @@ Cada entrada de auditoria contém:
 - `monthly_schedule` — escala mensal
 - `auth` — alteração e redefinição de senhas (dados sensíveis redigidos)
 - `intelligence` — refresh manual da Central de Inteligência
+- `label` — criação e reimpressão de etiquetas inteligentes
 
 ## Segurança
 

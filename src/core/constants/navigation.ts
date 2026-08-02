@@ -24,7 +24,7 @@ export const MAIN_NAVIGATION: readonly AppNavItem[] = [
   },
   {
     id: 'labels',
-    label: 'Etiquetas',
+    label: 'Etiquetas Inteligentes',
     href: APP_ROUTES.labels,
     icon: 'Tags',
     permission: 'labels:view',

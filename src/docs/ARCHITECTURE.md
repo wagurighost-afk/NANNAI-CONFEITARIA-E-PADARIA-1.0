@@ -124,6 +124,14 @@ Auth mock está ativa em `authService` (`USE_MOCK_AUTH`) até o backend existir.
 - Somente leitura para colaboradores.
 - Rota: `/pop`.
 
+## Feature: Etiquetas Inteligentes
+
+- Local: `features/labels/` · API `server/src/labels*` · docs em `docs/labels/`.
+- 6 modelos com validade automática, QR Code, histórico, reimpressão e impressão via navegador.
+- Integração com Produção ao concluir item; adaptadores NIIMBOT preparados (stubs).
+- Repository: `LabelRepository` → `MockLabelRepository` / `ApiLabelRepository`.
+- Rota: `/etiquetas` · permissões `labels:view` / `labels:print`.
+
 ## Dashboard
 
 - `features/dashboard/` — roteamento por papel via `isChefUser()`.
@@ -132,7 +140,7 @@ Auth mock está ativa em `authService` (`USE_MOCK_AUTH`) até o backend existir.
 
 ## Módulos futuros (stubs)
 
-- `core/modules/future/` — Estoque, Compras, Etiquetas, Custos, Auditoria, IA (apenas contratos).
+- `core/modules/future/` — Estoque, Compras, Custos, IA (apenas contratos).
 
 ## Auth ↔ Colaborador
 
