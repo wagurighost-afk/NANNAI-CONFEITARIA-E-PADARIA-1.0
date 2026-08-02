@@ -1,15 +1,12 @@
-# NIIMBOT — índice da documentação
+# NIIMBOT — redirecionamento
 
-A integração evoluiu além da “etapa 1”. Use os documentos abaixo:
+A documentação canônica está nos **Blueprints**:
 
-| Documento | Conteúdo |
-|-----------|----------|
-| [`INTEGRATION.md`](./INTEGRATION.md) | Documentação completa da integração |
-| [`REVIEW.md`](./REVIEW.md) | Revisão (Bluetooth, erros, performance, segurança…) e melhorias |
+→ [`docs/blueprints/niimbot/`](../blueprints/niimbot/README.md)
 
-## Atalhos
-
-- Configurações: `/niimbot/configuracoes`
-- Teste: `/niimbot/teste`
-- Produção: diálogo **Deseja imprimir etiqueta?** ao concluir item
-- Histórico / reimpressão: `/etiquetas`
+| Documento | Caminho |
+|-----------|---------|
+| Índice do blueprint | [`../blueprints/niimbot/README.md`](../blueprints/niimbot/README.md) |
+| Integração | [`../blueprints/niimbot/INTEGRATION.md`](../blueprints/niimbot/INTEGRATION.md) |
+| Revisão técnica | [`../blueprints/niimbot/REVIEW.md`](../blueprints/niimbot/REVIEW.md) |
+| Checklist | [`../blueprints/niimbot/CHECKLIST.md`](../blueprints/niimbot/CHECKLIST.md) |

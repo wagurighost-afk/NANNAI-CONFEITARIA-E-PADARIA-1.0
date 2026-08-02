@@ -13,9 +13,16 @@ Sistema de gestão da confeitaria e padaria NANNAI.
 - Framer Motion
 - Lucide React
 
+## Blueprints
+
+Documentação canônica de módulos e integrações:
+
+- Índice: [`docs/blueprints/README.md`](docs/blueprints/README.md)
+- NIIMBOT + Etiquetas: [`docs/blueprints/niimbot/README.md`](docs/blueprints/niimbot/README.md)
+
 ## Fundação
 
-Este repositório contém apenas a **base arquitetural**:
+Este repositório contém a **base arquitetural** e módulos de operação:
 
 - Layout responsivo (Sidebar, Header, Container)
 - Rotas (`/login`, `/`, `404`)
