@@ -4,7 +4,10 @@ import { LABEL_TEMPLATES } from '@/features/labels/constants/labelTemplates'
 import { LabelPreview, LabelPrintSheet } from '@/features/labels/components/LabelPreview'
 import { useLabelMutations } from '@/features/labels/hooks/useLabels'
 import { useLabelPrint } from '@/features/labels/hooks/useLabelPrint'
-import { getLabelPrinterAdapter, listLabelPrinterAdapters } from '@/features/labels/printer/labelPrinterRegistry'
+import {
+  getLabelPrinterAdapter,
+  listLabelPrinterSelectOptions,
+} from '@/features/labels/printer/labelPrinterRegistry'
 import type { CreateLabelInput, LabelRecord, LabelTemplateId } from '@/features/labels/types/label.types'
 import { buildQrPayload, resolveLabelFieldData } from '@/features/labels/utils/labelData'
 import { getErrorMessage } from '@/core/errors'
@@ -70,9 +73,10 @@ export function LabelPrintDialogContent({
     [previewData, savedRecord?.id, templateId],
   )
 
-  const adapters = listLabelPrinterAdapters()
+  const printerOptions = listLabelPrinterSelectOptions()
   const selectedAdapter = getLabelPrinterAdapter(adapterId)
   const isNiimbot = adapterId === 'niimbot-b1'
+  const niimbotAvailable = selectedAdapter?.isAvailable() ?? false
   const isSaving = createMutation.isPending || reprintMutation.isPending || isPrinting || isConnecting
 
   const handleFieldChange = (field: keyof typeof previewData, value: string) => {
@@ -172,10 +176,7 @@ export function LabelPrintDialogContent({
               value={adapterId}
               disabled={readOnly}
               onChange={(event) => setAdapterId(event.target.value)}
-              options={adapters.map((adapter) => ({
-                value: adapter.id,
-                label: adapter.name,
-              }))}
+              options={printerOptions}
             />
             <Input
               label="Cópias"
@@ -255,38 +256,46 @@ export function LabelPrintDialogContent({
                     ) : (
                       <Bluetooth className="size-4 text-muted-foreground" />
                     )}
-                    {status?.connected ? 'NIIMBOT conectada' : 'NIIMBOT B1 via Bluetooth'}
+                    {status?.connected
+                      ? 'NIIMBOT conectada'
+                      : niimbotAvailable
+                        ? 'NIIMBOT B1 via Bluetooth'
+                        : 'NIIMBOT B1 indisponível neste navegador'}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {status?.message ??
-                      selectedAdapter?.description ??
-                      'Pareie a impressora no Chrome/Edge (HTTPS ou localhost).'}
+                    {niimbotAvailable
+                      ? status?.message ??
+                        selectedAdapter?.description ??
+                        'Pareie a impressora no Chrome/Edge (HTTPS ou localhost).'
+                      : 'Use Chrome ou Edge em HTTPS/localhost com Bluetooth habilitado para imprimir na B1.'}
                   </p>
                 </div>
-                <div className="flex gap-2">
-                  {status?.connected ? (
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      disabled={isSaving}
-                      onClick={() => void disconnect()}
-                    >
-                      Desconectar
-                    </Button>
-                  ) : (
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      disabled={isSaving}
-                      onClick={() => void handleConnect()}
-                    >
-                      <Bluetooth className="size-4" />
-                      {isConnecting ? 'Conectando…' : 'Conectar B1'}
-                    </Button>
-                  )}
-                </div>
+                {niimbotAvailable ? (
+                  <div className="flex gap-2">
+                    {status?.connected ? (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={isSaving}
+                        onClick={() => void disconnect()}
+                      >
+                        Desconectar
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={isSaving}
+                        onClick={() => void handleConnect()}
+                      >
+                        <Bluetooth className="size-4" />
+                        {isConnecting ? 'Conectando…' : 'Conectar B1'}
+                      </Button>
+                    )}
+                  </div>
+                ) : null}
               </div>
             </div>
           ) : null}
@@ -330,7 +339,11 @@ export function LabelPrintDialogContent({
           </Button>
         ) : null}
         {!readOnly ? (
-          <Button type="button" onClick={() => void handlePrint()} disabled={isSaving}>
+          <Button
+            type="button"
+            onClick={() => void handlePrint()}
+            disabled={isSaving || (isNiimbot && !niimbotAvailable)}
+          >
             {isSaving
               ? progress ?? 'Processando...'
               : isNiimbot

@@ -14,6 +14,17 @@ export function listLabelPrinterAdapters(): LabelPrinterAdapter[] {
   return adapters.filter((adapter) => adapter.isAvailable())
 }
 
+/** Options for the printer select — unavailable adapters stay visible with a hint. */
+export function listLabelPrinterSelectOptions(): Array<{
+  value: string
+  label: string
+}> {
+  return adapters.map((adapter) => ({
+    value: adapter.id,
+    label: adapter.isAvailable() ? adapter.name : `${adapter.name} (indisponível)`,
+  }))
+}
+
 export function getLabelPrinterAdapter(id: string): LabelPrinterAdapter | undefined {
   return adapters.find((adapter) => adapter.id === id)
 }
