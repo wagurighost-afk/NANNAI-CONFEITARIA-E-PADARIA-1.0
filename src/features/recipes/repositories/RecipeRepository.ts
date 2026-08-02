@@ -16,6 +16,7 @@ export interface RecipeRepository {
   update(id: string, input: UpdateRecipeInput, attachment?: File, removeAttachment?: boolean): Promise<Recipe>
   remove(id: string): Promise<void>
   archive(id: string): Promise<Recipe>
+  duplicate(id: string): Promise<Recipe>
   toggleFavorite(id: string): Promise<Recipe>
   addAttachment(recipeId: string, attachment: RecipeAttachment): Promise<Recipe>
 }

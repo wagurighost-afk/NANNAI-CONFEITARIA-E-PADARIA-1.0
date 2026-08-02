@@ -32,6 +32,10 @@ export const RECIPE_QUICK_FILTERS = [
 
 export type RecipeQuickFilter = (typeof RECIPE_QUICK_FILTERS)[number]['value']
 
+export const RECIPE_CATEGORY_QUICK_FILTERS = ['Pães', 'Bolos', 'Salgados', 'Doces'] as const
+
+export type RecipeCategoryQuickFilter = (typeof RECIPE_CATEGORY_QUICK_FILTERS)[number]
+
 export interface RecipeIngredient {
   ingredientId?: string
   name: string
@@ -63,8 +67,14 @@ export interface Recipe {
   preparationMethod: string
   notes: string
   prepTimeMinutes: number
+  ovenTimeMinutes?: number
   yield: string
+  finalWeight?: string
   photoUrl?: string
+  temperature?: string
+  chef?: string
+  searchText?: string
+  relatedPopIds?: string[]
   attachments: RecipeAttachment[]
   status: RecipeStatus
   isFavorite?: boolean
@@ -130,8 +140,13 @@ export type RecipeFormInput = {
   preparationMethod: string
   notes: string
   prepTimeMinutes: number
+  ovenTimeMinutes?: number
   yield: string
+  finalWeight?: string
   photoUrl: string
+  temperature: string
+  chef: string
+  relatedPopIds: string[]
   status: RecipeStatus
 }
 

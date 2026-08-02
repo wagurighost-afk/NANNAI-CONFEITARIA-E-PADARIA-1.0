@@ -14,8 +14,13 @@ const EMPTY: RecipeFormBaseSchema = {
   preparationMethod: '',
   notes: '',
   prepTimeMinutes: 30,
+  ovenTimeMinutes: 0,
   yield: '',
+  finalWeight: '',
   photoUrl: '',
+  temperature: '',
+  chef: '',
+  relatedPopIds: [],
   status: 'Ativa',
 }
 
@@ -30,8 +35,13 @@ function toValues(recipe: Recipe | null): RecipeFormBaseSchema {
     preparationMethod: recipe.preparationMethod,
     notes: recipe.notes,
     prepTimeMinutes: recipe.prepTimeMinutes,
+    ovenTimeMinutes: recipe.ovenTimeMinutes ?? 0,
     yield: recipe.yield,
+    finalWeight: recipe.finalWeight ?? '',
     photoUrl: recipe.photoUrl ?? '',
+    temperature: recipe.temperature ?? '',
+    chef: recipe.chef ?? '',
+    relatedPopIds: recipe.relatedPopIds ?? [],
     status: recipe.status,
   }
 }

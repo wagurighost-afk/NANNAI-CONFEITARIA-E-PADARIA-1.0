@@ -89,3 +89,6 @@ export type { KpiCardProps } from '@/components/ui/KpiCard'
 
 export { ChartCard } from '@/components/ui/ChartCard'
 export type { ChartCardProps } from '@/components/ui/ChartCard'
+
+export { CollapsibleSection } from '@/components/ui/CollapsibleSection'
+export type { CollapsibleSectionProps } from '@/components/ui/CollapsibleSection'

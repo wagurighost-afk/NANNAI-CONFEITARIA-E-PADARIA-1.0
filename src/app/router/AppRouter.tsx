@@ -14,7 +14,8 @@ import { BreadControlPage } from '@/features/bread-control'
 import { WasteControlPage } from '@/features/waste-control'
 import { IntelligencePage } from '@/features/intelligence'
 import { AuditPage } from '@/features/audit'
-import { RecipesPage } from '@/features/recipes'
+import { RecipesPage } from '@/features/recipes/pages/RecipesPage'
+import { RecipeDetailPage } from '@/features/recipes/pages/RecipeDetailPage'
 import { SchedulePage } from '@/features/schedule'
 import { PermissionRoute } from '@/app/router/PermissionRoute'
 import { ProtectedRoute } from '@/app/router/ProtectedRoute'
@@ -53,7 +54,7 @@ export function AppRouter() {
             <Route path={APP_ROUTES.schedule} element={<SchedulePage />} />
             <Route path={APP_ROUTES.cleaningSchedule} element={<CleaningSchedulePage />} />
             <Route path={APP_ROUTES.recipes} element={<RecipesPage />} />
-            <Route path={`${APP_ROUTES.recipes}/:recipeId`} element={<RecipesPage />} />
+            <Route path={`${APP_ROUTES.recipes}/:recipeId`} element={<RecipeDetailPage />} />
             <Route path="/recipes" element={<Navigate to={APP_ROUTES.recipes} replace />} />
             <Route path="/recipes/:recipeId" element={<LegacyRecipeRedirect />} />
             <Route path={APP_ROUTES.pop} element={<PopPage />} />

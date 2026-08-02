@@ -23,6 +23,7 @@ import type {
   RecipeListQuery,
   RecipeStats,
 } from './types.js'
+import { withRecipeSearchText } from './recipes/recipeSearch.js'
 
 export interface RecipeInput {
   name: string
@@ -31,9 +32,14 @@ export interface RecipeInput {
   preparationMethod: string
   notes: string
   prepTimeMinutes: number
+  ovenTimeMinutes?: number
   yield: string
+  finalWeight?: string
   photoUrl?: string
   status: Recipe['status']
+  temperature?: string
+  chef?: string
+  relatedPopIds?: string[]
 }
 
 function getNextRecipeCode(recipes: Recipe[]): string {
@@ -82,8 +88,15 @@ function normalizeInput(input: RecipeInput): RecipeInput {
     preparationMethod: input.preparationMethod.trim(),
     notes: input.notes.trim(),
     prepTimeMinutes: input.prepTimeMinutes,
+    ...(input.ovenTimeMinutes !== undefined && input.ovenTimeMinutes > 0
+      ? { ovenTimeMinutes: input.ovenTimeMinutes }
+      : {}),
     yield: input.yield.trim(),
+    ...(input.finalWeight?.trim() ? { finalWeight: input.finalWeight.trim() } : {}),
     ...(input.photoUrl?.trim() ? { photoUrl: input.photoUrl.trim() } : {}),
+    ...(input.temperature?.trim() ? { temperature: input.temperature.trim() } : {}),
+    ...(input.chef?.trim() ? { chef: input.chef.trim() } : {}),
+    ...(input.relatedPopIds?.length ? { relatedPopIds: input.relatedPopIds } : {}),
     status: input.status,
   }
 }
@@ -94,9 +107,21 @@ function toRecipe(
   recipeCode: string,
   timestamps: { createdAt: string; updatedAt: string },
   attachments: RecipeAttachment[] = [],
-  meta: Pick<Recipe, 'isFavorite' | 'usageCount' | 'lastViewedAt' | 'lastUsedAt'> = {},
+  meta: Pick<
+    Recipe,
+    | 'isFavorite'
+    | 'usageCount'
+    | 'lastViewedAt'
+    | 'lastUsedAt'
+    | 'temperature'
+    | 'relatedPopIds'
+    | 'photoUrl'
+    | 'ovenTimeMinutes'
+    | 'finalWeight'
+    | 'chef'
+  > = {},
 ): Recipe {
-  return {
+  const base: Recipe = {
     id,
     recipeCode,
     name: input.name,
@@ -105,17 +130,27 @@ function toRecipe(
     preparationMethod: input.preparationMethod,
     notes: input.notes,
     prepTimeMinutes: input.prepTimeMinutes,
+    ...(input.ovenTimeMinutes ? { ovenTimeMinutes: input.ovenTimeMinutes } : meta.ovenTimeMinutes ? { ovenTimeMinutes: meta.ovenTimeMinutes } : {}),
     yield: input.yield,
+    ...(input.finalWeight ? { finalWeight: input.finalWeight } : meta.finalWeight ? { finalWeight: meta.finalWeight } : {}),
     ...(input.photoUrl ? { photoUrl: input.photoUrl } : {}),
+    ...(input.temperature ? { temperature: input.temperature } : {}),
+    ...(input.chef ? { chef: input.chef } : meta.chef ? { chef: meta.chef } : {}),
+    ...(input.relatedPopIds?.length ? { relatedPopIds: input.relatedPopIds } : {}),
     attachments,
     status: input.status,
     isFavorite: meta.isFavorite ?? false,
     usageCount: meta.usageCount ?? 0,
     lastViewedAt: meta.lastViewedAt ?? null,
     lastUsedAt: meta.lastUsedAt ?? null,
+    ...(meta.photoUrl ? { photoUrl: meta.photoUrl } : {}),
+    ...(meta.temperature ? { temperature: meta.temperature } : {}),
+    ...(meta.relatedPopIds?.length ? { relatedPopIds: meta.relatedPopIds } : {}),
     createdAt: timestamps.createdAt,
     updatedAt: timestamps.updatedAt,
   }
+
+  return withRecipeSearchText(base)
 }
 
 export function buildAttachmentFromUpload(file: Express.Multer.File): RecipeAttachment {
@@ -295,6 +330,12 @@ export async function updateRecipe(
       usageCount: existing.usageCount,
       lastViewedAt: existing.lastViewedAt,
       lastUsedAt: existing.lastUsedAt,
+      photoUrl: existing.photoUrl,
+      temperature: existing.temperature,
+      relatedPopIds: existing.relatedPopIds,
+      ovenTimeMinutes: existing.ovenTimeMinutes,
+      finalWeight: existing.finalWeight,
+      chef: existing.chef,
     },
   )
 
@@ -352,4 +393,39 @@ export async function archiveRecipe(id: string, actor?: AuditActor): Promise<Rec
     after: recipe,
   })
   return recipe
+}
+
+export async function duplicateRecipe(id: string, actor?: AuditActor): Promise<Recipe> {
+  const existing = await loadRecipeRecord(id)
+  if (!existing) {
+    throw new Error('Receita não encontrada.')
+  }
+
+  const recipes = await loadAllRecipes()
+  const now = new Date().toISOString()
+  const duplicate: Recipe = {
+    ...existing,
+    id: `rec-${randomUUID()}`,
+    recipeCode: getNextRecipeCode(recipes),
+    name: `${existing.name} (cópia)`,
+    status: 'Ativa',
+    isFavorite: false,
+    usageCount: 0,
+    lastViewedAt: null,
+    lastUsedAt: null,
+    attachments: existing.attachments.map((attachment) => ({ ...attachment })),
+    createdAt: now,
+    updatedAt: now,
+  }
+
+  await saveRecipeRecord(duplicate)
+  emitRealtime({ scope: 'recipes', action: 'created', recipeId: duplicate.id })
+  await safeAudit(actor, {
+    entityType: 'recipe',
+    entityId: duplicate.id,
+    action: 'create',
+    summary: `Receita duplicada a partir de "${existing.name}"`,
+    after: duplicate,
+  })
+  return duplicate
 }

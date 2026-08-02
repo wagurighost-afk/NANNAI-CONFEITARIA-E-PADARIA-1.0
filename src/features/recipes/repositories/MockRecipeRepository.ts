@@ -19,6 +19,7 @@ import type {
 import { buildRecipeAttachmentFromFile } from '@/features/recipes/utils/buildRecipeAttachment'
 import { computeRecipeStatsFromStore, listRecipesFromStore } from '@/features/recipes/utils/recipeListQuery'
 import { getNextRecipeCode } from '@/features/recipes/utils/recipeCode'
+import { buildRecipeSearchText } from '@/features/recipes/utils/recipeSearch'
 
 function delay(ms = 240): Promise<void> {
   return new Promise((resolve) => {
@@ -74,9 +75,9 @@ function toRecipe(
   recipeCode: string,
   timestamps: { createdAt: string; updatedAt: string },
   attachments: RecipeAttachment[] = [],
-  meta: Pick<Recipe, 'isFavorite' | 'usageCount' | 'lastViewedAt' | 'lastUsedAt'> = {},
+  meta: Pick<Recipe, 'isFavorite' | 'usageCount' | 'lastViewedAt' | 'lastUsedAt' | 'temperature' | 'relatedPopIds' | 'photoUrl' | 'ovenTimeMinutes' | 'finalWeight' | 'chef'> = {},
 ): Recipe {
-  return {
+  const recipe: Recipe = {
     id,
     recipeCode,
     name: input.name.trim(),
@@ -85,8 +86,13 @@ function toRecipe(
     preparationMethod: input.preparationMethod.trim(),
     notes: input.notes.trim(),
     prepTimeMinutes: input.prepTimeMinutes,
+    ...(input.ovenTimeMinutes && input.ovenTimeMinutes > 0 ? { ovenTimeMinutes: input.ovenTimeMinutes } : {}),
     yield: input.yield.trim(),
-    ...(input.photoUrl.trim() ? { photoUrl: input.photoUrl.trim() } : {}),
+    ...(input.finalWeight?.trim() ? { finalWeight: input.finalWeight.trim() } : {}),
+    ...(input.photoUrl.trim() ? { photoUrl: input.photoUrl.trim() } : meta.photoUrl ? { photoUrl: meta.photoUrl } : {}),
+    ...(input.temperature?.trim() ? { temperature: input.temperature.trim() } : meta.temperature ? { temperature: meta.temperature } : {}),
+    ...(input.chef?.trim() ? { chef: input.chef.trim() } : meta.chef ? { chef: meta.chef } : {}),
+    ...(input.relatedPopIds?.length ? { relatedPopIds: input.relatedPopIds } : meta.relatedPopIds?.length ? { relatedPopIds: meta.relatedPopIds } : {}),
     attachments,
     status: input.status,
     isFavorite: meta.isFavorite ?? false,
@@ -95,6 +101,11 @@ function toRecipe(
     lastUsedAt: meta.lastUsedAt ?? null,
     createdAt: timestamps.createdAt,
     updatedAt: timestamps.updatedAt,
+  }
+
+  return {
+    ...recipe,
+    searchText: buildRecipeSearchText(recipe),
   }
 }
 
@@ -189,6 +200,12 @@ export class MockRecipeRepository implements RecipeRepository {
       usageCount: existing.usageCount ?? 0,
       lastViewedAt: existing.lastViewedAt ?? null,
       lastUsedAt: existing.lastUsedAt ?? null,
+      ...(existing.photoUrl ? { photoUrl: existing.photoUrl } : {}),
+      ...(existing.temperature ? { temperature: existing.temperature } : {}),
+      ...(existing.relatedPopIds?.length ? { relatedPopIds: existing.relatedPopIds } : {}),
+      ...(existing.ovenTimeMinutes ? { ovenTimeMinutes: existing.ovenTimeMinutes } : {}),
+      ...(existing.finalWeight ? { finalWeight: existing.finalWeight } : {}),
+      ...(existing.chef ? { chef: existing.chef } : {}),
     })
     store[index] = updated
     saveStore()
@@ -244,6 +261,33 @@ export class MockRecipeRepository implements RecipeRepository {
     }
     saveStore()
     return store[index]
+  }
+
+  async duplicate(id: string): Promise<Recipe> {
+    await ensureStore()
+    await delay()
+    const existing = store.find((recipe) => recipe.id === id)
+    if (!existing) {
+      throw new Error('Receita não encontrada.')
+    }
+    const now = new Date().toISOString()
+    const duplicate: Recipe = {
+      ...existing,
+      id: `rec-${crypto.randomUUID()}`,
+      recipeCode: getNextRecipeCode(store.map((r) => r.recipeCode)),
+      name: `${existing.name} (cópia)`,
+      status: 'Ativa',
+      isFavorite: false,
+      usageCount: 0,
+      lastViewedAt: null,
+      lastUsedAt: null,
+      attachments: existing.attachments.map((attachment) => ({ ...attachment })),
+      createdAt: now,
+      updatedAt: now,
+    }
+    store = [duplicate, ...store]
+    saveStore()
+    return duplicate
   }
 
   async addAttachment(recipeId: string, attachment: RecipeAttachment): Promise<Recipe> {

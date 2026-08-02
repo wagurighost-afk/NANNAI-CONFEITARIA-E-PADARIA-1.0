@@ -1,11 +1,13 @@
 import { Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useFieldArray } from 'react-hook-form'
-import { Button, Input, Select, TextArea } from '@/components/ui'
+import { useQuery } from '@tanstack/react-query'
+import { Button, Checkbox, Input, Select, TextArea } from '@/components/ui'
 import { RecipeDocumentUpload } from '@/features/recipes/components/RecipeDocumentUpload'
 import { RECIPE_CATEGORIES, RECIPE_STATUSES } from '@/features/recipes/types/recipe.types'
 import { useRecipeForm } from '@/features/recipes/hooks/useRecipeForm'
 import type { Recipe, RecipeFormSubmitPayload } from '@/features/recipes/types/recipe.types'
+import { popService } from '@/features/pop/services/pop.service'
 
 const CATEGORY_OPTIONS = RECIPE_CATEGORIES.map((c) => ({ value: c, label: c }))
 const STATUS_OPTIONS = RECIPE_STATUSES.map((s) => ({ value: s, label: s }))
@@ -47,9 +49,17 @@ export function RecipeForm({
     register,
     control,
     setValue,
+    watch,
     formState: { errors },
   } = form
   const { fields, append, remove } = useFieldArray({ control, name: 'ingredients' })
+  const relatedPopIds = watch('relatedPopIds')
+
+  const popsQuery = useQuery({
+    queryKey: ['pop', 'list'],
+    queryFn: () => popService.list(),
+    staleTime: 5 * 60_000,
+  })
 
   const existingAttachment =
     recipe && !removeExistingAttachment ? (recipe.attachments[0] ?? null) : null
@@ -131,6 +141,39 @@ export function RecipeForm({
       {!isDocumentMode ? (
         <>
           <Input label="Rendimento" error={errors.yield?.message} {...register('yield')} />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Input
+              label="Tempo de forno (min)"
+              type="number"
+              min="0"
+              error={errors.ovenTimeMinutes?.message}
+              {...register('ovenTimeMinutes', { valueAsNumber: true })}
+            />
+            <Input
+              label="Peso final"
+              placeholder="Ex.: 3,2 kg"
+              error={errors.finalWeight?.message}
+              {...register('finalWeight')}
+            />
+          </div>
+          <Input
+            label="Chef responsável (opcional)"
+            placeholder="Ex.: Chef Ana"
+            error={errors.chef?.message}
+            {...register('chef')}
+          />
+          <Input
+            label="Temperatura (opcional)"
+            placeholder="Ex.: 180°C por 25 min"
+            error={errors.temperature?.message}
+            {...register('temperature')}
+          />
+          <Input
+            label="URL da foto (opcional)"
+            placeholder="https://..."
+            error={errors.photoUrl?.message}
+            {...register('photoUrl')}
+          />
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -193,6 +236,55 @@ export function RecipeForm({
             {...register('preparationMethod')}
           />
         </>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Input
+            label="Chef responsável (opcional)"
+            placeholder="Ex.: Chef Ana"
+            error={errors.chef?.message}
+            {...register('chef')}
+          />
+          <Input
+            label="Temperatura (opcional)"
+            placeholder="Ex.: 180°C"
+            error={errors.temperature?.message}
+            {...register('temperature')}
+          />
+          <Input
+            label="URL da foto (opcional)"
+            placeholder="https://..."
+            error={errors.photoUrl?.message}
+            {...register('photoUrl')}
+          />
+        </div>
+      )}
+
+      {(popsQuery.data?.length ?? 0) > 0 ? (
+        <div className="space-y-2 rounded-xl border border-border p-3">
+          <p className="text-sm font-medium">POPs relacionados (opcional)</p>
+          <div className="space-y-2">
+            {popsQuery.data?.map((pop) => {
+              const checked = relatedPopIds.includes(pop.id)
+              return (
+                <label key={pop.id} className="flex cursor-pointer items-start gap-3 rounded-lg p-2 hover:bg-muted/40">
+                  <Checkbox
+                    checked={checked}
+                    onChange={() => {
+                      const next = checked
+                        ? relatedPopIds.filter((id) => id !== pop.id)
+                        : [...relatedPopIds, pop.id]
+                      setValue('relatedPopIds', next, { shouldDirty: true })
+                    }}
+                  />
+                  <span className="text-sm">
+                    <span className="font-medium text-foreground">{pop.title}</span>
+                    <span className="mt-0.5 block text-muted-foreground">{pop.summary}</span>
+                  </span>
+                </label>
+              )
+            })}
+          </div>
+        </div>
       ) : null}
 
       <TextArea label="Observações (opcional)" rows={2} error={errors.notes?.message} {...register('notes')} />

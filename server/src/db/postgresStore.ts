@@ -5,6 +5,7 @@ import type { DatabaseFile, DatabaseStore } from './types.js'
 import type { BreadControlDay, MonthlySchedule, ProductionDay, Recipe, WasteControlDay } from '../types.js'
 import type { PaginatedRecipes, RecipeListQuery, RecipeStats } from '../types.js'
 import { normalizeRecipeListQuery } from '../recipes/recipeQuery.js'
+import { tokenizeRecipeSearch } from '../recipes/recipeSearch.js'
 
 const { Pool } = pg
 
@@ -374,11 +375,28 @@ export function createPostgresStore(): DatabaseStore {
       let paramIndex = 1
 
       if (normalized.search) {
-        conditions.push(
-          `(payload->>'name' ILIKE $${paramIndex} OR payload->>'recipeCode' ILIKE $${paramIndex})`,
-        )
-        params.push(`%${normalized.search}%`)
-        paramIndex += 1
+        const tokens = tokenizeRecipeSearch(normalized.search)
+        for (const token of tokens) {
+          const pattern = `%${token}%`
+          conditions.push(`(
+            COALESCE(payload->>'searchText', '') ILIKE $${paramIndex}
+            OR payload->>'name' ILIKE $${paramIndex}
+            OR payload->>'recipeCode' ILIKE $${paramIndex}
+            OR payload->>'category' ILIKE $${paramIndex}
+            OR COALESCE(payload->>'chef', '') ILIKE $${paramIndex}
+            OR payload->>'preparationMethod' ILIKE $${paramIndex}
+            OR COALESCE(payload->>'yield', '') ILIKE $${paramIndex}
+            OR COALESCE(payload->>'finalWeight', '') ILIKE $${paramIndex}
+            OR COALESCE(payload->>'notes', '') ILIKE $${paramIndex}
+            OR EXISTS (
+              SELECT 1
+              FROM jsonb_array_elements(COALESCE(payload->'ingredients', '[]'::jsonb)) AS ingredient
+              WHERE ingredient->>'name' ILIKE $${paramIndex}
+            )
+          )`)
+          params.push(pattern)
+          paramIndex += 1
+        }
       }
 
       if (normalized.category !== 'all') {

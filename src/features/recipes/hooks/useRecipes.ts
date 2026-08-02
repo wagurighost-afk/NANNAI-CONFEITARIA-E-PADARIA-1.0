@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { recipesService } from '@/features/recipes/services/recipes.service'
 import type {
@@ -13,15 +13,18 @@ import type { RecipeFormMode } from '@/features/recipes/components/RecipeForm'
 import { isRecipeDocumentPrimary } from '@/features/recipes/utils/isRecipeDocumentPrimary'
 import { useDebouncedValue } from '@/hooks'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { useRecipeSearchHistory } from '@/features/recipes/hooks/useRecipeSearchHistory'
 
 const QUERY_KEY = ['recipes'] as const
 const PAGE_SIZE = 24
+const SEARCH_DEBOUNCE_MS = 150
 
 export function useRecipes() {
   const queryClient = useQueryClient()
   const isCompactList = useMediaQuery('(max-width: 1023px)')
   const [filters, setFiltersState] = useState<RecipeListQuery>(DEFAULT_RECIPE_LIST_QUERY)
-  const debouncedSearch = useDebouncedValue(filters.search, 300)
+  const debouncedSearch = useDebouncedValue(filters.search, SEARCH_DEBOUNCE_MS)
+  const { history, addSearch, removeSearch, clearHistory } = useRecipeSearchHistory()
 
   const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -75,6 +78,16 @@ export function useRecipes() {
   const totalPages = isCompactList
     ? (infiniteQuery.data?.pages[0]?.totalPages ?? 0)
     : (listQuery.data?.totalPages ?? 0)
+
+  const isSearching =
+    filters.search.trim().length > 0 &&
+    (filters.search !== debouncedSearch || (isCompactList ? infiniteQuery.isFetching : listQuery.isFetching))
+
+  useEffect(() => {
+    if (debouncedSearch.trim().length >= 2 && !(isCompactList ? infiniteQuery.isFetching : listQuery.isFetching)) {
+      addSearch(debouncedSearch)
+    }
+  }, [addSearch, debouncedSearch, infiniteQuery.isFetching, isCompactList, listQuery.isFetching])
 
   const selectedRecipeQuery = useQuery({
     queryKey: [...QUERY_KEY, 'detail', selectedRecipeId],
@@ -179,6 +192,10 @@ export function useRecipes() {
     kpis: statsQuery.data ?? { total: 0, active: 0, archived: 0, favorites: 0 },
     isLoading: isCompactList ? infiniteQuery.isLoading : listQuery.isLoading,
     isFetching: isCompactList ? infiniteQuery.isFetching : listQuery.isFetching,
+    isSearching,
+    searchHistory: history,
+    removeSearchHistory: removeSearch,
+    clearSearchHistory: clearHistory,
     isKpisLoading: statsQuery.isLoading,
     hasNextPage: infiniteQuery.hasNextPage,
     isFetchingNextPage: infiniteQuery.isFetchingNextPage,

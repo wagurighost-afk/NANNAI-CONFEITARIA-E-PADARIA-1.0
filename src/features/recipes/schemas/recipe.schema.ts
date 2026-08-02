@@ -16,8 +16,13 @@ export const recipeFormBaseSchema = z.object({
   preparationMethod: z.string().trim(),
   notes: z.string().trim(),
   prepTimeMinutes: z.number().min(0, 'Informe o tempo de preparo.'),
+  ovenTimeMinutes: z.number().min(0),
   yield: z.string().trim(),
+  finalWeight: z.string().trim(),
   photoUrl: z.string().trim(),
+  temperature: z.string().trim(),
+  chef: z.string().trim(),
+  relatedPopIds: z.array(z.string()),
   status: z.enum(RECIPE_STATUSES),
 })
 

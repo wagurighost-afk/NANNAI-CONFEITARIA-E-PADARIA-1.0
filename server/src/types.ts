@@ -197,8 +197,14 @@ export interface Recipe {
   preparationMethod: string
   notes: string
   prepTimeMinutes: number
+  ovenTimeMinutes?: number
   yield: string
+  finalWeight?: string
   photoUrl?: string
+  temperature?: string
+  chef?: string
+  searchText?: string
+  relatedPopIds?: string[]
   attachments: RecipeAttachment[]
   status: RecipeStatus
   isFavorite?: boolean

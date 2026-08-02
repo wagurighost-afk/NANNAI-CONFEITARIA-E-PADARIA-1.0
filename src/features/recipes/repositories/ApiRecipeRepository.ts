@@ -92,6 +92,11 @@ export class ApiRecipeRepository implements RecipeRepository {
     return mapRecipe(data)
   }
 
+  async duplicate(id: string): Promise<Recipe> {
+    const { data } = await apiClient.post<Recipe>(`/recipes/${id}/duplicate`)
+    return mapRecipe(data)
+  }
+
   async toggleFavorite(id: string): Promise<Recipe> {
     const { data } = await apiClient.patch<Recipe>(`/recipes/${id}/favorite`)
     return mapRecipe(data)

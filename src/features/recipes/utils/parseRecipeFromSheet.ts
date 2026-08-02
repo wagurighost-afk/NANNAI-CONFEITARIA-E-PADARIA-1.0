@@ -20,6 +20,7 @@ export interface ParsedRecipeSheet {
   dish?: string
   chef?: string
   category?: string
+  temperature?: string
   sections: RecipeSheetSection[]
 }
 
@@ -46,7 +47,7 @@ function isSectionTitle(row: string[]): string | null {
   return null
 }
 
-function extractMetadata(line: string): Partial<Pick<ParsedRecipeSheet, 'dish' | 'chef' | 'category'>> {
+function extractMetadata(line: string): Partial<Pick<ParsedRecipeSheet, 'dish' | 'chef' | 'category' | 'temperature'>> {
   const normalized = line.trim()
   const dishMatch = normalized.match(/^prato\s*:\s*(.+)$/i)
   if (dishMatch?.[1]) {
@@ -59,6 +60,10 @@ function extractMetadata(line: string): Partial<Pick<ParsedRecipeSheet, 'dish' |
   const chefMatch = normalized.match(/^chef\s*:\s*(.+)$/i)
   if (chefMatch?.[1]) {
     return { chef: chefMatch[1].trim() }
+  }
+  const temperatureMatch = normalized.match(/^temperatura\s*:\s*(.+)$/i)
+  if (temperatureMatch?.[1]) {
+    return { temperature: temperatureMatch[1].trim() }
   }
   if (/^chef\s+/i.test(normalized)) {
     return { chef: normalized.replace(/^chef\s+/i, '').trim() }

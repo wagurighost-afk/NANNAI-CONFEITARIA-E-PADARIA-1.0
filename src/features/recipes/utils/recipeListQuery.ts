@@ -1,12 +1,12 @@
 import type { PaginatedRecipes, Recipe, RecipeListQuery } from '@/features/recipes/types/recipe.types'
+import { recipeMatchesSearch } from '@/features/recipes/utils/recipeSearch'
 
 function recipeUsageCount(recipe: Recipe): number {
   return recipe.usageCount ?? 0
 }
 
 function matchesRecipeQuery(recipe: Recipe, query: RecipeListQuery): boolean {
-  const search = query.search.trim().toLowerCase()
-  if (search && !`${recipe.name} ${recipe.recipeCode}`.toLowerCase().includes(search)) {
+  if (!recipeMatchesSearch(recipe, query.search)) {
     return false
   }
 

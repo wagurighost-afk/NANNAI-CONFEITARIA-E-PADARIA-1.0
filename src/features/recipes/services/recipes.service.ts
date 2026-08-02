@@ -41,6 +41,9 @@ export const recipesService = {
   archive(id: string) {
     return repository.archive(id)
   },
+  duplicate(id: string) {
+    return repository.duplicate(id)
+  },
   toggleFavorite(id: string) {
     return repository.toggleFavorite(id)
   },

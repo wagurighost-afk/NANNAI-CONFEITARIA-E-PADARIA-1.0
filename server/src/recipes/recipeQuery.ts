@@ -1,4 +1,5 @@
 import type { PaginatedRecipes, Recipe, RecipeListQuery, RecipeStats } from '../types.js'
+import { recipeMatchesSearch } from './recipeSearch.js'
 
 const DEFAULT_PAGE_SIZE = 24
 const MAX_PAGE_SIZE = 100
@@ -30,8 +31,7 @@ function recipeIsFavorite(recipe: Recipe): boolean {
 }
 
 export function matchesRecipeQuery(recipe: Recipe, query: ReturnType<typeof normalizeRecipeListQuery>): boolean {
-  const search = query.search.toLowerCase()
-  if (search && !`${recipe.name} ${recipe.recipeCode}`.toLowerCase().includes(search)) {
+  if (!recipeMatchesSearch(recipe, query.search)) {
     return false
   }
 

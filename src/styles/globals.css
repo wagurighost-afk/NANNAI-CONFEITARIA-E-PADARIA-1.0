@@ -189,3 +189,21 @@
     scrollbar-width: thin;
   }
 }
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  #recipe-print-content {
+    width: 100%;
+  }
+
+  #recipe-print-content .recipe-print-area {
+    break-inside: avoid;
+  }
+}

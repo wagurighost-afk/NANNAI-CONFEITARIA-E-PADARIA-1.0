@@ -1,26 +1,23 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
-import { FileText, Plus, ScrollText, Send, Star } from 'lucide-react'
-import { useParams } from 'react-router-dom'
+import { useState } from 'react'
+import { FileText, Plus, ScrollText, Send } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Breadcrumb, PageHeader } from '@/components/common'
 import {
   Button,
   ConfirmDialog,
-  Drawer,
   Modal,
-  Skeleton,
 } from '@/components/ui'
-import { RecipeAttachmentsList } from '@/features/recipes/components/RecipeDocumentViewer'
-import { RecipeForm } from '@/features/recipes/components/RecipeForm'
 import { RecipeFiltersBar } from '@/features/recipes/components/RecipeFiltersBar'
+import { RecipeForm } from '@/features/recipes/components/RecipeForm'
 import { RecipeList } from '@/features/recipes/components/RecipeList'
-import { RecipeReadableView } from '@/features/recipes/components/RecipeReadableView'
 import { SendRecipesToProductionDialog } from '@/features/recipes/components/SendRecipesToProductionDialog'
 import { RecipeKpisSection } from '@/features/recipes/components/RecipeKpis'
 import { useRecipeBatchSelection } from '@/features/recipes/hooks/useRecipeBatchSelection'
 import { useRecipes } from '@/features/recipes/hooks/useRecipes'
 import { sendRecipesToProduction } from '@/features/recipes/services/sendRecipesToProduction'
+import { recipesService } from '@/features/recipes/services/recipes.service'
 import type { RecipeFormSubmitPayload } from '@/features/recipes/types/recipe.types'
 import { resolveRecipeFormValues } from '@/features/recipes/utils/resolveRecipeFormValues'
 import { APP_ROUTES } from '@/core/constants'
@@ -31,7 +28,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks'
 
 export function RecipesPage() {
-  const { recipeId: recipeIdParam } = useParams()
+  const navigate = useNavigate()
   const { user } = useAuth()
   const { hasPermission } = usePermission()
   const canManage = hasPermission('recipes:manage') || canManageOperationalData(user)
@@ -53,15 +50,16 @@ export function RecipesPage() {
     isFetchingNextPage,
     fetchNextPage,
     isCompactList,
+    isSearching,
+    searchHistory,
+    removeSearchHistory,
+    clearSearchHistory,
     filters,
     setFilters,
     setSearch,
     setQuickFilter,
     setSortBy,
     toggleSortOrder,
-    selectedRecipe,
-    isSelectedRecipeLoading,
-    selectRecipe,
     isFormOpen,
     isCreateChoiceOpen,
     formMode,
@@ -69,19 +67,13 @@ export function RecipesPage() {
     openCreateChoice,
     closeCreateChoice,
     openCreateForm,
-    openEditForm,
     closeForm,
     recipePendingDelete,
-    requestDelete,
     cancelDelete,
     confirmDelete,
     saveRecipe,
-    archiveRecipe,
-    toggleFavorite,
     isSaving,
     isDeleting,
-    isArchiving,
-    isTogglingFavorite,
   } = useRecipes()
 
   const {
@@ -94,14 +86,6 @@ export function RecipesPage() {
     selectAllVisible,
     isSelected,
   } = useRecipeBatchSelection(recipes)
-
-  const drawerOpen = Boolean(selectedRecipe) || isSelectedRecipeLoading
-
-  useEffect(() => {
-    if (recipeIdParam) {
-      selectRecipe(recipeIdParam)
-    }
-  }, [recipeIdParam, selectRecipe])
 
   const handleSubmit = async (payload: RecipeFormSubmitPayload) => {
     const hasExistingAttachment =
@@ -147,7 +131,7 @@ export function RecipesPage() {
         variant: 'success',
       })
       closeForm()
-      selectRecipe(saved.id)
+      navigate(`${APP_ROUTES.recipes}/${saved.id}`)
     } catch (error: unknown) {
       push({ title: 'Erro', description: getErrorMessage(error), variant: 'danger' })
     }
@@ -195,7 +179,12 @@ export function RecipesPage() {
       <RecipeFiltersBar
         filters={filters}
         total={total}
+        isSearching={isSearching}
+        searchHistory={searchHistory}
         onSearchChange={setSearch}
+        onSelectSearchHistory={setSearch}
+        onRemoveSearchHistory={removeSearchHistory}
+        onClearSearchHistory={clearSearchHistory}
         onQuickFilterChange={setQuickFilter}
         onCategoryChange={(category) => setFilters({ category, page: 1 })}
         onSortByChange={setSortBy}
@@ -243,128 +232,14 @@ export function RecipesPage() {
         onLoadMore={() => void fetchNextPage()}
         selectionMode={selectionMode}
         isSelected={isSelected}
-        onRecipeClick={(recipe) => selectRecipe(recipe.id)}
+        onRecipeClick={(recipe) => navigate(`${APP_ROUTES.recipes}/${recipe.id}`)}
         onToggleSelection={toggleRecipe}
-        onToggleFavorite={(recipe) => void toggleFavorite(recipe.id)}
+        onToggleFavorite={(recipe) => {
+          void recipesService.toggleFavorite(recipe.id).then(() => {
+            void queryClient.invalidateQueries({ queryKey: ['recipes'] })
+          })
+        }}
       />
-
-      <Drawer
-        open={drawerOpen}
-        onClose={() => selectRecipe(null)}
-        title={selectedRecipe?.name ?? 'Carregando receita...'}
-        description={selectedRecipe?.recipeCode}
-        size={selectedRecipe?.attachments.length ? 'full' : 'lg'}
-      >
-        {isSelectedRecipeLoading && !selectedRecipe ? (
-          <div className="space-y-3">
-            <Skeleton variant="rectangular" height={120} />
-            <Skeleton variant="rectangular" height={280} />
-          </div>
-        ) : null}
-        {selectedRecipe ? (
-          <div className="space-y-6">
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                isLoading={isTogglingFavorite}
-                onClick={async () => {
-                  await toggleFavorite(selectedRecipe.id)
-                  push({
-                    title: selectedRecipe.isFavorite ? 'Removida dos favoritos' : 'Adicionada aos favoritos',
-                    variant: 'success',
-                  })
-                }}
-              >
-                <Star className={selectedRecipe.isFavorite ? 'size-4 fill-accent text-accent' : 'size-4'} />
-                {selectedRecipe.isFavorite ? 'Favorita' : 'Favoritar'}
-              </Button>
-            </div>
-
-            {selectedRecipe.attachments.length > 0 ? (
-              <div>
-                <p className="mb-3 text-sm font-medium">Ficha técnica</p>
-                <RecipeAttachmentsList attachments={selectedRecipe.attachments} />
-              </div>
-            ) : (
-              <RecipeReadableView recipe={selectedRecipe} />
-            )}
-
-            {selectedRecipe.attachments.length > 0 ? (
-              <>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-xl border border-border p-3 text-sm">
-                    <p className="text-muted-foreground">Categoria</p>
-                    <p className="font-medium">{selectedRecipe.category}</p>
-                  </div>
-                  <div className="rounded-xl border border-border p-3 text-sm">
-                    <p className="text-muted-foreground">Status</p>
-                    <p className="font-medium">{selectedRecipe.status}</p>
-                  </div>
-                </div>
-
-                {selectedRecipe.preparationMethod ? (
-                  <div>
-                    <p className="mb-2 text-sm font-medium">Modo de preparo</p>
-                    <p className="whitespace-pre-wrap text-sm text-muted-foreground">
-                      {selectedRecipe.preparationMethod}
-                    </p>
-                  </div>
-                ) : null}
-
-                {selectedRecipe.ingredients.length > 0 ? (
-                  <div>
-                    <p className="mb-2 text-sm font-medium">Ingredientes</p>
-                    <ul className="space-y-1 text-sm">
-                      {selectedRecipe.ingredients.map((ingredient, index) => (
-                        <li key={index} className="rounded-lg border border-border px-3 py-2">
-                          {ingredient.quantity} {ingredient.unit} — {ingredient.name}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
-
-                {selectedRecipe.notes ? (
-                  <div>
-                    <p className="mb-2 text-sm font-medium">Observações</p>
-                    <p className="text-sm text-muted-foreground">{selectedRecipe.notes}</p>
-                  </div>
-                ) : null}
-              </>
-            ) : null}
-
-            {canManage ? (
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    selectRecipe(null)
-                    openEditForm(selectedRecipe)
-                  }}
-                >
-                  Editar
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  isLoading={isArchiving}
-                  onClick={async () => {
-                    await archiveRecipe(selectedRecipe.id)
-                    push({ title: 'Receita arquivada', variant: 'success' })
-                  }}
-                >
-                  Arquivar
-                </Button>
-                <Button variant="danger" size="sm" onClick={() => requestDelete(selectedRecipe)}>
-                  Remover
-                </Button>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-      </Drawer>
 
       <Modal
         open={isCreateChoiceOpen}

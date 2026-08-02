@@ -1,11 +1,14 @@
 import { Archive, Clock, Search, Star } from 'lucide-react'
-import { SearchInput, Select } from '@/components/ui'
+import { Select } from '@/components/ui'
+import { RecipeSearchField } from '@/features/recipes/components/RecipeSearchField'
 import {
   RECIPE_CATEGORIES,
+  RECIPE_CATEGORY_QUICK_FILTERS,
   RECIPE_QUICK_FILTERS,
   RECIPE_SORT_OPTIONS,
 } from '@/features/recipes/types/recipe.types'
-import type { RecipeListQuery, RecipeQuickFilter, RecipeSortBy } from '@/features/recipes/types/recipe.types'
+import type { RecipeCategory, RecipeListQuery, RecipeQuickFilter, RecipeSortBy } from '@/features/recipes/types/recipe.types'
+import { RECIPE_SEARCH_HINT } from '@/features/recipes/utils/recipeSearch'
 import { cn } from '@/utils/cn'
 
 const QUICK_FILTER_ICONS: Record<RecipeQuickFilter, typeof Star> = {
@@ -18,7 +21,12 @@ const QUICK_FILTER_ICONS: Record<RecipeQuickFilter, typeof Star> = {
 interface RecipeFiltersBarProps {
   filters: RecipeListQuery
   total: number
+  isSearching?: boolean
+  searchHistory: string[]
   onSearchChange: (value: string) => void
+  onSelectSearchHistory: (value: string) => void
+  onRemoveSearchHistory: (value: string) => void
+  onClearSearchHistory: () => void
   onQuickFilterChange: (value: RecipeQuickFilter) => void
   onCategoryChange: (value: RecipeListQuery['category']) => void
   onSortByChange: (value: RecipeSortBy) => void
@@ -28,7 +36,12 @@ interface RecipeFiltersBarProps {
 export function RecipeFiltersBar({
   filters,
   total,
+  isSearching = false,
+  searchHistory,
   onSearchChange,
+  onSelectSearchHistory,
+  onRemoveSearchHistory,
+  onClearSearchHistory,
   onQuickFilterChange,
   onCategoryChange,
   onSortByChange,
@@ -36,13 +49,17 @@ export function RecipeFiltersBar({
 }: RecipeFiltersBarProps) {
   return (
     <div className="mb-6 space-y-4">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-        <SearchInput
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start">
+        <RecipeSearchField
           className="lg:flex-1"
-          placeholder="Buscar por nome ou código..."
           value={filters.search}
-          onChange={(e) => onSearchChange(e.target.value)}
+          onChange={onSearchChange}
           onClear={() => onSearchChange('')}
+          history={searchHistory}
+          onSelectHistory={onSelectSearchHistory}
+          onRemoveHistory={onRemoveSearchHistory}
+          onClearHistory={onClearSearchHistory}
+          isSearching={isSearching}
         />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:flex lg:gap-3">
           <Select
@@ -66,27 +83,68 @@ export function RecipeFiltersBar({
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {RECIPE_QUICK_FILTERS.map((option) => {
-          const Icon = QUICK_FILTER_ICONS[option.value]
-          const isActive = filters.quickFilter === option.value
-          return (
-            <button
-              key={option.value}
-              type="button"
-              className={cn(
-                'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition',
-                isActive
-                  ? 'border-accent bg-accent/10 text-accent'
-                  : 'border-border bg-surface-elevated text-muted-foreground hover:bg-muted/50',
-              )}
-              onClick={() => onQuickFilterChange(option.value)}
-            >
-              <Icon className="size-3.5" />
-              {option.label}
-            </button>
-          )
-        })}
+      <p className="text-xs text-muted-foreground">{RECIPE_SEARCH_HINT}</p>
+
+      <div className="space-y-2">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Filtros rápidos</p>
+        <div className="flex flex-wrap gap-2">
+          {RECIPE_QUICK_FILTERS.map((option) => {
+            const Icon = QUICK_FILTER_ICONS[option.value]
+            const isActive = filters.quickFilter === option.value
+            return (
+              <button
+                key={option.value}
+                type="button"
+                className={cn(
+                  'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition',
+                  isActive
+                    ? 'border-accent bg-accent/10 text-accent'
+                    : 'border-border bg-surface-elevated text-muted-foreground hover:bg-muted/50',
+                )}
+                onClick={() => onQuickFilterChange(option.value)}
+              >
+                <Icon className="size-3.5" />
+                {option.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Categorias</p>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            className={cn(
+              'rounded-full border px-3 py-1.5 text-sm font-medium transition',
+              filters.category === 'all'
+                ? 'border-accent bg-accent/10 text-accent'
+                : 'border-border bg-surface-elevated text-muted-foreground hover:bg-muted/50',
+            )}
+            onClick={() => onCategoryChange('all')}
+          >
+            Todas
+          </button>
+          {RECIPE_CATEGORY_QUICK_FILTERS.map((category) => {
+            const isActive = filters.category === category
+            return (
+              <button
+                key={category}
+                type="button"
+                className={cn(
+                  'rounded-full border px-3 py-1.5 text-sm font-medium transition',
+                  isActive
+                    ? 'border-accent bg-accent/10 text-accent'
+                    : 'border-border bg-surface-elevated text-muted-foreground hover:bg-muted/50',
+                )}
+                onClick={() => onCategoryChange(isActive ? 'all' : (category as RecipeCategory))}
+              >
+                {category}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       <p className="text-sm text-muted-foreground">

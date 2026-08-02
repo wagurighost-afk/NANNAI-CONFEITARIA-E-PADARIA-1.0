@@ -7,6 +7,7 @@ import { requireAuth, requireManager } from '../middleware.js'
 import {
   archiveRecipe,
   createRecipe,
+  duplicateRecipe,
   getRecipeById,
   getRecipesStats,
   listRecipesPage,
@@ -114,5 +115,14 @@ recipesRouter.patch('/:id/archive', requireManager, async (req: AuthedRequest, r
     res.json(recipe)
   } catch (error) {
     res.status(404).json({ message: error instanceof Error ? error.message : 'Erro ao arquivar.' })
+  }
+})
+
+recipesRouter.post('/:id/duplicate', requireManager, async (req: AuthedRequest, res) => {
+  try {
+    const recipe = await duplicateRecipe(req.params.id, toAuditActor(req.user!))
+    res.status(201).json(recipe)
+  } catch (error) {
+    res.status(404).json({ message: error instanceof Error ? error.message : 'Erro ao duplicar.' })
   }
 })
