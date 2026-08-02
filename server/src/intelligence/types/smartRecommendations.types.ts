@@ -1,0 +1,48 @@
+/**
+ * Tipos do motor de Recomendações Inteligentes.
+ * @module intelligence/types/smartRecommendations
+ */
+
+import type { IntelligencePeriod } from '../types.js'
+
+export type SmartRecommendationPriority = 'critico' | 'alto' | 'medio' | 'baixo'
+
+export type SmartRecommendationAction =
+  | 'reduzir_producao'
+  | 'aumentar_producao'
+  | 'redistribuir_tarefas'
+  | 'solicitar_reposicao'
+  | 'revisar_receita'
+
+export type SmartRecommendationDomain =
+  | 'production'
+  | 'waste'
+  | 'bread'
+  | 'recipes'
+  | 'employees'
+
+export interface SmartRecommendationEvidence {
+  label: string
+  value: string | number
+}
+
+export interface SmartRecommendation {
+  id: string
+  action: SmartRecommendationAction
+  priority: SmartRecommendationPriority
+  title: string
+  description: string
+  reason: string
+  expectedImpact: string
+  domain: SmartRecommendationDomain
+  period: IntelligencePeriod
+  createdAt: string
+  evidence: SmartRecommendationEvidence[]
+}
+
+export interface SmartRecommendationsReport {
+  period: IntelligencePeriod
+  generatedAt: string
+  recommendations: SmartRecommendation[]
+  summary: Record<SmartRecommendationPriority, number>
+}

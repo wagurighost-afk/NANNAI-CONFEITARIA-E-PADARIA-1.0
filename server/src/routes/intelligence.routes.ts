@@ -13,8 +13,10 @@ import {
   getIntelligenceInsightsReport,
   getOperationalKpis,
   getIntelligenceRecommendations,
+  getIntelligenceRecommendationsReport,
   getIntelligenceTrends,
   getSmartInsightsReport,
+  getSmartRecommendationsReport,
   refreshIntelligenceData,
 } from '../intelligence/services/intelligence.service.js'
 import type { IntelligenceMetricKey } from '../intelligence/types.js'
@@ -48,7 +50,7 @@ intelligenceRouter.get('/health', (req: AuthedRequest, res) => {
     status: 'ok',
     module: 'intelligence',
     version: '1.0.0',
-    capabilities: ['kpis', 'operational-kpis', 'smart-insights', 'insights', 'recommendations', 'trends', 'dashboard', 'refresh'],
+    capabilities: ['kpis', 'operational-kpis', 'smart-insights', 'insights', 'smart-recommendations', 'recommendations', 'trends', 'dashboard', 'refresh'],
   })
 })
 
@@ -220,11 +222,30 @@ intelligenceRouter.get('/recommendations', async (req: AuthedRequest, res) => {
 
   try {
     const period = parsePeriod(req)
-    const limit = normalizeLimit(Number(req.query.limit))
-    res.json(await getIntelligenceRecommendations(period, limit))
+    const limit = req.query.limit !== undefined ? normalizeLimit(Number(req.query.limit)) : undefined
+    if (limit !== undefined) {
+      res.json(await getIntelligenceRecommendations(period, limit))
+      return
+    }
+    res.json(await getIntelligenceRecommendationsReport(period))
   } catch (error) {
     res.status(500).json({
       message: error instanceof Error ? error.message : 'Falha ao carregar recomendações.',
+    })
+  }
+})
+
+intelligenceRouter.get('/recommendations/smart', async (req: AuthedRequest, res) => {
+  if (!assertIntelligenceAccess(req, res)) {
+    return
+  }
+
+  try {
+    const period = parsePeriod(req)
+    res.json(await getSmartRecommendationsReport(period))
+  } catch (error) {
+    res.status(500).json({
+      message: error instanceof Error ? error.message : 'Falha ao carregar recomendações inteligentes.',
     })
   }
 })

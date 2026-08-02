@@ -80,7 +80,8 @@ export interface IntelligenceDashboard {
   operationalKpis: import('@/features/intelligence/types/operationalKpis.types').OperationalKpisReport
   smartInsights: import('@/features/intelligence/types/smartInsights.types').SmartInsightsReport
   insights: import('@/features/intelligence/types/smartInsights.types').SmartInsight[]
-  recommendations: IntelligenceRecommendation[]
+  smartRecommendations: import('@/features/intelligence/types/smartRecommendations.types').SmartRecommendationsReport
+  recommendations: import('@/features/intelligence/types/smartRecommendations.types').SmartRecommendation[]
   trends: IntelligenceTrend[]
 }
 

@@ -88,7 +88,9 @@ export interface IntelligenceDashboard {
   smartInsights: import('./types/smartInsights.types.js').SmartInsightsReport
   /** Lista plana de insights (atalho de smartInsights.insights) */
   insights: import('./types/smartInsights.types.js').SmartInsight[]
-  recommendations: IntelligenceRecommendation[]
+  smartRecommendations: import('./types/smartRecommendations.types.js').SmartRecommendationsReport
+  /** Lista plana de recomendações (atalho de smartRecommendations.recommendations) */
+  recommendations: import('./types/smartRecommendations.types.js').SmartRecommendation[]
   trends: IntelligenceTrend[]
 }
 

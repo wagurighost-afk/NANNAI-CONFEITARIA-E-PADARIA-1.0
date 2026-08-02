@@ -116,12 +116,21 @@ export function useIntelligenceInsights(params: IntelligenceQueryParams) {
   })
 }
 
+export function useSmartRecommendationsReport(params: Pick<IntelligenceQueryParams, 'year' | 'month'>) {
+  return useQuery({
+    queryKey: INTELLIGENCE_QUERY_KEYS.smartRecommendations(params),
+    queryFn: () => intelligenceService.getSmartRecommendationsReport(params),
+    enabled: Boolean(params.year && params.month),
+    staleTime: 1000 * 60 * 2,
+  })
+}
+
 export function useIntelligenceRecommendations(params: IntelligenceQueryParams) {
   const safeParams = withDefaultLimit(params)
 
   return useQuery({
     queryKey: INTELLIGENCE_QUERY_KEYS.recommendations(safeParams),
-    queryFn: () => intelligenceService.getRecommendations(safeParams),
+    queryFn: () => intelligenceService.getRecommendationsList(safeParams),
     enabled: Boolean(params.year && params.month),
     staleTime: 1000 * 60 * 2,
   })

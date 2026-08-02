@@ -8,7 +8,6 @@ import type {
   IntelligenceDashboard,
   IntelligenceHealth,
   IntelligenceQueryParams,
-  IntelligenceRecommendation,
   IntelligenceRefreshResult,
   IntelligenceTrend,
 } from '@/features/intelligence/types/intelligence.types'
@@ -24,6 +23,10 @@ import type {
   SmartInsight,
   SmartInsightsReport,
 } from '@/features/intelligence/types/smartInsights.types'
+import type {
+  SmartRecommendation,
+  SmartRecommendationsReport,
+} from '@/features/intelligence/types/smartRecommendations.types'
 
 function buildQuery(params: IntelligenceQueryParams): Record<string, string | number> {
   const query: Record<string, string | number> = {
@@ -131,8 +134,29 @@ export const intelligenceService = {
     return data
   },
 
-  async getRecommendations(params: IntelligenceQueryParams): Promise<IntelligenceRecommendation[]> {
-    const { data } = await apiClient.get<IntelligenceRecommendation[]>('/intelligence/recommendations', {
+  async getSmartRecommendationsReport(
+    params: Pick<IntelligenceQueryParams, 'year' | 'month'>,
+  ): Promise<SmartRecommendationsReport> {
+    const { data } = await apiClient.get<SmartRecommendationsReport>('/intelligence/recommendations/smart', {
+      params: buildPeriodQuery(params),
+    })
+    return data
+  },
+
+  async getRecommendations(params: IntelligenceQueryParams): Promise<SmartRecommendation[] | SmartRecommendationsReport> {
+    const query = buildQuery(params)
+    if (params.limit !== undefined) {
+      const { data } = await apiClient.get<SmartRecommendation[]>('/intelligence/recommendations', { params: query })
+      return data
+    }
+    const { data } = await apiClient.get<SmartRecommendationsReport>('/intelligence/recommendations', {
+      params: { year: params.year, month: params.month },
+    })
+    return data
+  },
+
+  async getRecommendationsList(params: IntelligenceQueryParams): Promise<SmartRecommendation[]> {
+    const { data } = await apiClient.get<SmartRecommendation[]>('/intelligence/recommendations', {
       params: buildQuery(params),
     })
     return data
