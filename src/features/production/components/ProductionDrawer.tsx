@@ -34,7 +34,7 @@ export interface ProductionDrawerProps {
   onItemStatusChange?: (itemId: string, status: ProductionItemStatus) => void
   onReorder?: (itemIds: string[]) => void
   onAddComment?: (input: ShiftCommentSubmitInput) => Promise<void>
-  onCreateLabel?: (itemId: string) => void
+  onCreateLabel?: (itemId: string) => void | Promise<void>
   canPrintLabels?: boolean
 }
 
@@ -161,7 +161,9 @@ export function ProductionDrawer({
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => onCreateLabel?.(item.id)}
+                          onClick={() => {
+                            void onCreateLabel?.(item.id)
+                          }}
                         >
                           <Tags className="size-4" />
                           Etiqueta

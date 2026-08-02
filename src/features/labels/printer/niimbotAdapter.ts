@@ -5,12 +5,16 @@ import type { LabelPrinterAdapter, LabelPrintPayload } from '@/features/labels/p
  * Adaptador preparado para integração futura com impressoras NIIMBOT via Bluetooth ou SDK oficial.
  * Hoje registra o payload estruturado e sinaliza indisponibilidade até a conexão ser implementada.
  */
+/**
+ * NIIMBOT adapters remain registered for future wiring but report unavailable
+ * so they do not appear in the printer selector until a real connection exists.
+ */
 export const niimbotBluetoothAdapter: LabelPrinterAdapter = {
   id: 'niimbot-bluetooth',
   name: 'NIIMBOT (Bluetooth)',
   description: 'Integração Bluetooth com impressoras NIIMBOT — em preparação.',
   isAvailable() {
-    return typeof navigator !== 'undefined' && 'bluetooth' in navigator
+    return false
   },
   async connect() {
     throw new Error('Integração NIIMBOT Bluetooth ainda não configurada neste ambiente.')

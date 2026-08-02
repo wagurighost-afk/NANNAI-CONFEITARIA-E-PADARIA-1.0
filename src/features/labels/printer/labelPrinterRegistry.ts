@@ -8,8 +8,14 @@ const adapters: LabelPrinterAdapter[] = [
   niimbotSdkAdapter,
 ]
 
-export function listLabelPrinterAdapters(): LabelPrinterAdapter[] {
+/** All registered adapters (including unavailable stubs). */
+export function listAllLabelPrinterAdapters(): LabelPrinterAdapter[] {
   return adapters
+}
+
+/** Adapters currently usable for printing. NIIMBOT stubs stay hidden until ready. */
+export function listLabelPrinterAdapters(): LabelPrinterAdapter[] {
+  return adapters.filter((adapter) => adapter.isAvailable())
 }
 
 export function getLabelPrinterAdapter(id: string): LabelPrinterAdapter | undefined {
@@ -17,5 +23,5 @@ export function getLabelPrinterAdapter(id: string): LabelPrinterAdapter | undefi
 }
 
 export function getDefaultLabelPrinterAdapter(): LabelPrinterAdapter {
-  return browserPrintAdapter
+  return listLabelPrinterAdapters()[0] ?? browserPrintAdapter
 }

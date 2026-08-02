@@ -5,6 +5,7 @@ import { Button, ConfirmDialog, Modal, Skeleton } from '@/components/ui'
 import { LabelPrintDialogContent } from '@/features/labels/components/LabelPrintDialog'
 import { buildLabelDraftFromProduction } from '@/features/labels/utils/buildLabelFromProduction'
 import type { CreateLabelInput } from '@/features/labels/types/label.types'
+import { recipesService } from '@/features/recipes/services/recipes.service'
 import { EMPLOYEES_MOCK } from '@/features/employees/mocks/employees.mock'
 import { DuplicateProductionDialog } from '@/features/production/components/DuplicateProductionDialog'
 import { ProductionCard } from '@/features/production/components/ProductionCard'
@@ -72,7 +73,7 @@ export function ProductionPage() {
     name: e.name,
   }))
 
-  const openLabelDialog = (itemId: string) => {
+  const openLabelDialog = async (itemId: string) => {
     if (!selectedProduction) {
       return
     }
@@ -80,10 +81,21 @@ export function ProductionPage() {
     if (!item) {
       return
     }
+
+    let recipe = null
+    if (item.recipeId) {
+      try {
+        recipe = await recipesService.getById(item.recipeId)
+      } catch {
+        recipe = null
+      }
+    }
+
     setLabelDraft(
       buildLabelDraftFromProduction({
         production: selectedProduction,
         item,
+        recipe,
         responsibleName: user?.name ?? selectedProduction.employeeName,
       }),
     )
@@ -252,7 +264,7 @@ export function ProductionPage() {
               status,
             })
             if (status === 'Concluído' && canPrintLabels) {
-              openLabelDialog(itemId)
+              void openLabelDialog(itemId)
             }
           } catch (error: unknown) {
             push({
