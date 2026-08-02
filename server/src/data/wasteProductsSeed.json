@@ -5,6 +5,7 @@
     "unit": "KG",
     "unitPrice": 0.92,
     "buffets": [
+      "cafe",
       "jantar"
     ],
     "sector": "Confeitaria"
@@ -57,6 +58,7 @@
     "unit": "KG",
     "unitPrice": 2.6,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -68,6 +70,7 @@
     "unit": "KG",
     "unitPrice": 1.19,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -154,6 +157,7 @@
     "unit": "KG",
     "unitPrice": 0.98,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Confeitaria"
@@ -164,6 +168,7 @@
     "unit": "KG",
     "unitPrice": 1.8,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -205,6 +210,7 @@
     "unit": "KG",
     "unitPrice": 0.8,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Confeitaria"
@@ -330,6 +336,7 @@
     "unit": "KG",
     "unitPrice": 0.98,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -374,6 +381,7 @@
     "unit": "KG",
     "unitPrice": 0.89,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -546,6 +554,7 @@
     "unit": "KG",
     "unitPrice": 0.98,
     "buffets": [
+      "cafe",
       "jantar"
     ],
     "sector": "Confeitaria"
@@ -691,6 +700,7 @@
     "unit": "KG",
     "unitPrice": 1.25,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -702,6 +712,7 @@
     "unit": "KG",
     "unitPrice": 1.13,
     "buffets": [
+      "cafe",
       "jantar"
     ],
     "sector": "Confeitaria"
@@ -744,6 +755,7 @@
     "unit": "KG",
     "unitPrice": 1.8,
     "buffets": [
+      "cafe",
       "jantar"
     ],
     "sector": "Confeitaria"
@@ -775,6 +787,7 @@
     "unit": "KG",
     "unitPrice": 1.4,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Padaria"
@@ -785,6 +798,7 @@
     "unit": "KG",
     "unitPrice": 1.4,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -796,6 +810,7 @@
     "unit": "KG",
     "unitPrice": 1.55,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -807,6 +822,7 @@
     "unit": "KG",
     "unitPrice": 1.7,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Padaria"
@@ -817,6 +833,7 @@
     "unit": "KG",
     "unitPrice": 1.85,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -828,6 +845,7 @@
     "unit": "KG",
     "unitPrice": 1.15,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -890,6 +908,7 @@
     "unit": "KG",
     "unitPrice": 1.4,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Confeitaria"
@@ -921,6 +940,7 @@
     "unit": "KG",
     "unitPrice": 1.4,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Confeitaria"
@@ -951,6 +971,7 @@
     "unit": "KG",
     "unitPrice": 0.98,
     "buffets": [
+      "cafe",
       "jantar"
     ],
     "sector": "Confeitaria"
@@ -1001,6 +1022,7 @@
     "unit": "KG",
     "unitPrice": 1.8,
     "buffets": [
+      "cafe",
       "jantar"
     ],
     "sector": "Confeitaria"
@@ -1106,6 +1128,7 @@
     "unit": "KG",
     "unitPrice": 0.8,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1117,6 +1140,7 @@
     "unit": "KG",
     "unitPrice": 0.5,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Padaria"
@@ -1127,6 +1151,7 @@
     "unit": "KG",
     "unitPrice": 0.6,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1138,6 +1163,7 @@
     "unit": "KG",
     "unitPrice": 0.85,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1149,6 +1175,7 @@
     "unit": "KG",
     "unitPrice": 1.6,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Padaria"
@@ -1159,6 +1186,7 @@
     "unit": "KG",
     "unitPrice": 1.45,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Padaria"
@@ -1169,6 +1197,7 @@
     "unit": "KG",
     "unitPrice": 0.95,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Confeitaria"
@@ -1179,6 +1208,7 @@
     "unit": "KG",
     "unitPrice": 0.8,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1190,6 +1220,7 @@
     "unit": "KG",
     "unitPrice": 0.85,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Padaria"
@@ -1200,6 +1231,7 @@
     "unit": "KG",
     "unitPrice": 0.65,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1211,6 +1243,7 @@
     "unit": "KG",
     "unitPrice": 1.8,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Padaria"
@@ -1221,6 +1254,7 @@
     "unit": "KG",
     "unitPrice": 0.75,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1232,6 +1266,7 @@
     "unit": "KG",
     "unitPrice": 0.8,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Padaria"
@@ -1242,6 +1277,7 @@
     "unit": "KG",
     "unitPrice": 0.45,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1253,6 +1289,7 @@
     "unit": "KG",
     "unitPrice": 0.7,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Padaria"
@@ -1263,6 +1300,7 @@
     "unit": "KG",
     "unitPrice": 0.8,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1274,6 +1312,7 @@
     "unit": "KG",
     "unitPrice": 0.4,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1285,6 +1324,7 @@
     "unit": "KG",
     "unitPrice": 0.45,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1296,6 +1336,7 @@
     "unit": "KG",
     "unitPrice": 0.6,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1307,6 +1348,7 @@
     "unit": "KG",
     "unitPrice": 1.35,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1318,6 +1360,7 @@
     "unit": "KG",
     "unitPrice": 1.1,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1329,6 +1372,7 @@
     "unit": "KG",
     "unitPrice": 1.55,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Confeitaria"
@@ -1339,6 +1383,7 @@
     "unit": "KG",
     "unitPrice": 1.8,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Confeitaria"
@@ -1349,6 +1394,7 @@
     "unit": "KG",
     "unitPrice": 1.8,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Confeitaria"
@@ -1359,6 +1405,7 @@
     "unit": "KG",
     "unitPrice": 0.8,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Padaria"
@@ -1369,6 +1416,7 @@
     "unit": "KG",
     "unitPrice": 0.4,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1605,6 +1653,7 @@
     "unit": "KG",
     "unitPrice": 2.6,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1616,6 +1665,7 @@
     "unit": "KG",
     "unitPrice": 1.89,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1649,6 +1699,7 @@
     "unit": "KG",
     "unitPrice": 3.0,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1660,6 +1711,7 @@
     "unit": "KG",
     "unitPrice": 3.0,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1671,6 +1723,7 @@
     "unit": "KG",
     "unitPrice": 2.8,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1682,6 +1735,7 @@
     "unit": "KG",
     "unitPrice": 0.8,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1693,6 +1747,7 @@
     "unit": "KG",
     "unitPrice": 0.65,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Padaria"
@@ -1703,6 +1758,7 @@
     "unit": "KG",
     "unitPrice": 0.65,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1714,6 +1770,7 @@
     "unit": "KG",
     "unitPrice": 3.8,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1755,6 +1812,7 @@
     "unit": "KG",
     "unitPrice": 1.2,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Confeitaria"
@@ -1765,6 +1823,7 @@
     "unit": "KG",
     "unitPrice": 1.2,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Confeitaria"
@@ -1806,6 +1865,7 @@
     "unit": "KG",
     "unitPrice": 1.8,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Confeitaria"
@@ -1816,6 +1876,7 @@
     "unit": "KG",
     "unitPrice": 1.8,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Confeitaria"
@@ -1826,6 +1887,7 @@
     "unit": "KG",
     "unitPrice": 1.8,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Confeitaria"
@@ -1901,6 +1963,7 @@
     "unit": "KG",
     "unitPrice": 1.98,
     "buffets": [
+      "cafe",
       "cha"
     ],
     "sector": "Confeitaria"
@@ -1911,6 +1974,7 @@
     "unit": "KG",
     "unitPrice": 1.69,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1922,6 +1986,7 @@
     "unit": "KG",
     "unitPrice": 1.69,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1966,6 +2031,7 @@
     "unit": "KG",
     "unitPrice": 1.69,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -1977,6 +2043,7 @@
     "unit": "KG",
     "unitPrice": 1.69,
     "buffets": [
+      "cafe",
       "cha",
       "jantar"
     ],
@@ -2096,6 +2163,7 @@
     "unit": "KG",
     "unitPrice": 1.6,
     "buffets": [
+      "cafe",
       "jantar"
     ],
     "sector": "Confeitaria"

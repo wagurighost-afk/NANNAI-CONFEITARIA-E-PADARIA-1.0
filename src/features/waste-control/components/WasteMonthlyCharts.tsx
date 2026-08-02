@@ -29,6 +29,7 @@ export function WasteMonthlyCharts({ summary }: WasteMonthlyChartsProps) {
   ]
 
   const buffetData = [
+    { name: WASTE_BUFFET_LABELS.cafe, total: summary.buffetTotals.cafe },
     { name: WASTE_BUFFET_LABELS.cha, total: summary.buffetTotals.cha },
     { name: WASTE_BUFFET_LABELS.jantar, total: summary.buffetTotals.jantar },
   ]
@@ -39,10 +40,12 @@ export function WasteMonthlyCharts({ summary }: WasteMonthlyChartsProps) {
     { name: WASTE_PHASE_LABELS.finalizacao, total: summary.phaseTotals.finalizacao },
   ]
 
-  const dailyMap = new Map<number, { day: number; cha: number; jantar: number }>()
+  const dailyMap = new Map<number, { day: number; cafe: number; cha: number; jantar: number }>()
   for (const day of summary.days) {
-    const current = dailyMap.get(day.dayNumber) ?? { day: day.dayNumber, cha: 0, jantar: 0 }
-    if (day.buffet === 'cha') {
+    const current = dailyMap.get(day.dayNumber) ?? { day: day.dayNumber, cafe: 0, cha: 0, jantar: 0 }
+    if (day.buffet === 'cafe') {
+      current.cafe += day.dayTotal
+    } else if (day.buffet === 'cha') {
       current.cha += day.dayTotal
     } else {
       current.jantar += day.dayTotal
@@ -67,7 +70,7 @@ export function WasteMonthlyCharts({ summary }: WasteMonthlyChartsProps) {
         </div>
       </ChartCard>
 
-      <ChartCard title="Chá vs Jantar" description="Comparativo de custo mensal">
+      <ChartCard title="Buffets do dia" description="Café da Manhã, Chá e Jantar — custo mensal">
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={buffetData}>
@@ -107,6 +110,7 @@ export function WasteMonthlyCharts({ summary }: WasteMonthlyChartsProps) {
               <YAxis tickFormatter={(value) => `R$ ${value}`} />
               <Tooltip formatter={(value) => formatWasteMoney(Number(value ?? 0))} />
               <Legend />
+              <Line type="monotone" dataKey="cafe" name={WASTE_BUFFET_LABELS.cafe} stroke="#8b5e34" strokeWidth={2} />
               <Line type="monotone" dataKey="cha" name={WASTE_BUFFET_LABELS.cha} stroke="hsl(var(--accent))" strokeWidth={2} />
               <Line type="monotone" dataKey="jantar" name={WASTE_BUFFET_LABELS.jantar} stroke="hsl(var(--primary))" strokeWidth={2} />
             </LineChart>

@@ -1,4 +1,4 @@
-export type WasteBuffetType = 'cha' | 'jantar'
+export type WasteBuffetType = 'cafe' | 'cha' | 'jantar'
 export type WastePhase = 'entrada' | 'reposicao' | 'finalizacao'
 export type WasteSector = 'Confeitaria' | 'Padaria'
 

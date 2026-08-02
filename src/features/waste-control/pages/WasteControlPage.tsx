@@ -73,7 +73,7 @@ function draftToPayload(draft: WastePhaseDraft) {
 export function WasteControlPage() {
   const today = toIsoDate(new Date())
   const [selectedDate, setSelectedDate] = useState(today)
-  const [buffet, setBuffet] = useState<WasteBuffetType>('cha')
+  const [buffet, setBuffet] = useState<WasteBuffetType>('cafe')
   const [activePhase, setActivePhase] = useState<WastePhase>('entrada')
   const [search, setSearch] = useState('')
   const [pax, setPax] = useState(0)
@@ -187,7 +187,7 @@ export function WasteControlPage() {
 
       <PageHeader
         title="Controle de Desperdício"
-        description="Registro compartilhado em tempo real — entrada, reposição e finalização do buffet (Chá e Jantar)."
+        description="Registro compartilhado em tempo real — entrada, reposição e finalização (Café da Manhã, Chá e Jantar)."
         actions={
           <Button
             onClick={() => {

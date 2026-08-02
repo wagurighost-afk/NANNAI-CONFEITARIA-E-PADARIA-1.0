@@ -14,7 +14,7 @@ export const wasteControlRouter = Router()
 wasteControlRouter.use(requireAuth)
 
 function parseBuffet(value: unknown): WasteBuffetType | null {
-  return value === 'cha' || value === 'jantar' ? value : null
+  return value === 'cafe' || value === 'cha' || value === 'jantar' ? value : null
 }
 
 wasteControlRouter.get('/products', (req, res) => {
@@ -25,7 +25,7 @@ wasteControlRouter.get('/products', (req, res) => {
 wasteControlRouter.get('/days/:date', async (req, res) => {
   const buffet = parseBuffet(req.query.buffet)
   if (!buffet) {
-    res.status(400).json({ message: 'Informe o buffet (cha ou jantar).' })
+    res.status(400).json({ message: 'Informe o buffet (cafe, cha ou jantar).' })
     return
   }
 
@@ -36,7 +36,7 @@ wasteControlRouter.get('/days/:date', async (req, res) => {
 wasteControlRouter.put('/days/:date', async (req, res) => {
   const buffet = parseBuffet(req.query.buffet ?? req.body.buffet)
   if (!buffet) {
-    res.status(400).json({ message: 'Informe o buffet (cha ou jantar).' })
+    res.status(400).json({ message: 'Informe o buffet (cafe, cha ou jantar).' })
     return
   }
 

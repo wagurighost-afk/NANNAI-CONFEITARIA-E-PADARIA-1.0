@@ -128,7 +128,7 @@ export async function getWasteControlMonthlySummary(
       pax: day.pax,
     }))
 
-  const buffetTotals: Record<WasteBuffetType, number> = { cha: 0, jantar: 0 }
+  const buffetTotals: Record<WasteBuffetType, number> = { cafe: 0, cha: 0, jantar: 0 }
   const sectorTotals: Record<WasteSector, number> = { Confeitaria: 0, Padaria: 0 }
   const phaseTotals: Record<WastePhase, number> = {
     entrada: 0,
