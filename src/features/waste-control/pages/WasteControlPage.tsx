@@ -14,12 +14,11 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui'
-import { WasteDailyPhaseTable } from '@/features/waste-control/components/WasteDailyPhaseTable'
+import { WasteDailyColumnsTable } from '@/features/waste-control/components/WasteDailyColumnsTable'
 import { WasteMonthlyCharts } from '@/features/waste-control/components/WasteMonthlyCharts'
 import {
   WASTE_BUFFET_LABELS,
   WASTE_BUFFETS,
-  WASTE_PHASE_LABELS,
   WASTE_PHASES,
 } from '@/features/waste-control/constants/wasteControl.constants'
 import {
@@ -74,7 +73,6 @@ export function WasteControlPage() {
   const today = toIsoDate(new Date())
   const [selectedDate, setSelectedDate] = useState(today)
   const [buffet, setBuffet] = useState<WasteBuffetType>('cafe')
-  const [activePhase, setActivePhase] = useState<WastePhase>('entrada')
   const [search, setSearch] = useState('')
   const [pax, setPax] = useState(0)
   const [monthlyGoalKg, setMonthlyGoalKg] = useState(0)
@@ -284,44 +282,28 @@ export function WasteControlPage() {
             <Badge variant="muted">Desperdício: {formatWasteKg(dayPreview.wasteKgTotal)}</Badge>
           </div>
 
-          <Tabs value={activePhase} onValueChange={(value) => setActivePhase(value as WastePhase)}>
-            <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1">
-              {WASTE_PHASES.map((phase) => (
-                <TabsTrigger key={phase} value={phase}>
-                  {WASTE_PHASE_LABELS[phase]}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+          <div className="relative max-w-md">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              className="pl-9"
+              placeholder="Buscar item..."
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value)
+              }}
+            />
+          </div>
 
-            {WASTE_PHASES.map((phase) => (
-              <TabsContent key={phase} value={phase} className="space-y-4">
-                <div className="relative max-w-md">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    className="pl-9"
-                    placeholder="Buscar item..."
-                    value={search}
-                    onChange={(event) => {
-                      setSearch(event.target.value)
-                    }}
-                  />
-                </div>
-
-                {isLoading ? (
-                  <Skeleton variant="rectangular" height={320} />
-                ) : (
-                  <WasteDailyPhaseTable
-                    products={products}
-                    values={phaseDrafts[phase]}
-                    onChange={(productId, field, value) => {
-                      handlePhaseChange(phase, productId, field, value)
-                    }}
-                    search={search}
-                  />
-                )}
-              </TabsContent>
-            ))}
-          </Tabs>
+          {isLoading ? (
+            <Skeleton variant="rectangular" height={420} />
+          ) : (
+            <WasteDailyColumnsTable
+              products={products}
+              phaseDrafts={phaseDrafts}
+              onChange={handlePhaseChange}
+              search={search}
+            />
+          )}
         </TabsContent>
 
         {canViewSummary ? (
