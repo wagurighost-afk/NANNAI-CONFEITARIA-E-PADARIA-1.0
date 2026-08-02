@@ -181,8 +181,8 @@ export const EMPLOYEES_MOCK: Employee[] = [
   },
   {
     id: 'emp-matheus',
-    name: 'Mateus da Silva',
-    email: generateCorporateEmail('Mateus da Silva', 'Confeiteiro'),
+    name: 'Matheus da Silva',
+    email: generateCorporateEmail('Matheus da Silva', 'Confeiteiro'),
     phone: '(81) 99900-0007',
     position: 'Confeiteiro',
     sector: 'Confeitaria',

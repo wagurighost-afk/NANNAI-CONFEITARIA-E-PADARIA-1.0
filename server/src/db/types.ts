@@ -43,6 +43,7 @@ export interface DatabaseStore {
   findUserById(id: string): Promise<UserRow | undefined>
   findUserByEmployeeId(employeeId: string): Promise<UserRow | undefined>
   updateUserPassword(id: string, passwordHash: string, passwordPlain: string): Promise<void>
+  updateUserIdentity(id: string, input: { name: string; email: string }): Promise<void>
   deleteRefreshTokensForUser(userId: string): Promise<void>
   countProductions(): Promise<number>
   saveProductionRecord(production: ProductionDay): Promise<void>

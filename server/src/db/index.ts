@@ -62,6 +62,13 @@ export async function updateUserPassword(
   await getStore().updateUserPassword(id, passwordHash, passwordPlain)
 }
 
+export async function updateUserIdentity(
+  id: string,
+  input: { name: string; email: string },
+): Promise<void> {
+  await getStore().updateUserIdentity(id, input)
+}
+
 export async function deleteRefreshTokensForUser(userId: string): Promise<void> {
   await getStore().deleteRefreshTokensForUser(userId)
 }

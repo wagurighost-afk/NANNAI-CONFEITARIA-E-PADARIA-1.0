@@ -301,6 +301,16 @@ export function createPostgresStore(): DatabaseStore {
       }
     },
 
+    async updateUserIdentity(id, input) {
+      const { rowCount } = await pool.query(
+        'UPDATE users SET name = $2, email = $3 WHERE id = $1',
+        [id, input.name, input.email.trim().toLowerCase()],
+      )
+      if (!rowCount) {
+        throw new Error('Usuário não encontrado.')
+      }
+    },
+
     async deleteRefreshTokensForUser(userId) {
       await pool.query('DELETE FROM refresh_tokens WHERE user_id = $1', [userId])
     },

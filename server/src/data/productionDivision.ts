@@ -88,7 +88,7 @@ export const PRODUCTION_DIVISION: readonly ProductionDivisionEntry[] = [
   },
   {
     employeeId: 'emp-matheus',
-    employeeName: 'Mateus da Silva',
+    employeeName: 'Matheus da Silva',
     sector: 'Confeitaria',
     shift: 'Tarde',
     products: [

@@ -11,6 +11,7 @@ import {
   findRefreshToken,
   getMeta,
   insertRefreshToken,
+  findUserByEmployeeId,
   insertUser,
   loadAllProductionRecords,
   loadProductionRecord,
@@ -18,6 +19,7 @@ import {
   saveProductionRecord,
   saveRecipeRecord,
   setMeta,
+  updateUserIdentity,
 } from './db/index.js'
 import { MONTHLY_SCHEDULE_SEED } from './data/monthlyScheduleSeed.js'
 import { RECIPES_SEED } from './data/recipesSeed.js'
@@ -57,6 +59,9 @@ export async function seedDatabase(): Promise<void> {
         name: employee.name,
       })
     }
+  } else {
+    // Keep login identities aligned with seed corrections (name/email).
+    await syncSeedEmployeeIdentities()
   }
 
   if ((await countProductions()) === 0) {
@@ -116,6 +121,25 @@ export async function rolloverProductionsIfNeeded(): Promise<boolean> {
 export async function saveProduction(production: ProductionDay): Promise<ProductionDay> {
   await saveProductionRecord(production)
   return production
+}
+
+async function syncSeedEmployeeIdentities(): Promise<void> {
+  for (const employee of SEED_EMPLOYEES) {
+    const row = await findUserByEmployeeId(employee.id)
+    if (!row) {
+      continue
+    }
+
+    const nextEmail = employee.email.toLowerCase()
+    if (row.name === employee.name && row.email.toLowerCase() === nextEmail) {
+      continue
+    }
+
+    await updateUserIdentity(row.id, {
+      name: employee.name,
+      email: nextEmail,
+    })
+  }
 }
 
 export async function loadProductionById(id: string): Promise<ProductionDay | null> {

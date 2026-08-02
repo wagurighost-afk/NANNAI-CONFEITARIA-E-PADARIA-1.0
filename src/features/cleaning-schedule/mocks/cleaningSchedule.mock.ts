@@ -34,7 +34,7 @@ const EQUIPE_TARDE = [
 const EQUIPE_TARDE_NAMES = [
   'Mauro José',
   'Maria Helena',
-  'Mateus da Silva',
+  'Matheus da Silva',
   'Jessica Rafaela',
   'Thayse Brunele',
   'Romario Tributino',
