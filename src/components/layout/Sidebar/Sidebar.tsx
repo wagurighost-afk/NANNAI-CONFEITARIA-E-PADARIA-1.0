@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import {
+  Bluetooth,
   BrainCircuit,
   CalendarDays,
   ChefHat,
@@ -36,6 +37,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   ClipboardList,
   FileText,
   Tags,
+  Bluetooth,
   Trash2,
   Users,
   Wheat,

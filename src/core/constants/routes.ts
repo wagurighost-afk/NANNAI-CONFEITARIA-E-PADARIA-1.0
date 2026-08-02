@@ -16,6 +16,7 @@ export const APP_ROUTES = {
   intelligence: '/intelligence',
   audit: '/auditoria',
   labels: '/etiquetas',
+  niimbot: '/niimbot',
   notFound: '*',
 } as const
 

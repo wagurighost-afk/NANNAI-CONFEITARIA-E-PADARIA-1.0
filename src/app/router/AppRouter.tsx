@@ -65,6 +65,11 @@ const IngredientsPage = lazyPage(() =>
 const LabelsPage = lazyPage(() =>
   import('@/features/labels/pages/LabelsPage').then((m) => ({ default: m.LabelsPage })),
 )
+const NiimbotConnectionPage = lazyPage(() =>
+  import('@/features/niimbot/pages/NiimbotConnectionPage').then((m) => ({
+    default: m.NiimbotConnectionPage,
+  })),
+)
 const NotFoundPage = lazyPage(() =>
   import('@/features/errors/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })),
 )
@@ -89,6 +94,7 @@ export function AppRouter() {
             <Route element={<PermissionRoute permission="labels:view" />}>
               <Route path={APP_ROUTES.labels} element={<LabelsPage />} />
             </Route>
+            <Route path={APP_ROUTES.niimbot} element={<NiimbotConnectionPage />} />
             <Route element={<PermissionRoute permission="bread-control:view" />}>
               <Route path={APP_ROUTES.breadControl} element={<BreadControlPage />} />
             </Route>

@@ -30,6 +30,12 @@ export const MAIN_NAVIGATION: readonly AppNavItem[] = [
     permission: 'labels:view',
   },
   {
+    id: 'niimbot',
+    label: 'NIIMBOT',
+    href: APP_ROUTES.niimbot,
+    icon: 'Bluetooth',
+  },
+  {
     id: 'bread-control',
     label: 'Controle de Pães',
     href: APP_ROUTES.breadControl,
