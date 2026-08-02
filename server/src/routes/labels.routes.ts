@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { toAuditActor } from '../audit/actor.js'
+import { canPrintLabels, canViewLabels } from '../labels/access.js'
 import {
   createLabelFromProduction,
   createLabelRecordFromInput,
@@ -17,11 +18,34 @@ export const labelsRouter = Router()
 
 labelsRouter.use(requireAuth)
 
-labelsRouter.get('/templates', (_req, res) => {
+function requireLabelsView(req: AuthedRequest, res: import('express').Response): boolean {
+  if (!req.user || !canViewLabels(req.user)) {
+    res.status(403).json({ message: 'Sem permissão para visualizar etiquetas.' })
+    return false
+  }
+  return true
+}
+
+function requireLabelsPrint(req: AuthedRequest, res: import('express').Response): boolean {
+  if (!req.user || !canPrintLabels(req.user)) {
+    res.status(403).json({ message: 'Sem permissão para imprimir etiquetas.' })
+    return false
+  }
+  return true
+}
+
+labelsRouter.get('/templates', (req: AuthedRequest, res) => {
+  if (!requireLabelsView(req, res)) {
+    return
+  }
   res.json({ templates: listLabelTemplates() })
 })
 
-labelsRouter.get('/', async (req, res) => {
+labelsRouter.get('/', async (req: AuthedRequest, res) => {
+  if (!requireLabelsView(req, res)) {
+    return
+  }
+
   const query: LabelListQuery = {
     ...(typeof req.query.search === 'string' ? { search: req.query.search } : {}),
     ...(typeof req.query.productionId === 'string' ? { productionId: req.query.productionId } : {}),
@@ -38,7 +62,11 @@ labelsRouter.get('/', async (req, res) => {
   res.json(await listLabels(query))
 })
 
-labelsRouter.get('/:id', async (req, res) => {
+labelsRouter.get('/:id', async (req: AuthedRequest, res) => {
+  if (!requireLabelsView(req, res)) {
+    return
+  }
+
   const label = await getLabelById(req.params.id)
   if (!label) {
     res.status(404).json({ message: 'Etiqueta não encontrada.' })
@@ -48,6 +76,10 @@ labelsRouter.get('/:id', async (req, res) => {
 })
 
 labelsRouter.post('/', async (req: AuthedRequest, res) => {
+  if (!requireLabelsPrint(req, res)) {
+    return
+  }
+
   try {
     if (!isLabelTemplateId(req.body.templateId)) {
       res.status(400).json({ message: 'Modelo de etiqueta inválido.' })
@@ -73,6 +105,10 @@ labelsRouter.post('/', async (req: AuthedRequest, res) => {
 })
 
 labelsRouter.post('/from-production', async (req: AuthedRequest, res) => {
+  if (!requireLabelsPrint(req, res)) {
+    return
+  }
+
   try {
     const input: CreateLabelFromProductionInput = {
       productionId: String(req.body.productionId ?? ''),
@@ -95,6 +131,10 @@ labelsRouter.post('/from-production', async (req: AuthedRequest, res) => {
 })
 
 labelsRouter.post('/:id/reprint', async (req: AuthedRequest, res) => {
+  if (!requireLabelsPrint(req, res)) {
+    return
+  }
+
   try {
     const copies = Number(req.body.copies ?? 1)
     const label = await reprintLabel(req.params.id, copies, toAuditActor(req.user!))

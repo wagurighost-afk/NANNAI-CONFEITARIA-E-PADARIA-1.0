@@ -7,19 +7,26 @@ import { LabelPrintDialogContent } from '@/features/labels/components/LabelPrint
 import { LABEL_TEMPLATES } from '@/features/labels/constants/labelTemplates'
 import { useLabels } from '@/features/labels/hooks/useLabels'
 import type { CreateLabelInput, LabelRecord, LabelTemplateId } from '@/features/labels/types/label.types'
+import { getLabelExpiryInfo, type LabelExpiryStatus } from '@/features/labels/utils/labelExpiry'
 import { resolveLabelFieldData } from '@/features/labels/utils/labelData'
 import { APP_ROUTES } from '@/core/constants'
 import { useAuth } from '@/hooks/useAuth'
+import { usePermission } from '@/hooks/usePermission'
 
 const EMPTY_DRAFT = (userName: string): Omit<CreateLabelInput, 'copies'> => ({
   templateId: 'producao',
   data: resolveLabelFieldData({ responsible: userName }, 'producao'),
 })
 
+type ExpiryFilter = 'all' | LabelExpiryStatus
+
 export function LabelsPage() {
   const { user } = useAuth()
+  const { hasPermission } = usePermission()
+  const canPrint = hasPermission('labels:print')
   const [search, setSearch] = useState('')
   const [templateId, setTemplateId] = useState<LabelTemplateId | 'all'>('all')
+  const [expiryFilter, setExpiryFilter] = useState<ExpiryFilter>('all')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogMode, setDialogMode] = useState<'create' | 'reprint'>('create')
   const [selectedRecord, setSelectedRecord] = useState<LabelRecord | null>(null)
@@ -38,7 +45,18 @@ export function LabelsPage() {
 
   const { data, isLoading } = useLabels(query)
 
+  const filteredItems = useMemo(() => {
+    const items = data?.items ?? []
+    if (expiryFilter === 'all') {
+      return items
+    }
+    return items.filter((item) => getLabelExpiryInfo(item.data.expiryDate).status === expiryFilter)
+  }, [data?.items, expiryFilter])
+
   const openCreate = () => {
+    if (!canPrint) {
+      return
+    }
     setDialogMode('create')
     setSelectedRecord(null)
     setDraft(EMPTY_DRAFT(user?.name ?? 'Equipe NANNAI'))
@@ -58,26 +76,45 @@ export function LabelsPage() {
     setDialogOpen(true)
   }
 
+  const openPreview = (record: LabelRecord) => {
+    if (canPrint) {
+      openReprint(record)
+      return
+    }
+    setDialogMode('reprint')
+    setSelectedRecord(record)
+    setDraft({
+      templateId: record.templateId,
+      data: record.data,
+      ...(record.productionId ? { productionId: record.productionId } : {}),
+      ...(record.productionItemId ? { productionItemId: record.productionItemId } : {}),
+      ...(record.recipeId ? { recipeId: record.recipeId } : {}),
+    })
+    setDialogOpen(true)
+  }
+
   return (
     <PageShell className="space-y-6">
       <Breadcrumb
         items={[
           { label: 'Início', href: APP_ROUTES.dashboard },
-          { label: 'Etiquetas' },
+          { label: 'Etiquetas Inteligentes' },
         ]}
       />
       <PageHeader
-        title="Sistema Inteligente de Etiquetas"
-        description="Gere, visualize e reimprima etiquetas com QR Code — preparado para impressoras NIIMBOT."
+        title="Etiquetas Inteligentes"
+        description="Gere, visualize e reimprima etiquetas com QR Code, validade automática e histórico — com impressão direta na NIIMBOT B1 via Bluetooth."
         actions={
-          <Button onClick={openCreate}>
-            <Plus className="size-4" />
-            Nova etiqueta
-          </Button>
+          canPrint ? (
+            <Button onClick={openCreate}>
+              <Plus className="size-4" />
+              Nova etiqueta
+            </Button>
+          ) : undefined
         }
       />
 
-      <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_220px]">
+      <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_220px_220px]">
         <Input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
@@ -92,6 +129,17 @@ export function LabelsPage() {
               value: template.id,
               label: template.name,
             })),
+          ]}
+        />
+        <Select
+          value={expiryFilter}
+          onChange={(event) => setExpiryFilter(event.target.value as ExpiryFilter)}
+          options={[
+            { value: 'all', label: 'Todas as validades' },
+            { value: 'ok', label: 'Dentro da validade' },
+            { value: 'soon', label: 'Vence em breve' },
+            { value: 'today', label: 'Vence hoje' },
+            { value: 'expired', label: 'Vencidas' },
           ]}
         />
       </div>
@@ -124,22 +172,34 @@ export function LabelsPage() {
         <Skeleton variant="rectangular" height={280} />
       ) : (
         <LabelHistoryTable
-          items={data?.items ?? []}
-          onPreview={openReprint}
+          items={filteredItems}
+          onPreview={openPreview}
           onReprint={openReprint}
+          canPrint={canPrint}
         />
       )}
 
       <Modal
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        title={dialogMode === 'reprint' ? 'Reimprimir etiqueta' : 'Nova etiqueta'}
-        description="Revise os dados, escolha o modelo e imprima uma ou várias cópias."
+        title={
+          dialogMode === 'reprint'
+            ? canPrint
+              ? 'Reimprimir etiqueta'
+              : 'Detalhe da etiqueta'
+            : 'Nova etiqueta'
+        }
+        description={
+          canPrint
+            ? 'Revise os dados, escolha o modelo e imprima uma ou várias cópias.'
+            : 'Visualização da etiqueta registrada.'
+        }
         size="lg"
       >
         <LabelPrintDialogContent
           initialDraft={draft}
           mode={dialogMode}
+          readOnly={!canPrint}
           {...(selectedRecord ? { existingRecord: selectedRecord } : {})}
           onCancel={() => setDialogOpen(false)}
           onCompleted={() => {
