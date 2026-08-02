@@ -137,6 +137,26 @@ export function useSmartRecommendationsReport(params: Pick<IntelligenceQueryPara
   })
 }
 
+export function useSmartAlertsReport(params: Pick<IntelligenceQueryParams, 'year' | 'month'>) {
+  return useQuery({
+    queryKey: INTELLIGENCE_QUERY_KEYS.smartAlerts(params),
+    queryFn: () => intelligenceService.getSmartAlertsReport(params),
+    enabled: Boolean(params.year && params.month),
+    staleTime: 1000 * 60 * 2,
+  })
+}
+
+export function useIntelligenceAlerts(params: IntelligenceQueryParams) {
+  const safeParams = withDefaultLimit(params)
+
+  return useQuery({
+    queryKey: INTELLIGENCE_QUERY_KEYS.alerts(safeParams),
+    queryFn: () => intelligenceService.getAlertsList(safeParams),
+    enabled: Boolean(params.year && params.month),
+    staleTime: 1000 * 60 * 2,
+  })
+}
+
 export function useIntelligenceRecommendations(params: IntelligenceQueryParams) {
   const safeParams = withDefaultLimit(params)
 

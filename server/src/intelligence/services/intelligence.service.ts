@@ -7,6 +7,7 @@ import { INTELLIGENCE_CATEGORIES } from '../constants.js'
 import { clearPeriodSnapshots } from '../repository/intelligence.repository.js'
 import type { OperationalKpisReport } from '../types/kpis.types.js'
 import type { SmartInsight, SmartInsightsReport } from '../types/smartInsights.types.js'
+import type { SmartAlert, SmartAlertsReport } from '../types/smartAlerts.types.js'
 import type { SmartRecommendation, SmartRecommendationsReport } from '../types/smartRecommendations.types.js'
 import type {
   IntelligenceDashboard,
@@ -15,6 +16,10 @@ import type {
   IntelligenceRefreshResult,
   IntelligenceTrend,
 } from '../types.js'
+import {
+  getIntelligenceAlertsReport,
+  refreshIntelligenceAlerts,
+} from './alerts.service.js'
 import { getIntelligenceInsightsReport, refreshIntelligenceInsights } from './insights.service.js'
 import { getOperationalKpis, refreshOperationalKpis } from './kpis.service.js'
 import {
@@ -28,10 +33,11 @@ export async function getIntelligenceDashboard(
   period: IntelligencePeriod,
   limit?: number,
 ): Promise<IntelligenceDashboard> {
-  const [operationalKpis, smartInsights, smartRecommendations, trends] = await Promise.all([
+  const [operationalKpis, smartInsights, smartRecommendations, smartAlerts, trends] = await Promise.all([
     getOperationalKpis(period),
     getIntelligenceInsightsReport(period),
     getIntelligenceRecommendationsReport(period),
+    getIntelligenceAlertsReport(period),
     getIntelligenceTrends(period, undefined, limit),
   ])
 
@@ -39,6 +45,8 @@ export async function getIntelligenceDashboard(
     0,
     limit ?? smartRecommendations.recommendations.length,
   )
+
+  const alerts = smartAlerts.alerts.slice(0, limit ?? smartAlerts.alerts.length)
 
   return {
     period,
@@ -48,6 +56,8 @@ export async function getIntelligenceDashboard(
     insights: smartInsights.insights,
     smartRecommendations,
     recommendations,
+    smartAlerts,
+    alerts,
     trends,
   }
 }
@@ -62,6 +72,7 @@ export async function refreshIntelligenceData(
     refreshOperationalKpis(period),
     refreshIntelligenceInsights(period),
     refreshIntelligenceRecommendations(period),
+    refreshIntelligenceAlerts(period),
     refreshIntelligenceTrends(period),
   ])
 
@@ -94,15 +105,25 @@ export {
   refreshIntelligenceRecommendations,
 } from './recommendations.service.js'
 export {
-  getSmartRecommendations,
-  getSmartRecommendationsReport,
-  refreshSmartRecommendations,
-} from './smartRecommendations.service.js'
+  getIntelligenceAlerts,
+  getIntelligenceAlertsReport,
+  refreshIntelligenceAlerts,
+} from './alerts.service.js'
+export {
+  getSmartAlerts,
+  getSmartAlertsReport,
+  refreshSmartAlerts,
+} from './smartAlerts.service.js'
 export {
   getIntelligenceTrends,
   refreshIntelligenceTrends,
 } from './trends.service.js'
 
+export {
+  getSmartRecommendations,
+  getSmartRecommendationsReport,
+  refreshSmartRecommendations,
+} from './smartRecommendations.service.js'
 export type {
   IntelligenceDashboard,
   IntelligenceMetricKey,
@@ -114,4 +135,6 @@ export type {
   SmartInsightsReport,
   SmartRecommendation,
   SmartRecommendationsReport,
+  SmartAlert,
+  SmartAlertsReport,
 }

@@ -8,6 +8,8 @@ import { Router } from 'express'
 import { canAccessIntelligence } from '../intelligence/access.js'
 import { normalizeLimit, normalizePeriod } from '../intelligence/constants.js'
 import {
+  getIntelligenceAlerts,
+  getIntelligenceAlertsReport,
   getIntelligenceDashboard,
   getIntelligenceInsights,
   getIntelligenceInsightsReport,
@@ -15,6 +17,7 @@ import {
   getIntelligenceRecommendations,
   getIntelligenceRecommendationsReport,
   getIntelligenceTrends,
+  getSmartAlertsReport,
   getSmartInsightsReport,
   getSmartRecommendationsReport,
   refreshIntelligenceData,
@@ -50,7 +53,7 @@ intelligenceRouter.get('/health', (req: AuthedRequest, res) => {
     status: 'ok',
     module: 'intelligence',
     version: '1.0.0',
-    capabilities: ['kpis', 'operational-kpis', 'smart-insights', 'insights', 'smart-recommendations', 'recommendations', 'trends', 'dashboard', 'refresh'],
+    capabilities: ['kpis', 'operational-kpis', 'smart-insights', 'insights', 'smart-recommendations', 'recommendations', 'smart-alerts', 'alerts', 'trends', 'dashboard', 'refresh'],
   })
 })
 
@@ -246,6 +249,41 @@ intelligenceRouter.get('/recommendations/smart', async (req: AuthedRequest, res)
   } catch (error) {
     res.status(500).json({
       message: error instanceof Error ? error.message : 'Falha ao carregar recomendações inteligentes.',
+    })
+  }
+})
+
+intelligenceRouter.get('/alerts', async (req: AuthedRequest, res) => {
+  if (!assertIntelligenceAccess(req, res)) {
+    return
+  }
+
+  try {
+    const period = parsePeriod(req)
+    const limit = req.query.limit !== undefined ? normalizeLimit(Number(req.query.limit)) : undefined
+    if (limit !== undefined) {
+      res.json(await getIntelligenceAlerts(period, limit))
+      return
+    }
+    res.json(await getIntelligenceAlertsReport(period))
+  } catch (error) {
+    res.status(500).json({
+      message: error instanceof Error ? error.message : 'Falha ao carregar alertas.',
+    })
+  }
+})
+
+intelligenceRouter.get('/alerts/smart', async (req: AuthedRequest, res) => {
+  if (!assertIntelligenceAccess(req, res)) {
+    return
+  }
+
+  try {
+    const period = parsePeriod(req)
+    res.json(await getSmartAlertsReport(period))
+  } catch (error) {
+    res.status(500).json({
+      message: error instanceof Error ? error.message : 'Falha ao carregar alertas automáticos.',
     })
   }
 })

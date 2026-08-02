@@ -12,11 +12,13 @@ import {
 } from 'lucide-react'
 import { Breadcrumb, PageHeader } from '@/components/common'
 import { Button, Skeleton } from '@/components/ui'
+import { AlertsPanel } from '@/features/intelligence/components/AlertsPanel'
 import { ExecutiveKpiCard } from '@/features/intelligence/components/ExecutiveKpiCard'
 import { ExecutivePeriodPicker } from '@/features/intelligence/components/ExecutivePeriodPicker'
 import {
   useExecutiveOperationalKpis,
   useIntelligenceRefresh,
+  useSmartAlertsReport,
   useSmartInsightsReport,
 } from '@/features/intelligence/hooks/useIntelligence'
 import type { IntelligencePeriod } from '@/features/intelligence/types/intelligence.types'
@@ -61,6 +63,7 @@ export function ExecutiveDashboard() {
     isFetching,
   } = useExecutiveOperationalKpis(period)
   const { data: insightsReport } = useSmartInsightsReport(period)
+  const { data: alertsReport, isLoading: alertsLoading } = useSmartAlertsReport(period)
   const refresh = useIntelligenceRefresh()
 
   const cards = useMemo(() => {
@@ -139,6 +142,7 @@ export function ExecutiveDashboard() {
   }, [kpis])
 
   const insightSummary = insightsReport?.summary
+  const alertSummary = alertsReport?.summary
   const lastUpdated = kpis?.generatedAt ? formatDateTimeBr(kpis.generatedAt) : null
 
   return (
@@ -200,24 +204,39 @@ export function ExecutiveDashboard() {
           </div>
         </div>
 
-        {insightSummary ? (
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <Scale className="size-4 text-muted-foreground" aria-hidden />
-            <span className="text-muted-foreground">Insights:</span>
-            {insightSummary.critico > 0 ? (
-              <span className="rounded-md bg-danger/15 px-2 py-0.5 font-medium text-danger">
-                {insightSummary.critico} crítico(s)
-              </span>
+        {insightSummary || alertSummary ? (
+          <div className="flex flex-wrap items-center gap-3 text-xs">
+            {insightSummary ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <Scale className="size-4 text-muted-foreground" aria-hidden />
+                <span className="text-muted-foreground">Insights:</span>
+                {insightSummary.critico > 0 ? (
+                  <span className="rounded-md bg-danger/15 px-2 py-0.5 font-medium text-danger">
+                    {insightSummary.critico} crítico(s)
+                  </span>
+                ) : null}
+                {insightSummary.alto > 0 ? (
+                  <span className="rounded-md bg-accent/20 px-2 py-0.5 font-medium text-accent-foreground">
+                    {insightSummary.alto} alto(s)
+                  </span>
+                ) : null}
+              </div>
             ) : null}
-            {insightSummary.alto > 0 ? (
-              <span className="rounded-md bg-accent/20 px-2 py-0.5 font-medium text-accent-foreground">
-                {insightSummary.alto} alto(s)
-              </span>
-            ) : null}
-            {insightSummary.medio > 0 ? (
-              <span className="rounded-md bg-primary/10 px-2 py-0.5 font-medium text-primary">
-                {insightSummary.medio} médio(s)
-              </span>
+            {alertSummary ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <AlertCircle className="size-4 text-muted-foreground" aria-hidden />
+                <span className="text-muted-foreground">Alertas:</span>
+                {alertSummary.critica > 0 ? (
+                  <span className="rounded-md bg-danger/15 px-2 py-0.5 font-medium text-danger">
+                    {alertSummary.critica} crítica(s)
+                  </span>
+                ) : null}
+                {alertSummary.alta > 0 ? (
+                  <span className="rounded-md bg-accent/20 px-2 py-0.5 font-medium text-accent-foreground">
+                    {alertSummary.alta} alta(s)
+                  </span>
+                ) : null}
+              </div>
             ) : null}
           </div>
         ) : null}
@@ -245,6 +264,12 @@ export function ExecutiveDashboard() {
           ))}
         </div>
       )}
+
+      <AlertsPanel
+        className="mt-8"
+        alerts={alertsReport?.alerts ?? []}
+        isLoading={alertsLoading}
+      />
     </motion.div>
   )
 }

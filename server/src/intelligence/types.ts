@@ -3,7 +3,7 @@
  * @module intelligence/types
  */
 
-export type IntelligenceCategory = 'kpi' | 'insight' | 'recommendation' | 'trend'
+export type IntelligenceCategory = 'kpi' | 'insight' | 'recommendation' | 'trend' | 'alert'
 
 export type IntelligenceMetricKey =
   | 'production_completion'
@@ -91,6 +91,9 @@ export interface IntelligenceDashboard {
   smartRecommendations: import('./types/smartRecommendations.types.js').SmartRecommendationsReport
   /** Lista plana de recomendações (atalho de smartRecommendations.recommendations) */
   recommendations: import('./types/smartRecommendations.types.js').SmartRecommendation[]
+  smartAlerts: import('./types/smartAlerts.types.js').SmartAlertsReport
+  /** Lista plana de alertas (atalho de smartAlerts.alerts) */
+  alerts: import('./types/smartAlerts.types.js').SmartAlert[]
   trends: IntelligenceTrend[]
 }
 

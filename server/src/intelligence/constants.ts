@@ -10,6 +10,7 @@ export const INTELLIGENCE_CATEGORIES: readonly IntelligenceCategory[] = [
   'insight',
   'recommendation',
   'trend',
+  'alert',
 ] as const
 
 export const INTELLIGENCE_DEFAULT_LIMIT = 10

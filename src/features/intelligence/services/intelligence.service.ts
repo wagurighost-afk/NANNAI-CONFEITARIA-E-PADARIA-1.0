@@ -27,6 +27,10 @@ import type {
   SmartRecommendation,
   SmartRecommendationsReport,
 } from '@/features/intelligence/types/smartRecommendations.types'
+import type {
+  SmartAlert,
+  SmartAlertsReport,
+} from '@/features/intelligence/types/smartAlerts.types'
 
 function buildQuery(params: IntelligenceQueryParams): Record<string, string | number> {
   const query: Record<string, string | number> = {
@@ -157,6 +161,34 @@ export const intelligenceService = {
 
   async getRecommendationsList(params: IntelligenceQueryParams): Promise<SmartRecommendation[]> {
     const { data } = await apiClient.get<SmartRecommendation[]>('/intelligence/recommendations', {
+      params: buildQuery(params),
+    })
+    return data
+  },
+
+  async getSmartAlertsReport(
+    params: Pick<IntelligenceQueryParams, 'year' | 'month'>,
+  ): Promise<SmartAlertsReport> {
+    const { data } = await apiClient.get<SmartAlertsReport>('/intelligence/alerts/smart', {
+      params: buildPeriodQuery(params),
+    })
+    return data
+  },
+
+  async getAlerts(params: IntelligenceQueryParams): Promise<SmartAlert[] | SmartAlertsReport> {
+    const query = buildQuery(params)
+    if (params.limit !== undefined) {
+      const { data } = await apiClient.get<SmartAlert[]>('/intelligence/alerts', { params: query })
+      return data
+    }
+    const { data } = await apiClient.get<SmartAlertsReport>('/intelligence/alerts', {
+      params: { year: params.year, month: params.month },
+    })
+    return data
+  },
+
+  async getAlertsList(params: IntelligenceQueryParams): Promise<SmartAlert[]> {
+    const { data } = await apiClient.get<SmartAlert[]>('/intelligence/alerts', {
       params: buildQuery(params),
     })
     return data
