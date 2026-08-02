@@ -1,5 +1,7 @@
 # Revisão da integração NIIMBOT
 
+> Blueprint canônico: `docs/blueprints/niimbot/`
+
 Revisão completa (Bluetooth, reconexão, erros, performance, duplicação, responsividade, segurança, arquitetura) e melhorias aplicadas / recomendadas.
 
 ## Veredito

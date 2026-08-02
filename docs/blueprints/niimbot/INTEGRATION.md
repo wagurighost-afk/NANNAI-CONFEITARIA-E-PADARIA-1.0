@@ -1,5 +1,7 @@
 # NANNAI × NIIMBOT — Documentação da integração
 
+> Blueprint canônico: `docs/blueprints/niimbot/`
+
 Integração Web Bluetooth da impressora **NIIMBOT B1 / B1 Pro** no app NANNAI: conexão, registry multi-impressora, teste, impressão na Produção e histórico de etiquetas.
 
 ## Visão geral
