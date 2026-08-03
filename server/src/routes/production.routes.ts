@@ -21,6 +21,7 @@ import {
   resolveCreateProductionInput,
   resolveUpdateProductionInput,
   updateItemStatus,
+  updateItemConference,
 } from '../production.service.js'
 import type { ProductionDay } from '../types.js'
 
@@ -138,6 +139,23 @@ productionRouter.patch('/:id/items/:itemId/status', async (req: AuthedRequest, r
   }
 })
 
+productionRouter.patch('/:id/items/:itemId/conference', async (req: AuthedRequest, res) => {
+  try {
+    const production = await loadProductionOrThrow(req.params.id)
+    assertCanEditProduction(req.user!, production)
+    const updated = await updateItemConference(
+      req.params.id,
+      req.params.itemId,
+      req.body.status,
+      toAuditActor(req.user!),
+    )
+    res.json(updated)
+  } catch (error) {
+    const { status, message } = resolveRouteError(error)
+    res.status(status).json({ message })
+  }
+})
+
 productionRouter.patch('/:id/items/reorder', async (req: AuthedRequest, res) => {
   try {
     const production = await loadProductionOrThrow(req.params.id)
@@ -162,7 +180,11 @@ productionRouter.post('/:id/duplicate', async (req: AuthedRequest, res) => {
       date: String(req.body.targetDate ?? source.date),
       shift: req.body.targetShift ?? source.shift,
       employeeId: req.body.targetEmployeeId ?? source.employeeId,
-      items: source.items.map((item) => ({ ...item, status: 'Pendente' })),
+      items: source.items.map((item) => ({
+        ...item,
+        status: 'Pendente',
+        conference: undefined,
+      })),
       comments: [],
       progress: 0,
     }, toAuditActor(req.user!))

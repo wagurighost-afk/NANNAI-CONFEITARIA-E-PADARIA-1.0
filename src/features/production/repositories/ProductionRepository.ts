@@ -7,6 +7,7 @@ import type {
   ReorderProductionItemsInput,
   UpdateProductionInput,
   UpdateProductionItemStatusInput,
+  UpdateProductionItemConferenceInput,
 } from '@/features/production/types/production.types'
 
 export interface ProductionRepository {
@@ -18,5 +19,6 @@ export interface ProductionRepository {
   duplicate(input: DuplicateProductionInput): Promise<ProductionDay>
   reorderItems(input: ReorderProductionItemsInput): Promise<ProductionDay>
   updateItemStatus(input: UpdateProductionItemStatusInput): Promise<ProductionDay>
+  updateItemConference(input: UpdateProductionItemConferenceInput): Promise<ProductionDay>
   addComment(input: AddShiftCommentInput): Promise<ProductionDay>
 }

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getAppTodayIso } from '@/core/constants/appDate'
 import { resolveEmployeeForUser } from '@/core/auth/employeeResolver'
 import { computeProductionKpis } from '@/features/production/utils/computeProductionKpis'
+import { computeConferenceKpis, filterProductionsByConference } from '@/features/production/utils/conference'
 import {
   canEditProductionDay,
   canManageProduction,
@@ -14,6 +15,7 @@ import type {
   ProductionDay,
   ProductionFilters,
   ProductionItemStatus,
+  ProductionConferenceStatus,
   ProductionViewMode,
   UpdateProductionInput,
 } from '@/features/production/types/production.types'
@@ -29,6 +31,7 @@ const DEFAULT_FILTERS: ProductionFilters = {
   sector: 'all',
   employeeId: 'all',
   status: 'all',
+  conferenceFilter: 'all',
 }
 
 export function useProduction() {
@@ -79,6 +82,16 @@ export function useProduction() {
   const kpis = useMemo(
     () => computeProductionKpis(allProductionQuery.data ?? []),
     [allProductionQuery.data],
+  )
+
+  const conferenceKpis = useMemo(
+    () => computeConferenceKpis(productionQuery.data ?? []),
+    [productionQuery.data],
+  )
+
+  const visibleProductions = useMemo(
+    () => filterProductionsByConference(productionQuery.data ?? [], filters.conferenceFilter ?? 'all'),
+    [productionQuery.data, filters.conferenceFilter],
   )
 
   const selectedProductionQuery = useQuery({
@@ -143,6 +156,25 @@ export function useProduction() {
     },
   })
 
+  const updateItemConferenceMutation = useMutation({
+    mutationFn: ({
+      productionId,
+      itemId,
+      status,
+    }: {
+      productionId: string
+      itemId: string
+      status: ProductionConferenceStatus
+    }) => productionService.updateItemConference({ productionId, itemId, status }),
+    onSuccess: async (updated) => {
+      await queryClient.setQueryData(
+        [...PRODUCTION_QUERY_KEY, 'detail', updated.id],
+        updated,
+      )
+      await invalidate()
+    },
+  })
+
   const reorderMutation = useMutation({
     mutationFn: ({
       productionId,
@@ -187,7 +219,8 @@ export function useProduction() {
   })
 
   return {
-    productions: productionQuery.data ?? [],
+    productions: visibleProductions,
+    conferenceKpis,
     kpis,
     isLoading: productionQuery.isLoading,
     isKpisLoading: allProductionQuery.isLoading,
@@ -234,6 +267,7 @@ export function useProduction() {
     updateProduction: updateMutation.mutateAsync,
     duplicateProduction: duplicateMutation.mutateAsync,
     updateItemStatus: updateItemStatusMutation.mutateAsync,
+    updateItemConference: updateItemConferenceMutation.mutateAsync,
     reorderItems: reorderMutation.mutateAsync,
     addComment: addCommentMutation.mutateAsync,
     isSaving:

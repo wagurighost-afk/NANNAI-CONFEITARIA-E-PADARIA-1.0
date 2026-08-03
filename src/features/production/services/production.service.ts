@@ -11,6 +11,7 @@ import type {
   ReorderProductionItemsInput,
   UpdateProductionInput,
   UpdateProductionItemStatusInput,
+  UpdateProductionItemConferenceInput,
 } from '@/features/production/types/production.types'
 
 const USE_MOCK = env.useMock
@@ -52,6 +53,10 @@ export const productionService = {
 
   updateItemStatus(input: UpdateProductionItemStatusInput): Promise<ProductionDay> {
     return repository.updateItemStatus(input)
+  },
+
+  updateItemConference(input: UpdateProductionItemConferenceInput): Promise<ProductionDay> {
+    return repository.updateItemConference(input)
   },
 
   addComment(input: AddShiftCommentInput): Promise<ProductionDay> {

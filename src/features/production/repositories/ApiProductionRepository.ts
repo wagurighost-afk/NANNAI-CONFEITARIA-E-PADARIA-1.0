@@ -9,6 +9,7 @@ import type {
   ReorderProductionItemsInput,
   UpdateProductionInput,
   UpdateProductionItemStatusInput,
+  UpdateProductionItemConferenceInput,
 } from '@/features/production/types/production.types'
 
 function mapProduction(production: ProductionDay): ProductionDay {
@@ -71,6 +72,14 @@ export class ApiProductionRepository implements ProductionRepository {
   async updateItemStatus(input: UpdateProductionItemStatusInput): Promise<ProductionDay> {
     const { data } = await apiClient.patch<ProductionDay>(
       `/production/${input.productionId}/items/${input.itemId}/status`,
+      { status: input.status },
+    )
+    return mapProduction(data)
+  }
+
+  async updateItemConference(input: UpdateProductionItemConferenceInput): Promise<ProductionDay> {
+    const { data } = await apiClient.patch<ProductionDay>(
+      `/production/${input.productionId}/items/${input.itemId}/conference`,
       { status: input.status },
     )
     return mapProduction(data)

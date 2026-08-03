@@ -16,6 +16,7 @@ import { ProductionDrawer } from '@/features/production/components/ProductionDra
 import { ProductionFiltersBar } from '@/features/production/components/ProductionFiltersBar'
 import { ProductionForm } from '@/features/production/components/ProductionForm'
 import { ProductionKpisSection } from '@/features/production/components/ProductionKpis'
+import { ProductionConferenceKpisSection } from '@/features/production/components/ProductionConferenceKpis'
 import { ProductionTable } from '@/features/production/components/ProductionTable'
 import { useProduction } from '@/features/production/hooks/useProduction'
 import type { ProductionFormSchema } from '@/features/production/schemas/production.schema'
@@ -51,6 +52,7 @@ export function ProductionPage() {
   const {
     productions,
     kpis,
+    conferenceKpis,
     isLoading,
     isKpisLoading,
     filters,
@@ -75,6 +77,7 @@ export function ProductionPage() {
     updateProduction,
     duplicateProduction,
     updateItemStatus,
+    updateItemConference,
     reorderItems,
     addComment,
     isSaving,
@@ -227,6 +230,8 @@ export function ProductionPage() {
 
       <ProductionKpisSection kpis={kpis} isLoading={isKpisLoading} />
 
+      <ProductionConferenceKpisSection kpis={conferenceKpis} isLoading={isLoading} />
+
       <div className="mb-6">
         <ProductionFiltersBar
           filters={filters}
@@ -341,6 +346,32 @@ export function ProductionPage() {
         }}
         onCreateLabel={(itemId) => askPrintLabel(itemId, 'reprint-or-create')}
         canPrintLabels={canPrintLabels}
+        conferenceFilter={filters.conferenceFilter ?? 'all'}
+        canUpdateConference={canUpdateItems && selectedCanEdit}
+        onConferenceChange={async (itemId, status) => {
+          if (!selectedProduction) {
+            return
+          }
+          try {
+            await updateItemConference({
+              productionId: selectedProduction.id,
+              itemId,
+              status,
+            })
+            push({
+              title: 'Conferência atualizada',
+              description: 'Status do item registrado com sucesso.',
+              variant: 'success',
+            })
+          } catch (error: unknown) {
+            push({
+              title: 'Erro ao atualizar conferência',
+              description: getErrorMessage(error),
+              variant: 'danger',
+            })
+            throw error
+          }
+        }}
         onReorder={async (itemIds) => {
           if (!selectedProduction) {
             return

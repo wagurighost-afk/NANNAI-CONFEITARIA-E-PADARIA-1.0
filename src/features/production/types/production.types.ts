@@ -8,12 +8,30 @@ export const PRODUCTION_ITEM_STATUSES = [
 
 export type ProductionItemStatus = (typeof PRODUCTION_ITEM_STATUSES)[number]
 
+export const PRODUCTION_CONFERENCE_STATUSES = [
+  'nao_iniciado',
+  'em_producao',
+  'conferido',
+  'nao_produzido',
+  'indisponivel',
+] as const
+
+export type ProductionConferenceStatus = (typeof PRODUCTION_CONFERENCE_STATUSES)[number]
+
+export interface ProductionConference {
+  status: ProductionConferenceStatus
+  checkedById: string
+  checkedByName: string
+  checkedAt: string
+}
+
 export interface ProductionItem {
   id: string
   name: string
   status: ProductionItemStatus
   order: number
   recipeId?: string
+  conference?: ProductionConference
 }
 
 export interface ShiftCommentPhoto {
@@ -48,6 +66,8 @@ export interface ProductionDay {
   updatedAt: string
 }
 
+export type ProductionConferenceFilter = 'all' | 'conferidos' | 'pendentes' | 'nao_produzidos'
+
 export interface ProductionFilters {
   search: string
   date: string
@@ -55,6 +75,7 @@ export interface ProductionFilters {
   sector: ProductionSector | 'all'
   employeeId: string | 'all'
   status: ProductionItemStatus | 'all'
+  conferenceFilter?: ProductionConferenceFilter
 }
 
 export type ProductionViewMode = 'table' | 'cards'
@@ -64,6 +85,13 @@ export interface ProductionKpis {
   inProgress: number
   completed: number
   pending: number
+}
+
+export interface ProductionConferenceKpis {
+  total: number
+  conferidos: number
+  pendentes: number
+  naoProduzidos: number
 }
 
 export type ProductionItemInput = {
@@ -99,6 +127,12 @@ export type UpdateProductionItemStatusInput = {
   productionId: string
   itemId: string
   status: ProductionItemStatus
+}
+
+export type UpdateProductionItemConferenceInput = {
+  productionId: string
+  itemId: string
+  status: ProductionConferenceStatus
 }
 
 export type AddShiftCommentInput = {

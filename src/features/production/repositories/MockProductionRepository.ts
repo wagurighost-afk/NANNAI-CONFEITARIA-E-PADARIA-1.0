@@ -20,6 +20,7 @@ import type {
   ShiftCommentPhoto,
   UpdateProductionInput,
   UpdateProductionItemStatusInput,
+  UpdateProductionItemConferenceInput,
 } from '@/features/production/types/production.types'
 import { getNextProductionCode } from '@/features/production/utils/productionCode'
 import { withComputedProgress } from '@/features/production/utils/computeProductionKpis'
@@ -342,6 +343,43 @@ export class MockProductionRepository implements ProductionRepository {
 
     const items = production.items.map((item) =>
       item.id === input.itemId ? { ...item, status: input.status } : item,
+    )
+
+    store[index] = withComputedProgress({
+      ...production,
+      items,
+      updatedAt: new Date().toISOString(),
+    })
+
+    saveStore()
+    return store[index]
+  }
+
+  async updateItemConference(input: UpdateProductionItemConferenceInput): Promise<ProductionDay> {
+    await ensureStore()
+    await delay()
+    const index = store.findIndex((item) => item.id === input.productionId)
+    if (index === -1) {
+      throw new Error('Produção não encontrada.')
+    }
+
+    const production = store[index]
+    if (!production) {
+      throw new Error('Produção não encontrada.')
+    }
+
+    const items = production.items.map((item) =>
+      item.id === input.itemId
+        ? {
+            ...item,
+            conference: {
+              status: input.status,
+              checkedById: 'mock-user',
+              checkedByName: 'Usuário mock',
+              checkedAt: getAppNowIso(),
+            },
+          }
+        : item,
     )
 
     store[index] = withComputedProgress({

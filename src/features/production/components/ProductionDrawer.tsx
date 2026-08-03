@@ -13,12 +13,18 @@ import {
 } from '@/components/ui'
 import { PRODUCTION_STATUS_OPTIONS } from '@/features/production/constants/productionOptions'
 import { ProductionStatusBadge } from '@/features/production/components/ProductionStatusBadge'
+import { ProductionConferencePanel } from '@/features/production/components/ProductionConferencePanel'
 import {
   ShiftCommentForm,
   type ShiftCommentSubmitInput,
 } from '@/features/production/components/ShiftCommentForm'
 import { ShiftCommentList } from '@/features/production/components/ShiftCommentList'
-import type { ProductionDay, ProductionItemStatus } from '@/features/production/types/production.types'
+import type {
+  ProductionConferenceFilter,
+  ProductionConferenceStatus,
+  ProductionDay,
+  ProductionItemStatus,
+} from '@/features/production/types/production.types'
 import { formatDateBr, formatDateTimeBr } from '@/utils/formatDate'
 
 export interface ProductionDrawerProps {
@@ -37,6 +43,9 @@ export interface ProductionDrawerProps {
   onAddComment?: (input: ShiftCommentSubmitInput) => Promise<void>
   onCreateLabel?: (itemId: string) => void
   canPrintLabels?: boolean
+  conferenceFilter?: ProductionConferenceFilter
+  canUpdateConference?: boolean
+  onConferenceChange?: (itemId: string, status: ProductionConferenceStatus) => Promise<void>
 }
 
 export function ProductionDrawer({
@@ -55,6 +64,9 @@ export function ProductionDrawer({
   onAddComment,
   onCreateLabel,
   canPrintLabels = false,
+  conferenceFilter = 'all',
+  canUpdateConference = false,
+  onConferenceChange,
 }: ProductionDrawerProps) {
   const [isSending, setIsSending] = useState(false)
 
@@ -136,6 +148,7 @@ export function ProductionDrawer({
         <Tabs defaultValue="items">
           <TabsList className="w-full flex-wrap">
             <TabsTrigger value="items">Itens</TabsTrigger>
+            <TabsTrigger value="conference">Conferência</TabsTrigger>
             <TabsTrigger value="comments">Comentários</TabsTrigger>
             <TabsTrigger value="details">Detalhes</TabsTrigger>
           </TabsList>
@@ -210,6 +223,15 @@ export function ProductionDrawer({
                 </li>
               ))}
             </ul>
+          </TabsContent>
+
+          <TabsContent value="conference">
+            <ProductionConferencePanel
+              production={production}
+              conferenceFilter={conferenceFilter}
+              canUpdateConference={canUpdateConference}
+              {...(onConferenceChange ? { onConferenceChange } : {})}
+            />
           </TabsContent>
 
           <TabsContent value="comments">

@@ -16,12 +16,27 @@ export interface AuthSession {
   tokens: AuthTokens
 }
 
+export type ProductionConferenceStatus =
+  | 'nao_iniciado'
+  | 'em_producao'
+  | 'conferido'
+  | 'nao_produzido'
+  | 'indisponivel'
+
+export interface ProductionConference {
+  status: ProductionConferenceStatus
+  checkedById: string
+  checkedByName: string
+  checkedAt: string
+}
+
 export interface ProductionItem {
   id: string
   name: string
   status: 'Pendente' | 'Em andamento' | 'Concluído'
   order: number
   recipeId?: string
+  conference?: ProductionConference
 }
 
 export interface ShiftCommentPhoto {

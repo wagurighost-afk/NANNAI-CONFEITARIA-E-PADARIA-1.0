@@ -2,7 +2,9 @@ import { LayoutGrid, List } from 'lucide-react'
 import { Button, SearchInput, Select } from '@/components/ui'
 import { EMPLOYEE_SHIFTS, PRODUCTION_SECTORS } from '@/features/employees/types/employee.types'
 import { PRODUCTION_STATUS_OPTIONS } from '@/features/production/constants/productionOptions'
+import { PRODUCTION_CONFERENCE_FILTER_OPTIONS } from '@/features/production/constants/conferenceOptions'
 import type {
+  ProductionConferenceFilter,
   ProductionFilters,
   ProductionItemStatus,
   ProductionViewMode,
@@ -36,7 +38,7 @@ export function ProductionFiltersBar({
   ]
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.2fr)_repeat(4,minmax(0,1fr))_auto]">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.2fr)_repeat(5,minmax(0,1fr))_auto]">
       <div className="sm:col-span-2 lg:col-span-1">
         <SearchInput
           placeholder="Buscar produção, colaborador ou item..."
@@ -104,6 +106,18 @@ export function ProductionFiltersBar({
           }}
         />
       )}
+
+      <Select
+        aria-label="Filtrar conferência"
+        options={[...PRODUCTION_CONFERENCE_FILTER_OPTIONS]}
+        value={filters.conferenceFilter ?? 'all'}
+        onChange={(event) => {
+          onFiltersChange({
+            ...filters,
+            conferenceFilter: event.target.value as ProductionConferenceFilter,
+          })
+        }}
+      />
 
       <div className="hidden items-center gap-1 lg:flex">
         <Button

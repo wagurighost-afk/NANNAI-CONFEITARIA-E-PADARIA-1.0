@@ -13,6 +13,8 @@ import {
 } from './seed.js'
 import type {
   CreateProductionInput,
+  ProductionConference,
+  ProductionConferenceStatus,
   ProductionDay,
   ProductionFilters,
   ProductionItem,
@@ -362,6 +364,51 @@ export async function updateItemStatus(
     summary: `Status do item "${previousItem?.name ?? itemId}" alterado para ${status}`,
     before: previousItem ?? null,
     after: updated.items.find((item) => item.id === itemId) ?? null,
+  })
+  return updated
+}
+
+export async function updateItemConference(
+  productionId: string,
+  itemId: string,
+  status: ProductionConferenceStatus,
+  actor?: AuditActor,
+): Promise<ProductionDay> {
+  const production = await loadProductionById(productionId)
+  if (!production) {
+    throw new Error('Produção não encontrada.')
+  }
+
+  const previousItem = production.items.find((item) => item.id === itemId)
+  if (!previousItem) {
+    throw new Error('Item não encontrado.')
+  }
+
+  const conference: ProductionConference = {
+    status,
+    checkedById: actor?.employeeId ?? actor?.userId ?? 'unknown',
+    checkedByName: actor?.userName ?? 'Usuário',
+    checkedAt: new Date().toISOString(),
+  }
+
+  const items = production.items.map((item) =>
+    item.id === itemId ? { ...item, conference } : item,
+  )
+
+  const updated = withProgress({
+    ...production,
+    items,
+    updatedAt: new Date().toISOString(),
+  })
+  await saveProduction(updated)
+  notifyProduction('item_conference', productionId)
+  await safeAudit(actor, {
+    entityType: 'production',
+    entityId: productionId,
+    action: 'status_change',
+    summary: `Conferência do item "${previousItem.name}" alterada para ${status}`,
+    before: previousItem.conference ?? null,
+    after: conference,
   })
   return updated
 }
