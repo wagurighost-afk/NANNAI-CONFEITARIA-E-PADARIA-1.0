@@ -21,6 +21,7 @@ import { devCentralRouter } from './routes/devCentral.routes.js'
 import { bugsRouter } from './routes/bugs.routes.js'
 import { settingsRouter } from './routes/settings.routes.js'
 import { nannaiInsightsRouter } from './routes/nannaiInsights.routes.js'
+import { executivePanelRouter } from './routes/executivePanel.routes.js'
 import { devCentralMetricsMiddleware } from './dev-central/metricsMiddleware.js'
 import { recordErrorMetric } from './dev-central/metricsCollector.js'
 
@@ -68,6 +69,7 @@ app.use('/api/dev-central', devCentralRouter)
 app.use('/api/bugs', bugsRouter)
 app.use('/api/settings', settingsRouter)
 app.use('/api/nannai-insights', nannaiInsightsRouter)
+app.use('/api/executive-panel', executivePanelRouter)
 app.use('/api/events', eventsRouter)
 
 if (isProduction && fs.existsSync(distPath)) {

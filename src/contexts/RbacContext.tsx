@@ -5,6 +5,7 @@ import { getPermissionsForRole } from '@/core/permissions'
 import { canAccessBreadControl, canViewBreadMonthlySummary } from '@/core/permissions/breadControlAccess'
 import { canAccessWasteControl, canViewWasteMonthlySummary } from '@/core/permissions/wasteControlAccess'
 import { canAccessIntelligence } from '@/core/permissions/intelligenceAccess'
+import { canAccessExecutivePanel } from '@/core/permissions/executivePanelAccess'
 import { canViewAuditLogs } from '@/core/permissions/auditAccess'
 import { canAccessDevCentral } from '@/core/permissions/devCentralAccess'
 import { canManageBugStatus } from '@/core/permissions/bugsAccess'
@@ -57,6 +58,9 @@ export function RbacProvider({ children }: RbacProviderProps) {
     if (canAccessIntelligence(user) && !base.includes('intelligence:view')) {
       base.push('intelligence:view')
       base.push('intelligence:refresh')
+    }
+    if (canAccessExecutivePanel(user) && !base.includes('executive-panel:view')) {
+      base.push('executive-panel:view')
     }
     if (canViewAuditLogs(user) && !base.includes('audit:view')) {
       base.push('audit:view')

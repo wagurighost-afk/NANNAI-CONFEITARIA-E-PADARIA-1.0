@@ -110,6 +110,7 @@ export interface RealtimeEvent {
     | 'bread-control'
     | 'waste-control'
     | 'intelligence'
+    | 'executive-panel'
     | 'labels'
     | 'laboratorio'
     | 'dev-central'

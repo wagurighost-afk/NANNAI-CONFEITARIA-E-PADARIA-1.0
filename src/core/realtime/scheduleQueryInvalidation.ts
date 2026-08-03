@@ -1,17 +1,18 @@
 import type { QueryClient } from '@tanstack/react-query'
 
 const SCOPE_QUERY_KEYS: Record<string, readonly (readonly string[])[]> = {
-  production: [['production'], ['dashboard'], ['comments-feed']],
+  production: [['production'], ['dashboard'], ['comments-feed'], ['executive-panel']],
   recipes: [['recipes']],
-  'monthly-schedule': [['monthly-schedule']],
-  'bread-control': [['bread-control']],
-  'waste-control': [['waste-control']],
+  'monthly-schedule': [['monthly-schedule'], ['executive-panel']],
+  'bread-control': [['bread-control'], ['executive-panel']],
+  'waste-control': [['waste-control'], ['executive-panel']],
   intelligence: [['intelligence']],
-  labels: [['labels']],
+  'executive-panel': [['executive-panel']],
+  labels: [['labels'], ['executive-panel']],
   laboratorio: [['laboratorio']],
   'dev-central': [['dev-central']],
   bugs: [['bugs']],
-  settings: [['advanced-settings']],
+  settings: [['advanced-settings'], ['executive-panel']],
 }
 
 const DEBOUNCE_MS = 800

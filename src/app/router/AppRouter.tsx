@@ -38,6 +38,11 @@ const WasteControlPage = lazyPage(() =>
 const IntelligencePage = lazyPage(() =>
   import('@/features/intelligence/pages/IntelligencePage').then((m) => ({ default: m.IntelligencePage })),
 )
+const ExecutivePanelPage = lazyPage(() =>
+  import('@/features/executive-panel/pages/ExecutivePanelPage').then((m) => ({
+    default: m.ExecutivePanelPage,
+  })),
+)
 const NannaiInsightsPage = lazyPage(() =>
   import('@/features/nannai-insights/pages/NannaiInsightsPage').then((m) => ({
     default: m.NannaiInsightsPage,
@@ -140,6 +145,9 @@ export function AppRouter() {
             </Route>
             <Route element={<PermissionRoute permission="nannai-insights:view" />}>
               <Route path={APP_ROUTES.nannaiInsights} element={<NannaiInsightsPage />} />
+            </Route>
+            <Route element={<PermissionRoute permission="executive-panel:view" />}>
+              <Route path={APP_ROUTES.executivePanel} element={<ExecutivePanelPage />} />
             </Route>
             <Route element={<PermissionRoute permission="intelligence:view" />}>
               <Route path={APP_ROUTES.intelligence} element={<IntelligencePage />} />
