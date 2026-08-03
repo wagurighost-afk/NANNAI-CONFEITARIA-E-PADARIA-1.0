@@ -21,6 +21,7 @@ export const APP_ROUTES = {
   niimbotPrintTest: '/niimbot/teste',
   laboratorio: '/laboratorio-nannai',
   devCentral: '/central-desenvolvedor',
+  bugs: '/central-bugs',
   notFound: '*',
 } as const
 

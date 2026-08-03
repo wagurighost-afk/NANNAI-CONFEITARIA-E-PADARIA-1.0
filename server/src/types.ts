@@ -96,13 +96,25 @@ export interface CreateProductionInput {
 }
 
 export interface RealtimeEvent {
-  scope: 'production' | 'auth' | 'recipes' | 'monthly-schedule' | 'bread-control' | 'waste-control' | 'intelligence' | 'labels'
+  scope:
+    | 'production'
+    | 'auth'
+    | 'recipes'
+    | 'monthly-schedule'
+    | 'bread-control'
+    | 'waste-control'
+    | 'intelligence'
+    | 'labels'
+    | 'laboratorio'
+    | 'dev-central'
+    | 'bugs'
   action: string
   productionId?: string
   recipeId?: string
   scheduleId?: string
   dayId?: string
   labelId?: string
+  bugId?: string
 }
 
 export type WasteBuffetType = 'cafe' | 'cha' | 'jantar'

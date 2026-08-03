@@ -28,6 +28,8 @@ export const ROLE_PERMISSIONS: RolePermissionsMap = {
     'laboratorio:view',
     'laboratorio:manage',
     'dev-central:view',
+    'bugs:view',
+    'bugs:report',
   ],
   manager: [
     'dashboard:view',
@@ -39,6 +41,8 @@ export const ROLE_PERMISSIONS: RolePermissionsMap = {
     'cleaning-schedule:view',
     'recipes:view',
     'pop:view',
+    'bugs:view',
+    'bugs:report',
   ],
   staff: [
     'dashboard:view',
@@ -50,8 +54,10 @@ export const ROLE_PERMISSIONS: RolePermissionsMap = {
     'cleaning-schedule:view',
     'recipes:view',
     'pop:view',
+    'bugs:view',
+    'bugs:report',
   ],
-  viewer: ['dashboard:view', 'recipes:view', 'pop:view'],
+  viewer: ['dashboard:view', 'recipes:view', 'pop:view', 'bugs:view', 'bugs:report'],
 } as const
 
 export const DEFAULT_PERMISSIONS: readonly Permission[] = []

@@ -113,6 +113,13 @@ export const MAIN_NAVIGATION: readonly AppNavItem[] = [
     permission: 'dev-central:view',
   },
   {
+    id: 'bugs',
+    label: 'Central de Bugs',
+    href: APP_ROUTES.bugs,
+    icon: 'Bug',
+    permission: 'bugs:view',
+  },
+  {
     id: 'employees',
     label: 'Colaboradores',
     href: APP_ROUTES.employees,

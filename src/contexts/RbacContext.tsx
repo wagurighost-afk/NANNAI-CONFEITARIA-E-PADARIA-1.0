@@ -7,6 +7,7 @@ import { canAccessWasteControl, canViewWasteMonthlySummary } from '@/core/permis
 import { canAccessIntelligence } from '@/core/permissions/intelligenceAccess'
 import { canViewAuditLogs } from '@/core/permissions/auditAccess'
 import { canAccessDevCentral } from '@/core/permissions/devCentralAccess'
+import { canManageBugStatus } from '@/core/permissions/bugsAccess'
 import { canAccessLaboratorio } from '@/core/permissions/laboratorioAccess'
 import { hasFullSystemAccess } from '@/core/permissions/systemAccess'
 import { useAuth } from '@/hooks/useAuth'
@@ -69,6 +70,15 @@ export function RbacProvider({ children }: RbacProviderProps) {
     }
     if (canAccessDevCentral(user) && !base.includes('dev-central:view')) {
       base.push('dev-central:view')
+    }
+    if (!base.includes('bugs:view')) {
+      base.push('bugs:view')
+    }
+    if (!base.includes('bugs:report')) {
+      base.push('bugs:report')
+    }
+    if (canManageBugStatus(user) && !base.includes('bugs:manage')) {
+      base.push('bugs:manage')
     }
     return base
   }, [role, user])

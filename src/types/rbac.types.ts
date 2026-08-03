@@ -34,6 +34,9 @@ export type Permission =
   | 'laboratorio:view'
   | 'laboratorio:manage'
   | 'dev-central:view'
+  | 'bugs:view'
+  | 'bugs:report'
+  | 'bugs:manage'
 
 export type RolePermissionsMap = Record<UserRole, readonly Permission[]>
 

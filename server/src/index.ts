@@ -18,6 +18,7 @@ import { auditRouter } from './routes/audit.routes.js'
 import { labelsRouter } from './routes/labels.routes.js'
 import { laboratorioRouter } from './routes/laboratorio.routes.js'
 import { devCentralRouter } from './routes/devCentral.routes.js'
+import { bugsRouter } from './routes/bugs.routes.js'
 import { devCentralMetricsMiddleware } from './dev-central/metricsMiddleware.js'
 import { recordErrorMetric } from './dev-central/metricsCollector.js'
 
@@ -60,6 +61,7 @@ app.use('/api/audit', auditRouter)
 app.use('/api/labels', labelsRouter)
 app.use('/api/laboratorio', laboratorioRouter)
 app.use('/api/dev-central', devCentralRouter)
+app.use('/api/bugs', bugsRouter)
 app.use('/api/events', eventsRouter)
 
 if (isProduction && fs.existsSync(distPath)) {
