@@ -232,5 +232,11 @@
   .label-print-page {
     break-inside: avoid;
     page-break-after: always;
+    display: flex;
+    justify-content: center;
+  }
+
+  .label-print-page > div {
+    width: 50mm;
   }
 }

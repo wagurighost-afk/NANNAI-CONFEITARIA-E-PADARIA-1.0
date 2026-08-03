@@ -4,10 +4,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Breadcrumb, EmptyState, PageHeader, PageShell } from '@/components/common'
 import { Button, ConfirmDialog, Modal, Skeleton } from '@/components/ui'
 import { LabelPrintDialogContent } from '@/features/labels/components/LabelPrintDialog'
-import {
-  printProductionItemLabel,
-  ProductionLabelPrintError,
-} from '@/features/labels/services/printProductionLabel'
+import { buildLabelDraftFromProduction } from '@/features/labels/utils/buildLabelFromProduction'
+import { fetchLabels } from '@/features/labels/services/labels.service'
 import type { CreateLabelInput, LabelRecord } from '@/features/labels/types/label.types'
 import { EMPLOYEES_MOCK } from '@/features/employees/mocks/employees.mock'
 import { DuplicateProductionDialog } from '@/features/production/components/DuplicateProductionDialog'
@@ -44,11 +42,11 @@ export function ProductionPage() {
   const { push } = useToast()
   const queryClient = useQueryClient()
   const [pendingLabelPrompt, setPendingLabelPrompt] = useState<PendingLabelPrompt | null>(null)
-  const [isPrintingLabel, setIsPrintingLabel] = useState(false)
-  const [manualLabelDraft, setManualLabelDraft] = useState<Omit<CreateLabelInput, 'copies'> | null>(
+  const [productionLabelDraft, setProductionLabelDraft] = useState<Omit<CreateLabelInput, 'copies'> | null>(
     null,
   )
-  const [manualLabelRecord, setManualLabelRecord] = useState<LabelRecord | null>(null)
+  const [productionLabelRecord, setProductionLabelRecord] = useState<LabelRecord | null>(null)
+  const [isOpeningLabelPreview, setIsOpeningLabelPreview] = useState(false)
   const {
     productions,
     kpis,
@@ -108,54 +106,45 @@ export function ProductionPage() {
   }
 
   const handleConfirmPrintLabel = async () => {
-    if (!selectedProduction || !pendingLabelPrompt) {
+    if (!selectedProduction || !pendingLabelPrompt || !user) {
       return
     }
 
     const prompt = pendingLabelPrompt
     setPendingLabelPrompt(null)
-    setIsPrintingLabel(true)
+    setIsOpeningLabelPreview(true)
 
     try {
-      const result = await printProductionItemLabel({
-        productionId: selectedProduction.id,
-        itemId: prompt.itemId,
-        copies: 1,
-        mode: prompt.mode,
-        adapterId: 'niimbot-bluetooth',
+      const item = selectedProduction.items.find((entry) => entry.id === prompt.itemId)
+      if (!item) {
+        return
+      }
+
+      const draft = buildLabelDraftFromProduction({
+        production: selectedProduction,
+        item,
+        responsibleName: user.name,
       })
-      void queryClient.invalidateQueries({ queryKey: ['labels'] })
-      push({
-        title: result.mode === 'reprint' ? 'Etiqueta reimpressa' : 'Etiqueta impressa',
-        description: `${result.record.data.productName} · lote ${result.record.data.batchNumber}`,
-        variant: 'success',
-      })
+
+      let existingRecord: LabelRecord | null = null
+      if (prompt.mode === 'reprint-or-create') {
+        const history = await fetchLabels({
+          productionId: selectedProduction.id,
+          limit: 100,
+        })
+        existingRecord = history.items.find((entry) => entry.productionItemId === prompt.itemId) ?? null
+      }
+
+      setProductionLabelRecord(existingRecord)
+      setProductionLabelDraft(draft)
     } catch (error: unknown) {
-      void queryClient.invalidateQueries({ queryKey: ['labels'] })
-
-      const savedRecord =
-        error instanceof ProductionLabelPrintError ? error.record : undefined
-
       push({
-        title: savedRecord ? 'Etiqueta salva, falha na impressão' : 'Falha ao imprimir etiqueta',
+        title: 'Não foi possível preparar a etiqueta',
         description: getErrorMessage(error),
         variant: 'danger',
       })
-
-      if (savedRecord) {
-        setManualLabelRecord(savedRecord)
-        setManualLabelDraft({
-          templateId: savedRecord.templateId,
-          data: savedRecord.data,
-          ...(savedRecord.productionId ? { productionId: savedRecord.productionId } : {}),
-          ...(savedRecord.productionItemId
-            ? { productionItemId: savedRecord.productionItemId }
-            : {}),
-          ...(savedRecord.recipeId ? { recipeId: savedRecord.recipeId } : {}),
-        })
-      }
     } finally {
-      setIsPrintingLabel(false)
+      setIsOpeningLabelPreview(false)
     }
   }
 
@@ -424,44 +413,37 @@ export function ProductionPage() {
         }
         confirmLabel="SIM"
         cancelLabel="NÃO"
-        isConfirming={isPrintingLabel}
+        isConfirming={isOpeningLabelPreview}
       />
 
       <Modal
-        open={isPrintingLabel}
-        onClose={() => undefined}
-        title="Imprimindo etiqueta"
-        description="Gerando dados e enviando para a NIIMBOT…"
-        size="sm"
-      >
-        <p className="text-sm text-muted-foreground">
-          Aguarde a conclusão da impressão. Não feche esta janela.
-        </p>
-      </Modal>
-
-      <Modal
-        open={Boolean(manualLabelDraft)}
+        open={Boolean(productionLabelDraft)}
         onClose={() => {
-          setManualLabelDraft(null)
-          setManualLabelRecord(null)
+          setProductionLabelDraft(null)
+          setProductionLabelRecord(null)
         }}
-        title="Reimprimir etiqueta"
-        description="A etiqueta foi salva no histórico. Você pode tentar imprimir novamente."
+        title="Pré-visualizar etiqueta"
+        description="Revise o layout antes de enviar para a NIIMBOT."
         size="lg"
       >
-        {manualLabelDraft ? (
+        {productionLabelDraft ? (
           <LabelPrintDialogContent
-            initialDraft={manualLabelDraft}
-            mode={manualLabelRecord ? 'reprint' : 'create'}
-            {...(manualLabelRecord ? { existingRecord: manualLabelRecord } : {})}
+            initialDraft={productionLabelDraft}
+            mode={productionLabelRecord ? 'reprint' : 'create'}
+            {...(productionLabelRecord ? { existingRecord: productionLabelRecord } : {})}
             onCancel={() => {
-              setManualLabelDraft(null)
-              setManualLabelRecord(null)
+              setProductionLabelDraft(null)
+              setProductionLabelRecord(null)
             }}
-            onCompleted={() => {
-              setManualLabelDraft(null)
-              setManualLabelRecord(null)
-              push({ title: 'Etiqueta reimpressa', variant: 'success' })
+            onCompleted={(record) => {
+              setProductionLabelDraft(null)
+              setProductionLabelRecord(null)
+              void queryClient.invalidateQueries({ queryKey: ['labels'] })
+              push({
+                title: productionLabelRecord ? 'Etiqueta reimpressa' : 'Etiqueta impressa',
+                description: `${record.data.productName} · lote ${record.data.batchNumber}`,
+                variant: 'success',
+              })
             }}
           />
         ) : null}

@@ -1,6 +1,13 @@
 import { Button, Input, Select } from '@/components/ui'
 import { LABEL_TEMPLATES } from '@/features/labels/constants/labelTemplates'
-import { LabelPreview, LabelPrintSheet } from '@/features/labels/components/LabelPreview'
+import {
+  findNiimbotLabelSize,
+  readPreferredLabelSize,
+  writePreferredLabelSize,
+} from '@/features/labels/constants/labelSizes'
+import { LabelCanvasPreview } from '@/features/labels/components/LabelCanvasPreview'
+import { LabelPrintSheet } from '@/features/labels/components/LabelPreview'
+import { LabelSizeSelector } from '@/features/labels/components/LabelSizeSelector'
 import { useLabelMutations } from '@/features/labels/hooks/useLabels'
 import { useLabelPrint } from '@/features/labels/hooks/useLabelPrint'
 import { listLabelPrinterAdapters } from '@/features/labels/printer/labelPrinterRegistry'
@@ -33,12 +40,23 @@ export function LabelPrintDialogContent({
   const [copies, setCopies] = useState(1)
   const [data, setData] = useState(initialDraft.data)
   const [savedRecord, setSavedRecord] = useState<LabelRecord | null>(existingRecord ?? null)
+  const [labelSizeCode, setLabelSizeCode] = useState(() => readPreferredLabelSize(203).code)
+
+  const previewSize = useMemo(
+    () => findNiimbotLabelSize(labelSizeCode, 203),
+    [labelSizeCode],
+  )
 
   useEffect(() => {
     setTemplateId(initialDraft.templateId)
     setData(initialDraft.data)
     setSavedRecord(existingRecord ?? null)
   }, [existingRecord, initialDraft])
+
+  const handleLabelSizeChange = (code: string) => {
+    setLabelSizeCode(code)
+    writePreferredLabelSize(code)
+  }
 
   const previewData = useMemo(
     () => resolveLabelFieldData(data, templateId),
@@ -92,7 +110,7 @@ export function LabelPrintDialogContent({
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
         <div className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <Select
@@ -177,18 +195,21 @@ export function LabelPrintDialogContent({
           ) : null}
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4 lg:sticky lg:top-4 lg:self-start">
           <p className="text-sm font-medium text-foreground">Pré-visualização</p>
-          <LabelPreview
-            templateId={templateId}
+          <LabelSizeSelector value={labelSizeCode} onChange={handleLabelSizeChange} />
+          <LabelCanvasPreview
             data={previewData}
             qrPayload={previewQr}
+            size={previewSize}
             copies={copies}
           />
         </div>
       </div>
 
-      {savedRecord ? <LabelPrintSheet record={savedRecord} copies={copies} /> : null}
+      {savedRecord ? (
+        <LabelPrintSheet record={savedRecord} copies={copies} size={previewSize} />
+      ) : null}
 
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         {onCancel ? (

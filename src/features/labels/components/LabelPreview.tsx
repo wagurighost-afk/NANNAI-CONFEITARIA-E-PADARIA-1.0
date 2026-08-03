@@ -1,97 +1,125 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import QRCode from 'qrcode'
-import type { LabelFieldData, LabelRecord, LabelTemplateId } from '@/features/labels/types/label.types'
-import { getLabelTemplate } from '@/features/labels/constants/labelTemplates'
-import { formatDateBr } from '@/utils/formatDate'
+import { buildLabelLayout } from '@/features/labels/layout/labelLayoutEngine'
+import { readPreferredLabelSize } from '@/features/labels/constants/labelSizes'
+import type { LabelFieldData, LabelRecord } from '@/features/labels/types/label.types'
+import type { NiimbotPrintSize } from '@/services/niimbot/printModels'
 import { cn } from '@/utils/cn'
 
-function LabelQrCode({ payload, size = 88 }: { payload: string; size?: number }) {
-  const [dataUrl, setDataUrl] = useState<string | null>(null)
-
-  useEffect(() => {
-    let active = true
-    void QRCode.toDataURL(payload, {
-      width: size,
-      margin: 1,
-      errorCorrectionLevel: 'M',
-    }).then((url) => {
-      if (active) {
-        setDataUrl(url)
-      }
-    })
-    return () => {
-      active = false
-    }
-  }, [payload, size])
-
-  if (!dataUrl) {
-    return <div className="size-[88px] rounded bg-muted" aria-hidden />
-  }
-
-  return <img src={dataUrl} alt="QR Code da etiqueta" className="size-[88px] rounded" />
-}
-
-interface LabelPreviewProps {
-  templateId: LabelTemplateId
+export interface LabelPreviewProps {
   data: LabelFieldData
   qrPayload: string
+  size?: NiimbotPrintSize
   copies?: number
   className?: string
 }
 
 export function LabelPreview({
-  templateId,
   data,
   qrPayload,
+  size,
   copies = 1,
   className,
 }: LabelPreviewProps) {
-  const template = getLabelTemplate(templateId)
+  const resolvedSize = size ?? readPreferredLabelSize(203)
+  const layout = useMemo(
+    () => buildLabelLayout({ size: resolvedSize, data }),
+    [data, resolvedSize],
+  )
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    let active = true
+    void QRCode.toDataURL(qrPayload, {
+      width: layout.qr.size,
+      margin: 1,
+      errorCorrectionLevel: 'M',
+    }).then((url) => {
+      if (active) {
+        setQrDataUrl(url)
+      }
+    })
+    return () => {
+      active = false
+    }
+  }, [layout.qr.size, qrPayload])
+
+  const aspectRatio = resolvedSize.w_mm / resolvedSize.h_mm
+  const contentWidth = layout.dimensions.width - layout.dimensions.padding * 2
 
   return (
     <div
-      className={cn(
-        'label-print-item mx-auto w-full max-w-[320px] overflow-hidden rounded-xl border-2 bg-white text-[#1f160f] shadow-sm',
-        className,
-      )}
-      style={{ borderColor: template.accentColor }}
+      className={cn('mx-auto w-full', className)}
+      style={{ maxWidth: `${Math.min(420, resolvedSize.w_mm * 6)}px` }}
     >
-      <div className="px-3 py-2 text-center text-[11px] font-semibold uppercase tracking-wide text-white" style={{ backgroundColor: template.accentColor }}>
-        {template.name}
-      </div>
-      <div className="grid grid-cols-[1fr_auto] gap-3 p-3">
-        <div className="min-w-0 space-y-2 text-xs">
-          <div>
-            <p className="text-[10px] uppercase text-[#6b5b4f]">Produto</p>
-            <p className="font-display text-base font-semibold leading-tight">{data.productName}</p>
+      <div
+        className="relative overflow-hidden rounded-xl border-2 border-[#1f160f]/15 bg-white text-[#1f160f] shadow-sm"
+        style={{ aspectRatio }}
+      >
+        <div
+          className="absolute inset-0 flex flex-col"
+          style={{ padding: `${(layout.dimensions.padding / layout.dimensions.width) * 100}%` }}
+        >
+          <div
+            className="flex flex-col items-center justify-center text-center"
+            style={{
+              minHeight: `${(layout.productName.areaHeight / layout.dimensions.height) * 100}%`,
+            }}
+          >
+            {layout.productName.lines.map((line, index) => (
+              <p
+                key={`${line.text}-${index}`}
+                className="w-full font-bold leading-none"
+                style={{
+                  fontSize: `${(line.fontSize / contentWidth) * 100}cqmin`,
+                  marginBottom: `${((line.lineHeight - line.fontSize) / layout.dimensions.height) * 100}%`,
+                }}
+              >
+                {line.text}
+              </p>
+            ))}
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <Field label="Categoria" value={data.category} />
-            <Field label="Peso" value={data.weight} />
-            <Field label="Produção" value={formatDateBr(data.productionDate)} />
-            <Field label="Hora" value={data.productionTime} />
-            <Field label="Validade" value={formatDateBr(data.expiryDate)} />
-            <Field label="Lote" value={data.batchNumber} />
-            <Field label="Código" value={data.internalCode} />
-            <Field label="Responsável" value={data.responsible} />
-          </div>
-        </div>
-        <div className="flex flex-col items-center gap-1">
-          <LabelQrCode payload={qrPayload} />
-          {copies > 1 ? (
-            <span className="rounded bg-muted px-2 py-0.5 text-[10px] font-medium">{copies}x</span>
-          ) : null}
-        </div>
-      </div>
-    </div>
-  )
-}
 
-function Field({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="min-w-0">
-      <p className="text-[10px] uppercase text-[#6b5b4f]">{label}</p>
-      <p className="truncate font-medium">{value}</p>
+          <div className="text-center">
+            {layout.details.map((row, index) => (
+              <p
+                key={`${row.text}-${index}`}
+                className="font-medium leading-snug"
+                style={{ fontSize: `${(row.fontSize / contentWidth) * 100}cqmin` }}
+              >
+                {row.text}
+              </p>
+            ))}
+          </div>
+
+          <div className="mt-auto flex justify-center pt-1">
+            {qrDataUrl ? (
+              <img
+                src={qrDataUrl}
+                alt="QR Code da etiqueta"
+                style={{
+                  width: `${(layout.qr.size / layout.dimensions.width) * 100}%`,
+                  aspectRatio: '1 / 1',
+                }}
+              />
+            ) : (
+              <div
+                className="rounded bg-muted"
+                style={{
+                  width: `${(layout.qr.size / layout.dimensions.width) * 100}%`,
+                  aspectRatio: '1 / 1',
+                }}
+                aria-hidden
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      <p className="mt-2 text-center text-xs text-muted-foreground">
+        {resolvedSize.label}
+        {copies > 1 ? ` · ${copies} cópia(s)` : ''}
+      </p>
     </div>
   )
 }
@@ -99,9 +127,10 @@ function Field({ label, value }: { label: string; value: string }) {
 interface LabelPrintSheetProps {
   record: LabelRecord
   copies: number
+  size?: NiimbotPrintSize
 }
 
-export function LabelPrintSheet({ record, copies }: LabelPrintSheetProps) {
+export function LabelPrintSheet({ record, copies, size }: LabelPrintSheetProps) {
   const items = Array.from({ length: Math.max(1, copies) })
 
   return (
@@ -109,9 +138,9 @@ export function LabelPrintSheet({ record, copies }: LabelPrintSheetProps) {
       {items.map((_, index) => (
         <div key={`${record.id}-${index}`} className="label-print-page break-after-page p-4">
           <LabelPreview
-            templateId={record.templateId}
             data={record.data}
             qrPayload={record.qrPayload}
+            {...(size ? { size } : {})}
           />
         </div>
       ))}
