@@ -129,7 +129,7 @@ export async function saveProduction(production: ProductionDay): Promise<Product
 }
 
 async function syncSeedEmployeeIdentities(): Promise<void> {
-  await detachSeedAdminFromEmployee()
+  await restoreSeedAdminIdentity()
 
   for (const employee of SEED_EMPLOYEES) {
     const row = await resolveSeedEmployeeUser(employee.id)
@@ -155,13 +155,37 @@ async function syncSeedEmployeeIdentities(): Promise<void> {
   }
 }
 
-async function detachSeedAdminFromEmployee(): Promise<void> {
+/**
+ * Garante a conta técnica do admin (usr_nannai_001).
+ * Em deploys antigos ela chegou a herdar nome/e-mail do Chef (David/Devid),
+ * bloqueando o login correto da liderança.
+ */
+async function restoreSeedAdminIdentity(): Promise<void> {
   const admin = await findUserById(SEED_ADMIN.id)
-  if (!admin?.employee_id) {
+  if (!admin) {
     return
   }
 
-  await updateUserEmployeeId(SEED_ADMIN.id, null)
+  if (admin.employee_id) {
+    await updateUserEmployeeId(SEED_ADMIN.id, null)
+  }
+
+  const targetEmail = SEED_ADMIN.email.toLowerCase()
+  const emailOwner = await findUserByEmail(targetEmail)
+  if (emailOwner && emailOwner.id !== admin.id) {
+    console.warn(
+      `[seed] E-mail canônico do admin (${targetEmail}) pertence a ${emailOwner.id}; mantendo ${admin.email}.`,
+    )
+  } else if (admin.name !== SEED_ADMIN.name || admin.email.toLowerCase() !== targetEmail) {
+    await updateUserIdentity(SEED_ADMIN.id, {
+      name: SEED_ADMIN.name,
+      email: targetEmail,
+    })
+  }
+
+  if (admin.role !== SEED_ADMIN.role) {
+    await updateUserRole(SEED_ADMIN.id, SEED_ADMIN.role)
+  }
 }
 
 async function resolveSeedEmployeeUser(employeeId: string): Promise<UserRow | undefined> {

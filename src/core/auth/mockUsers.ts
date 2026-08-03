@@ -40,7 +40,6 @@ export const MOCK_ADMIN_USER: User = {
   name: 'Administrador NANNAI',
   email: 'admin@nannai.com',
   role: 'admin',
-  employeeId: 'emp-david',
 }
 
 /** Colaborador — visualiza e atualiza apenas a própria produção. */
