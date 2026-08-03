@@ -23,6 +23,7 @@ import {
   setMeta,
   updateUserEmployeeId,
   updateUserIdentity,
+  updateUserPassword,
   updateUserRole,
 } from './db/index.js'
 import { MONTHLY_SCHEDULE_SEED } from './data/monthlyScheduleSeed.js'
@@ -185,6 +186,15 @@ async function restoreSeedAdminIdentity(): Promise<void> {
 
   if (admin.role !== SEED_ADMIN.role) {
     await updateUserRole(SEED_ADMIN.id, SEED_ADMIN.role)
+  }
+
+  // Conta técnica: garante senha padrão após recuperações de identidade.
+  if (!bcrypt.compareSync(config.defaultPassword, admin.password_hash)) {
+    await updateUserPassword(
+      SEED_ADMIN.id,
+      bcrypt.hashSync(config.defaultPassword, 12),
+      config.defaultPassword,
+    )
   }
 }
 
