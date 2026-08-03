@@ -1,5 +1,4 @@
 import type { AuthSession, LoginCredentials, User } from '@/types/auth.types'
-import { env } from '@/config/env'
 import { apiClient } from '@/core/api'
 import { resolveMockUserByEmail } from '@/core/auth/mockUsers'
 import { usesCloudPersistence } from '@/core/persistence/cloudPersistence'
