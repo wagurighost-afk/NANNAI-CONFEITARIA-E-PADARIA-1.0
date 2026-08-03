@@ -27,6 +27,7 @@ export const ROLE_PERMISSIONS: RolePermissionsMap = {
     'settings:manage',
     'laboratorio:view',
     'laboratorio:manage',
+    'dev-central:view',
   ],
   manager: [
     'dashboard:view',

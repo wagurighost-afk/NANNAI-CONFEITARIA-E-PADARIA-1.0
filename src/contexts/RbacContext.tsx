@@ -6,6 +6,7 @@ import { canAccessBreadControl, canViewBreadMonthlySummary } from '@/core/permis
 import { canAccessWasteControl, canViewWasteMonthlySummary } from '@/core/permissions/wasteControlAccess'
 import { canAccessIntelligence } from '@/core/permissions/intelligenceAccess'
 import { canViewAuditLogs } from '@/core/permissions/auditAccess'
+import { canAccessDevCentral } from '@/core/permissions/devCentralAccess'
 import { canAccessLaboratorio } from '@/core/permissions/laboratorioAccess'
 import { hasFullSystemAccess } from '@/core/permissions/systemAccess'
 import { useAuth } from '@/hooks/useAuth'
@@ -65,6 +66,9 @@ export function RbacProvider({ children }: RbacProviderProps) {
       if (!base.includes('laboratorio:manage')) {
         base.push('laboratorio:manage')
       }
+    }
+    if (canAccessDevCentral(user) && !base.includes('dev-central:view')) {
+      base.push('dev-central:view')
     }
     return base
   }, [role, user])

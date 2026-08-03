@@ -33,6 +33,7 @@ export type Permission =
   | 'labels:print'
   | 'laboratorio:view'
   | 'laboratorio:manage'
+  | 'dev-central:view'
 
 export type RolePermissionsMap = Record<UserRole, readonly Permission[]>
 

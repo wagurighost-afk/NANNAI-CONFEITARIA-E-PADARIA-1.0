@@ -106,6 +106,13 @@ export const MAIN_NAVIGATION: readonly AppNavItem[] = [
     permission: 'laboratorio:view',
   },
   {
+    id: 'dev-central',
+    label: 'Central do Desenvolvedor',
+    href: APP_ROUTES.devCentral,
+    icon: 'Terminal',
+    permission: 'dev-central:view',
+  },
+  {
     id: 'employees',
     label: 'Colaboradores',
     href: APP_ROUTES.employees,

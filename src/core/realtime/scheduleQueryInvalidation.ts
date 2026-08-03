@@ -9,6 +9,7 @@ const SCOPE_QUERY_KEYS: Record<string, readonly (readonly string[])[]> = {
   intelligence: [['intelligence']],
   labels: [['labels']],
   laboratorio: [['laboratorio']],
+  'dev-central': [['dev-central']],
 }
 
 const DEBOUNCE_MS = 800

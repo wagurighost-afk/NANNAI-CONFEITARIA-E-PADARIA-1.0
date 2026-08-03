@@ -15,6 +15,7 @@ import {
   PanelLeftOpen,
   Sparkles,
   Tags,
+  Terminal,
   Trash2,
   Users,
   Wheat,
@@ -44,6 +45,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   Wheat,
   History,
   FlaskConical,
+  Terminal,
 }
 
 export interface SidebarProps {

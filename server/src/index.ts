@@ -17,6 +17,9 @@ import { intelligenceRouter } from './routes/intelligence.routes.js'
 import { auditRouter } from './routes/audit.routes.js'
 import { labelsRouter } from './routes/labels.routes.js'
 import { laboratorioRouter } from './routes/laboratorio.routes.js'
+import { devCentralRouter } from './routes/devCentral.routes.js'
+import { devCentralMetricsMiddleware } from './dev-central/metricsMiddleware.js'
+import { recordErrorMetric } from './dev-central/metricsCollector.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const distPath = path.join(__dirname, '..', '..', 'dist')
@@ -31,6 +34,7 @@ app.use(
   }),
 )
 app.use(express.json({ limit: '2mb' }))
+app.use(devCentralMetricsMiddleware)
 app.use('/api/uploads', (_req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
   next()
@@ -55,6 +59,7 @@ app.use('/api/intelligence', intelligenceRouter)
 app.use('/api/audit', auditRouter)
 app.use('/api/labels', labelsRouter)
 app.use('/api/laboratorio', laboratorioRouter)
+app.use('/api/dev-central', devCentralRouter)
 app.use('/api/events', eventsRouter)
 
 if (isProduction && fs.existsSync(distPath)) {
@@ -64,8 +69,14 @@ if (isProduction && fs.existsSync(distPath)) {
   })
 }
 
-app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+app.use((error: unknown, req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(error)
+  recordErrorMetric({
+    message: error instanceof Error ? error.message : 'Erro interno do servidor.',
+    path: req.path,
+    status: 500,
+    at: new Date().toISOString(),
+  })
   res.status(500).json({ message: 'Erro interno do servidor.' })
 })
 
