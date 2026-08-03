@@ -99,6 +99,13 @@ export const MAIN_NAVIGATION: readonly AppNavItem[] = [
     permission: 'audit:view',
   },
   {
+    id: 'laboratorio',
+    label: 'Laboratório NANNAI',
+    href: APP_ROUTES.laboratorio,
+    icon: 'FlaskConical',
+    permission: 'laboratorio:view',
+  },
+  {
     id: 'employees',
     label: 'Colaboradores',
     href: APP_ROUTES.employees,

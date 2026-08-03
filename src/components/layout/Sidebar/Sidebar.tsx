@@ -7,6 +7,7 @@ import {
   ClipboardList,
   Factory,
   FileText,
+  FlaskConical,
   History,
   LayoutDashboard,
   MessageSquare,
@@ -42,6 +43,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   Users,
   Wheat,
   History,
+  FlaskConical,
 }
 
 export interface SidebarProps {

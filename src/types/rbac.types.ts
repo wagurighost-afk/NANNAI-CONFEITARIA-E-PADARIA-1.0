@@ -31,6 +31,8 @@ export type Permission =
   | 'audit:view'
   | 'labels:view'
   | 'labels:print'
+  | 'laboratorio:view'
+  | 'laboratorio:manage'
 
 export type RolePermissionsMap = Record<UserRole, readonly Permission[]>
 

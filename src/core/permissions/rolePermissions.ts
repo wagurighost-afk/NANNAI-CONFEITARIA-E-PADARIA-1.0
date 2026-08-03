@@ -25,6 +25,8 @@ export const ROLE_PERMISSIONS: RolePermissionsMap = {
     'purchases:manage',
     'users:manage',
     'settings:manage',
+    'laboratorio:view',
+    'laboratorio:manage',
   ],
   manager: [
     'dashboard:view',

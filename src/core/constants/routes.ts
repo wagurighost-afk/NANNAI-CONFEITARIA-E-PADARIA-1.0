@@ -19,6 +19,7 @@ export const APP_ROUTES = {
   niimbot: '/niimbot',
   niimbotSettings: '/niimbot/configuracoes',
   niimbotPrintTest: '/niimbot/teste',
+  laboratorio: '/laboratorio-nannai',
   notFound: '*',
 } as const
 

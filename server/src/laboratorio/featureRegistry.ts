@@ -1,0 +1,48 @@
+import type {
+  LaboratorioFeatureDefinition,
+  LaboratorioModuleDefinition,
+} from './types.js'
+
+export const LABORATORIO_MODULES: readonly LaboratorioModuleDefinition[] = [
+  { id: 'dashboard', name: 'Dashboard', description: 'Visão geral operacional.', defaultEnabled: true, icon: 'LayoutDashboard' },
+  { id: 'production', name: 'Produção', description: 'Gestão diária de produção por colaborador.', defaultEnabled: true, icon: 'Factory' },
+  { id: 'labels', name: 'Etiquetas', description: 'Impressão e histórico de etiquetas.', defaultEnabled: true, icon: 'Tags' },
+  { id: 'niimbot', name: 'NIIMBOT', description: 'Integração Bluetooth com impressoras.', defaultEnabled: true, icon: 'Bluetooth' },
+  { id: 'bread-control', name: 'Controle de Pães', description: 'Controle diário de pães.', defaultEnabled: true, icon: 'ClipboardList' },
+  { id: 'waste-control', name: 'Controle de Desperdício', description: 'Registro de desperdícios.', defaultEnabled: true, icon: 'Trash2' },
+  { id: 'comments', name: 'Comentários', description: 'Feed de comentários de turno.', defaultEnabled: true, icon: 'MessageSquare' },
+  { id: 'schedule', name: 'Escala', description: 'Escala mensal de colaboradores.', defaultEnabled: true, icon: 'CalendarDays' },
+  { id: 'cleaning-schedule', name: 'Escala de Limpeza', description: 'Rotinas de limpeza.', defaultEnabled: true, icon: 'Sparkles' },
+  { id: 'recipes', name: 'Receitas', description: 'Fichas técnicas e receitas.', defaultEnabled: true, icon: 'ChefHat' },
+  { id: 'pop', name: 'POP', description: 'Procedimentos operacionais padrão.', defaultEnabled: true, icon: 'FileText' },
+  { id: 'intelligence', name: 'Dashboard Executivo', description: 'Inteligência operacional.', defaultEnabled: true, icon: 'BrainCircuit' },
+  { id: 'audit', name: 'Auditoria', description: 'Trilha de alterações do sistema.', defaultEnabled: true, icon: 'History' },
+  { id: 'employees', name: 'Colaboradores', description: 'Cadastro de equipe.', defaultEnabled: true, icon: 'Users' },
+  { id: 'ingredients', name: 'Ingredientes', description: 'Cadastro de insumos.', defaultEnabled: true, icon: 'Wheat' },
+  { id: 'laboratorio', name: 'Laboratório NANNAI', description: 'Ambiente de testes e flags.', defaultEnabled: true, icon: 'FlaskConical' },
+  { id: 'inventory', name: 'Estoque', description: 'Módulo planejado de estoque.', defaultEnabled: false, icon: 'Package' },
+  { id: 'purchases', name: 'Compras', description: 'Módulo planejado de compras.', defaultEnabled: false, icon: 'ShoppingCart' },
+  { id: 'costs', name: 'Custos', description: 'CMV e análise de custos.', defaultEnabled: false, icon: 'Calculator' },
+  { id: 'ai', name: 'IA Operacional', description: 'Assistente inteligente.', defaultEnabled: false, icon: 'Bot' },
+] as const
+
+export const LABORATORIO_FEATURES: readonly LaboratorioFeatureDefinition[] = [
+  { id: 'production-core', moduleId: 'production', name: 'Produção diária', description: 'CRUD de produções, itens e comentários.', defaultCategory: 'em_desenvolvimento', defaultLifecycle: 'producao', defaultEnabled: true, route: '/producao', version: '1.5.x' },
+  { id: 'production-conference', moduleId: 'production', name: 'Conferência diária', description: 'Status visual de conferência por item.', defaultCategory: 'beta', defaultLifecycle: 'beta', defaultEnabled: true, route: '/producao', version: '1.5.2' },
+  { id: 'labels-layout-v2', moduleId: 'labels', name: 'Layout de etiquetas v2', description: 'Nome do produto em destaque com fonte adaptativa.', defaultCategory: 'beta', defaultLifecycle: 'beta', defaultEnabled: true, route: '/etiquetas', version: '1.5.3' },
+  { id: 'labels-niimbot', moduleId: 'labels', name: 'Impressão NIIMBOT', description: 'Etiquetas via Bluetooth B1/B1 Pro.', defaultCategory: 'em_desenvolvimento', defaultLifecycle: 'producao', defaultEnabled: true, route: '/etiquetas', version: '1.5.0' },
+  { id: 'niimbot-multi-printer', moduleId: 'niimbot', name: 'Registry multi-impressora', description: 'Cadastro de várias NIIMBOT.', defaultCategory: 'em_desenvolvimento', defaultLifecycle: 'producao', defaultEnabled: true, route: '/niimbot/configuracoes' },
+  { id: 'intelligence-dashboard', moduleId: 'intelligence', name: 'KPIs operacionais', description: 'Dashboard executivo com insights.', defaultCategory: 'em_desenvolvimento', defaultLifecycle: 'producao', defaultEnabled: true, route: '/intelligence' },
+  { id: 'audit-trail', moduleId: 'audit', name: 'Trilha de auditoria', description: 'Logs de ações no sistema.', defaultCategory: 'em_desenvolvimento', defaultLifecycle: 'producao', defaultEnabled: true, route: '/auditoria' },
+  { id: 'realtime-sync', moduleId: 'dashboard', name: 'Sincronização em tempo real', description: 'SSE para atualização multiusuário.', defaultCategory: 'experimental', defaultLifecycle: 'producao', defaultEnabled: true },
+  { id: 'recipes-virtual-scroll', moduleId: 'recipes', name: 'Virtualização de receitas', description: 'Scroll virtual para listas grandes.', defaultCategory: 'experimental', defaultLifecycle: 'producao', defaultEnabled: true, route: '/receitas', version: '1.5.0' },
+  { id: 'laboratorio-module', moduleId: 'laboratorio', name: 'Laboratório NANNAI', description: 'Gestão de flags e módulos experimentais.', defaultCategory: 'em_desenvolvimento', defaultLifecycle: 'desenvolvimento', defaultEnabled: true, route: '/laboratorio-nannai', version: '1.6.0' },
+  { id: 'module-flags-runtime', moduleId: 'laboratorio', name: 'Feature flags em runtime', description: 'Ativação dinâmica de módulos via API.', defaultCategory: 'experimental', defaultLifecycle: 'desenvolvimento', defaultEnabled: true },
+  { id: 'inventory-module', moduleId: 'inventory', name: 'Estoque integrado', description: 'Entradas, saídas e saldos.', defaultCategory: 'futuras', defaultLifecycle: 'desenvolvimento', defaultEnabled: false },
+  { id: 'purchases-module', moduleId: 'purchases', name: 'Compras e fornecedores', description: 'Pedidos de compra.', defaultCategory: 'futuras', defaultLifecycle: 'desenvolvimento', defaultEnabled: false },
+  { id: 'costs-cmv', moduleId: 'costs', name: 'CMV por receita', description: 'Custo de mercadoria vendida.', defaultCategory: 'futuras', defaultLifecycle: 'desenvolvimento', defaultEnabled: false },
+  { id: 'ai-assistant', moduleId: 'ai', name: 'Assistente IA', description: 'Sugestões operacionais com IA.', defaultCategory: 'futuras', defaultLifecycle: 'desenvolvimento', defaultEnabled: false },
+  { id: 'ai-demand-forecast', moduleId: 'ai', name: 'Previsão de demanda', description: 'Modelo preditivo de produção.', defaultCategory: 'experimental', defaultLifecycle: 'desenvolvimento', defaultEnabled: false },
+  { id: 'labels-sdk', moduleId: 'labels', name: 'SDK NIIMBOT oficial', description: 'Impressão via SDK nativo.', defaultCategory: 'futuras', defaultLifecycle: 'desenvolvimento', defaultEnabled: false },
+  { id: 'mobile-offline', moduleId: 'dashboard', name: 'Modo offline PWA', description: 'Operação sem conexão.', defaultCategory: 'experimental', defaultLifecycle: 'beta', defaultEnabled: false },
+] as const

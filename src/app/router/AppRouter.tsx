@@ -36,6 +36,9 @@ const IntelligencePage = lazyPage(() =>
 const AuditPage = lazyPage(() =>
   import('@/features/audit/pages/AuditPage').then((m) => ({ default: m.AuditPage })),
 )
+const LaboratorioPage = lazyPage(() =>
+  import('@/features/laboratorio/pages/LaboratorioPage').then((m) => ({ default: m.LaboratorioPage })),
+)
 const CommentsPage = lazyPage(() =>
   import('@/features/comments/pages/CommentsPage').then((m) => ({ default: m.CommentsPage })),
 )
@@ -118,6 +121,9 @@ export function AppRouter() {
             </Route>
             <Route element={<PermissionRoute permission="audit:view" />}>
               <Route path={APP_ROUTES.audit} element={<AuditPage />} />
+            </Route>
+            <Route element={<PermissionRoute permission="laboratorio:view" />}>
+              <Route path={APP_ROUTES.laboratorio} element={<LaboratorioPage />} />
             </Route>
             <Route path={APP_ROUTES.comments} element={<CommentsPage />} />
             <Route path={APP_ROUTES.schedule} element={<SchedulePage />} />
