@@ -26,6 +26,7 @@ export interface ProductionDrawerProps {
   open: boolean
   onClose: () => void
   canManage?: boolean
+  canEditForm?: boolean
   canUpdateItems?: boolean
   canComment?: boolean
   onEdit?: () => void
@@ -43,6 +44,7 @@ export function ProductionDrawer({
   open,
   onClose,
   canManage = false,
+  canEditForm = false,
   canUpdateItems = false,
   canComment = false,
   onEdit,
@@ -105,20 +107,26 @@ export function ProductionDrawer({
       <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="muted">{production.productionCode}</Badge>
-          {canManage ? (
+          {canManage || canEditForm ? (
             <div className="ml-auto flex flex-wrap gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={onEdit}>
-                <Pencil className="size-4" />
-                Editar
-              </Button>
-              <Button type="button" variant="outline" size="sm" onClick={onDuplicate}>
-                <Copy className="size-4" />
-                Duplicar
-              </Button>
-              <Button type="button" variant="danger" size="sm" onClick={onDelete}>
-                <Trash2 className="size-4" />
-                Remover
-              </Button>
+              {canEditForm ? (
+                <Button type="button" variant="outline" size="sm" onClick={onEdit}>
+                  <Pencil className="size-4" />
+                  Editar
+                </Button>
+              ) : null}
+              {canManage ? (
+                <>
+                  <Button type="button" variant="outline" size="sm" onClick={onDuplicate}>
+                    <Copy className="size-4" />
+                    Duplicar
+                  </Button>
+                  <Button type="button" variant="danger" size="sm" onClick={onDelete}>
+                    <Trash2 className="size-4" />
+                    Remover
+                  </Button>
+                </>
+              ) : null}
             </div>
           ) : null}
         </div>

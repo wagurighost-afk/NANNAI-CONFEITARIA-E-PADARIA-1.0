@@ -1,9 +1,19 @@
 import type { User } from '@/types/auth.types'
 import type { ProductionDay } from '@/features/production/types/production.types'
+import { resolveEmployeeForUser } from '@/core/auth/employeeResolver'
 import { hasFullSystemAccess } from '@/core/permissions/systemAccess'
 
 export function canManageProduction(user: User | null): boolean {
   return hasFullSystemAccess(user)
+}
+
+function resolveOperationalEmployeeId(user: User | null): string | null {
+  if (!user) {
+    return null
+  }
+
+  const employee = resolveEmployeeForUser(user)
+  return employee?.id ?? user.employeeId ?? null
 }
 
 export function canEditProductionDay(user: User | null, production: ProductionDay): boolean {
@@ -15,7 +25,12 @@ export function canEditProductionDay(user: User | null, production: ProductionDa
     return true
   }
 
-  return user.employeeId === production.employeeId
+  const employeeId = resolveOperationalEmployeeId(user)
+  if (!employeeId) {
+    return false
+  }
+
+  return employeeId === production.employeeId
 }
 
 export function canUpdateProductionItems(
@@ -27,4 +42,16 @@ export function canUpdateProductionItems(
 
 export function canCommentOnProduction(user: User | null, production: ProductionDay): boolean {
   return canEditProductionDay(user, production)
+}
+
+export function canOpenProductionForm(
+  user: User | null,
+  production: ProductionDay,
+  hasPermission: (permission: 'production:manage' | 'production:own') => boolean,
+): boolean {
+  if (!canEditProductionDay(user, production)) {
+    return false
+  }
+
+  return hasPermission('production:manage') || hasPermission('production:own')
 }

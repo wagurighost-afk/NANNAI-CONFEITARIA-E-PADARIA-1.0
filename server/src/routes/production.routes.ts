@@ -7,6 +7,10 @@ import { config } from '../config.js'
 import type { AuthedRequest } from '../middleware.js'
 import { requireAuth } from '../middleware.js'
 import {
+  assertCanEditProduction,
+  assertCanManageProductions,
+} from '../productionAccess.js'
+import {
   addComment,
   appendRecipesToProduction,
   createProduction,
@@ -18,6 +22,7 @@ import {
   resolveUpdateProductionInput,
   updateItemStatus,
 } from '../production.service.js'
+import type { ProductionDay } from '../types.js'
 
 const upload = multer({
   dest: config.uploadsDir,
@@ -27,6 +32,25 @@ const upload = multer({
 export const productionRouter = Router()
 
 productionRouter.use(requireAuth)
+
+function resolveRouteError(error: unknown): { status: number; message: string } {
+  const message = error instanceof Error ? error.message : 'Erro na operação.'
+  if (message.includes('permissão')) {
+    return { status: 403, message }
+  }
+  if (message.includes('não encontrada')) {
+    return { status: 404, message }
+  }
+  return { status: 400, message }
+}
+
+async function loadProductionOrThrow(id: string): Promise<ProductionDay> {
+  const production = await getProductionById(id)
+  if (!production) {
+    throw new Error('Produção não encontrada.')
+  }
+  return production
+}
 
 productionRouter.get('/', async (req, res) => {
   const productions = await listProductions({
@@ -41,81 +65,95 @@ productionRouter.get('/', async (req, res) => {
 })
 
 productionRouter.get('/:id', async (req, res) => {
-  const production = await getProductionById(req.params.id)
-  if (!production) {
-    res.status(404).json({ message: 'Produção não encontrada.' })
-    return
+  try {
+    const production = await loadProductionOrThrow(req.params.id)
+    res.json(production)
+  } catch (error) {
+    const { status, message } = resolveRouteError(error)
+    res.status(status).json({ message })
   }
-  res.json(production)
 })
 
 productionRouter.post('/', async (req: AuthedRequest, res) => {
   try {
+    assertCanManageProductions(req.user!)
     const production = await resolveCreateProductionInput(req.body, toAuditActor(req.user!))
     res.status(201).json(production)
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Dados inválidos.' })
+    const { status, message } = resolveRouteError(error)
+    res.status(status).json({ message })
   }
 })
 
 productionRouter.post('/:id/append-recipes', async (req: AuthedRequest, res) => {
   try {
+    const production = await loadProductionOrThrow(req.params.id)
+    assertCanEditProduction(req.user!, production)
     const items = Array.isArray(req.body.items) ? req.body.items : []
-    const production = await appendRecipesToProduction(req.params.id, items, toAuditActor(req.user!))
-    res.json(production)
+    const updated = await appendRecipesToProduction(req.params.id, items, toAuditActor(req.user!))
+    res.json(updated)
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Erro ao adicionar receitas.' })
+    const { status, message } = resolveRouteError(error)
+    res.status(status).json({ message })
   }
 })
 
 productionRouter.put('/:id', async (req: AuthedRequest, res) => {
   try {
-    const production = await resolveUpdateProductionInput(req.params.id, req.body, toAuditActor(req.user!))
-    res.json(production)
+    const production = await loadProductionOrThrow(req.params.id)
+    assertCanEditProduction(req.user!, production)
+    const updated = await resolveUpdateProductionInput(req.params.id, req.body, toAuditActor(req.user!))
+    res.json(updated)
   } catch (error) {
-    res.status(404).json({ message: error instanceof Error ? error.message : 'Erro ao atualizar.' })
+    const { status, message } = resolveRouteError(error)
+    res.status(status).json({ message })
   }
 })
 
 productionRouter.delete('/:id', async (req: AuthedRequest, res) => {
   try {
+    assertCanManageProductions(req.user!)
     await removeProduction(req.params.id, toAuditActor(req.user!))
     res.status(204).send()
   } catch (error) {
-    res.status(404).json({ message: error instanceof Error ? error.message : 'Erro ao remover.' })
+    const { status, message } = resolveRouteError(error)
+    res.status(status).json({ message })
   }
 })
 
 productionRouter.patch('/:id/items/:itemId/status', async (req: AuthedRequest, res) => {
   try {
-    const production = await updateItemStatus(
+    const production = await loadProductionOrThrow(req.params.id)
+    assertCanEditProduction(req.user!, production)
+    const updated = await updateItemStatus(
       req.params.id,
       req.params.itemId,
       req.body.status,
       toAuditActor(req.user!),
     )
-    res.json(production)
+    res.json(updated)
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Erro ao atualizar item.' })
+    const { status, message } = resolveRouteError(error)
+    res.status(status).json({ message })
   }
 })
 
 productionRouter.patch('/:id/items/reorder', async (req: AuthedRequest, res) => {
   try {
-    const production = await reorderItems(req.params.id, req.body.itemIds ?? [], toAuditActor(req.user!))
-    res.json(production)
+    const production = await loadProductionOrThrow(req.params.id)
+    assertCanEditProduction(req.user!, production)
+    const updated = await reorderItems(req.params.id, req.body.itemIds ?? [], toAuditActor(req.user!))
+    res.json(updated)
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Erro ao reordenar.' })
+    const { status, message } = resolveRouteError(error)
+    res.status(status).json({ message })
   }
 })
 
 productionRouter.post('/:id/duplicate', async (req: AuthedRequest, res) => {
   try {
-    const source = await getProductionById(req.params.id)
-    if (!source) {
-      res.status(404).json({ message: 'Produção de origem não encontrada.' })
-      return
-    }
+    assertCanManageProductions(req.user!)
+    const source = await loadProductionOrThrow(req.params.id)
 
     const duplicated = await createProduction({
       ...source,
@@ -130,12 +168,16 @@ productionRouter.post('/:id/duplicate', async (req: AuthedRequest, res) => {
     }, toAuditActor(req.user!))
     res.status(201).json(duplicated)
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Erro ao duplicar.' })
+    const { status, message } = resolveRouteError(error)
+    res.status(status).json({ message })
   }
 })
 
 productionRouter.post('/:id/comments', upload.array('photos', 4), async (req: AuthedRequest, res) => {
   try {
+    const production = await loadProductionOrThrow(req.params.id)
+    assertCanEditProduction(req.user!, production)
+
     const files = (req.files as Express.Multer.File[] | undefined) ?? []
     const photos = files.map((file) => ({
       id: `cphoto-${randomUUID()}`,
@@ -144,14 +186,15 @@ productionRouter.post('/:id/comments', upload.array('photos', 4), async (req: Au
       fileUrl: `/api/uploads/${path.basename(file.path)}`,
     }))
 
-    const production = await addComment(req.params.id, {
+    const updated = await addComment(req.params.id, {
       authorId: String(req.body.authorId ?? req.user?.employeeId ?? req.user?.id ?? 'unknown'),
       authorName: String(req.body.authorName ?? req.user?.name ?? 'Usuário'),
       message: String(req.body.message ?? ''),
       photos,
     }, toAuditActor(req.user!))
-    res.json(production)
+    res.json(updated)
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Erro ao comentar.' })
+    const { status, message } = resolveRouteError(error)
+    res.status(status).json({ message })
   }
 })

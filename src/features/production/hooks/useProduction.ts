@@ -3,7 +3,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getAppTodayIso } from '@/core/constants/appDate'
 import { resolveEmployeeForUser } from '@/core/auth/employeeResolver'
 import { computeProductionKpis } from '@/features/production/utils/computeProductionKpis'
-import { canManageProduction } from '@/features/production/utils/productionPermissions'
+import {
+  canEditProductionDay,
+  canManageProduction,
+} from '@/features/production/utils/productionPermissions'
 import { productionService } from '@/features/production/services/production.service'
 import type {
   CreateProductionInput,
@@ -37,7 +40,7 @@ export function useProduction() {
 
   const [filters, setFilters] = useState<ProductionFilters>(() => ({
     ...DEFAULT_FILTERS,
-    employeeId: isChef ? 'all' : (employee?.id ?? 'all'),
+    employeeId: isChef ? 'all' : (employee?.id ?? user?.employeeId ?? 'all'),
   }))
   const [viewMode, setViewMode] = useState<ProductionViewMode>('cards')
   const [selectedProductionId, setSelectedProductionId] = useState<string | null>(null)
@@ -59,9 +62,9 @@ export function useProduction() {
 
     return {
       ...filters,
-      employeeId: employee?.id ?? 'none',
+      employeeId: employee?.id ?? user?.employeeId ?? 'none',
     }
-  }, [filters, isChef, employee?.id])
+  }, [filters, isChef, employee?.id, user?.employeeId])
 
   const allProductionQuery = useQuery({
     queryKey: [...PRODUCTION_QUERY_KEY, 'all'],
@@ -78,12 +81,23 @@ export function useProduction() {
     [allProductionQuery.data],
   )
 
+  const selectedProductionQuery = useQuery({
+    queryKey: [...PRODUCTION_QUERY_KEY, 'detail', selectedProductionId],
+    queryFn: () => productionService.getById(selectedProductionId!),
+    enabled: Boolean(selectedProductionId),
+  })
+
   const selectedProduction = useMemo(() => {
-    if (!selectedProductionId || !productionQuery.data) {
+    if (!selectedProductionId) {
       return null
     }
-    return productionQuery.data.find((item) => item.id === selectedProductionId) ?? null
-  }, [productionQuery.data, selectedProductionId])
+
+    if (selectedProductionQuery.data) {
+      return selectedProductionQuery.data
+    }
+
+    return productionQuery.data?.find((item) => item.id === selectedProductionId) ?? null
+  }, [productionQuery.data, selectedProductionId, selectedProductionQuery.data])
 
   const invalidate = async () => {
     await queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEY })
@@ -120,7 +134,13 @@ export function useProduction() {
       itemId: string
       status: ProductionItemStatus
     }) => productionService.updateItemStatus({ productionId, itemId, status }),
-    onSuccess: invalidate,
+    onSuccess: async (updated) => {
+      await queryClient.setQueryData(
+        [...PRODUCTION_QUERY_KEY, 'detail', updated.id],
+        updated,
+      )
+      await invalidate()
+    },
   })
 
   const reorderMutation = useMutation({
@@ -131,7 +151,13 @@ export function useProduction() {
       productionId: string
       itemIds: string[]
     }) => productionService.reorderItems({ productionId, itemIds }),
-    onSuccess: invalidate,
+    onSuccess: async (updated) => {
+      await queryClient.setQueryData(
+        [...PRODUCTION_QUERY_KEY, 'detail', updated.id],
+        updated,
+      )
+      await invalidate()
+    },
   })
 
   const addCommentMutation = useMutation({
@@ -151,7 +177,13 @@ export function useProduction() {
         message,
         ...(photos && photos.length > 0 ? { photos } : {}),
       }),
-    onSuccess: invalidate,
+    onSuccess: async (updated) => {
+      await queryClient.setQueryData(
+        [...PRODUCTION_QUERY_KEY, 'detail', updated.id],
+        updated,
+      )
+      await invalidate()
+    },
   })
 
   return {
@@ -210,7 +242,10 @@ export function useProduction() {
       duplicateMutation.isPending,
     isDeleting: deleteMutation.isPending,
     canManage: isChef && hasPermission('production:manage'),
-    canUpdateItems: hasPermission('production:own') || hasPermission('production:manage'),
-    currentEmployeeId: employee?.id ?? null,
+    canUpdateItems:
+      hasPermission('production:own') || hasPermission('production:manage'),
+    canEditSelectedProduction: (production: ProductionDay | null) =>
+      production ? canEditProductionDay(user, production) : false,
+    currentEmployeeId: employee?.id ?? user?.employeeId ?? null,
   }
 }

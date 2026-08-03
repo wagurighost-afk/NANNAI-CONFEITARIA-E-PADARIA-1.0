@@ -22,7 +22,7 @@ import type { ProductionFormSchema } from '@/features/production/schemas/product
 import { toCreateProductionInput } from '@/features/production/utils/toCreateProductionInput'
 import {
   canCommentOnProduction,
-  canEditProductionDay,
+  canOpenProductionForm,
 } from '@/features/production/utils/productionPermissions'
 import { APP_ROUTES } from '@/core/constants'
 import { getErrorMessage } from '@/core/errors'
@@ -81,6 +81,7 @@ export function ProductionPage() {
     isDeleting,
     canManage,
     canUpdateItems,
+    canEditSelectedProduction,
   } = useProduction()
 
   const employees = EMPLOYEES_MOCK.filter((e) => e.status === 'Ativo').map((e) => ({
@@ -188,9 +189,13 @@ export function ProductionPage() {
     }
   }
 
-  const selectedCanEdit =
+  const selectedCanEdit = selectedProduction
+    ? canEditSelectedProduction(selectedProduction)
+    : false
+
+  const selectedCanOpenForm =
     selectedProduction && user
-      ? canEditProductionDay(user, selectedProduction)
+      ? canOpenProductionForm(user, selectedProduction, hasPermission)
       : false
 
   const selectedCanComment =
@@ -290,6 +295,7 @@ export function ProductionPage() {
           selectProduction(null)
         }}
         canManage={canManage}
+        canEditForm={selectedCanOpenForm}
         canUpdateItems={canUpdateItems && selectedCanEdit}
         canComment={canUpdateItems && selectedCanComment}
         onEdit={() => {
@@ -317,6 +323,11 @@ export function ProductionPage() {
               itemId,
               status,
             })
+            push({
+              title: 'Status atualizado',
+              description: `Item marcado como ${status}.`,
+              variant: 'success',
+            })
             if (status === 'Concluído' && canPrintLabels) {
               askPrintLabel(itemId, 'create')
             }
@@ -339,6 +350,7 @@ export function ProductionPage() {
               productionId: selectedProduction.id,
               itemIds,
             })
+            push({ title: 'Itens reordenados', variant: 'success' })
           } catch (error: unknown) {
             push({
               title: 'Erro ao reordenar',
@@ -435,6 +447,7 @@ export function ProductionPage() {
           onSubmit={handleFormSubmit}
           onCancel={closeForm}
           isSaving={isSaving}
+          canManageAssignment={canManage}
         />
       </Modal>
 

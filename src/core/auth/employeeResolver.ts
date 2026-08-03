@@ -8,11 +8,19 @@ import type { Employee } from '@/features/employees/types/employee.types'
  * Preparado para futura resolução via API.
  */
 export function resolveEmployeeForUser(user: User | null): Employee | null {
-  if (!user?.employeeId) {
+  if (!user) {
     return null
   }
 
-  return EMPLOYEES_MOCK.find((employee) => employee.id === user.employeeId) ?? null
+  if (user.employeeId) {
+    const byId = EMPLOYEES_MOCK.find((employee) => employee.id === user.employeeId)
+    if (byId) {
+      return byId
+    }
+  }
+
+  const normalizedEmail = user.email.trim().toLowerCase()
+  return EMPLOYEES_MOCK.find((employee) => employee.email.toLowerCase() === normalizedEmail) ?? null
 }
 
 export function isChefUser(user: User | null): boolean {

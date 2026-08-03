@@ -21,6 +21,7 @@ export interface ProductionFormProps {
   onSubmit: (values: ProductionFormSchema) => Promise<void>
   onCancel: () => void
   isSaving?: boolean
+  canManageAssignment?: boolean
 }
 
 export function ProductionForm({
@@ -28,6 +29,7 @@ export function ProductionForm({
   onSubmit,
   onCancel,
   isSaving = false,
+  canManageAssignment = true,
 }: ProductionFormProps) {
   const { form, handleSubmit, isSubmitting } = useProductionForm({
     production,
@@ -51,23 +53,32 @@ export function ProductionForm({
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Input label="Data" type="date" error={errors.date?.message} {...register('date')} />
+        <Input
+          label="Data"
+          type="date"
+          error={errors.date?.message}
+          disabled={!canManageAssignment}
+          {...register('date')}
+        />
         <Select
           label="Turno"
           options={SHIFT_OPTIONS}
           error={errors.shift?.message}
+          disabled={!canManageAssignment}
           {...register('shift')}
         />
         <Select
           label="Setor"
           options={SECTOR_OPTIONS}
           error={errors.sector?.message}
+          disabled={!canManageAssignment}
           {...register('sector')}
         />
         <Select
           label="Responsável"
           options={[{ value: '', label: 'Selecione...' }, ...EMPLOYEE_OPTIONS]}
           error={errors.employeeId?.message}
+          disabled={!canManageAssignment}
           {...register('employeeId')}
         />
       </div>
