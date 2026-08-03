@@ -14,7 +14,7 @@ export interface ProductionDivisionEntry {
 export const PRODUCTION_DIVISION: readonly ProductionDivisionEntry[] = [
   {
     employeeId: 'emp-david',
-    employeeName: 'David Oliveira',
+    employeeName: 'Devid Oliveira',
     sector: 'Confeitaria',
     shift: 'Integral',
     products: [

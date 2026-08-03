@@ -7,7 +7,7 @@ Módulo para reportar, acompanhar e gerenciar problemas do sistema NANNAI.
 | Ação | Quem |
 |------|------|
 | Ver lista e reportar bugs | Todos os usuários autenticados |
-| Alterar status | Somente Administrador Master (`role === 'admin'`) |
+| Alterar status | Somente Administrador Master (`founder` ou `admin`) |
 
 ## Rota
 

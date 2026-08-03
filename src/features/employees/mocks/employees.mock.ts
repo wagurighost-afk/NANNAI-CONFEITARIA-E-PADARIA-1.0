@@ -35,8 +35,8 @@ function checklists(
 export const EMPLOYEES_MOCK: Employee[] = [
   {
     id: 'emp-david',
-    name: 'David Oliveira',
-    email: generateCorporateEmail('David Oliveira', 'Chef de Confeitaria'),
+    name: 'Devid Oliveira',
+    email: generateCorporateEmail('Devid Oliveira', 'Chef de Confeitaria'),
     phone: '(81) 99900-0001',
     position: 'Chef de Confeitaria',
     sector: 'Confeitaria',

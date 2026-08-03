@@ -11,6 +11,7 @@ const SCOPE_QUERY_KEYS: Record<string, readonly (readonly string[])[]> = {
   laboratorio: [['laboratorio']],
   'dev-central': [['dev-central']],
   bugs: [['bugs']],
+  settings: [['advanced-settings']],
 }
 
 const DEBOUNCE_MS = 800

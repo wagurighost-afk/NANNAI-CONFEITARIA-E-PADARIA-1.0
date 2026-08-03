@@ -131,6 +131,19 @@ export function createJsonStore(): DatabaseStore {
       writeDb(db)
     },
 
+    async updateUserRole(id, role) {
+      const db = readDb()
+      const index = db.users.findIndex((user) => user.id === id)
+      if (index < 0) {
+        throw new Error('Usuário não encontrado.')
+      }
+      db.users[index] = {
+        ...db.users[index],
+        role,
+      }
+      writeDb(db)
+    },
+
     async deleteRefreshTokensForUser(userId) {
       const db = readDb()
       db.refresh_tokens = db.refresh_tokens.filter((item) => item.user_id !== userId)

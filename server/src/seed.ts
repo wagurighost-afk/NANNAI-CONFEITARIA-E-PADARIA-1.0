@@ -20,6 +20,7 @@ import {
   saveRecipeRecord,
   setMeta,
   updateUserIdentity,
+  updateUserRole,
 } from './db/index.js'
 import { MONTHLY_SCHEDULE_SEED } from './data/monthlyScheduleSeed.js'
 import { RECIPES_SEED } from './data/recipesSeed.js'
@@ -131,14 +132,19 @@ async function syncSeedEmployeeIdentities(): Promise<void> {
     }
 
     const nextEmail = employee.email.toLowerCase()
-    if (row.name === employee.name && row.email.toLowerCase() === nextEmail) {
-      continue
+    const identityChanged = row.name !== employee.name || row.email.toLowerCase() !== nextEmail
+    const roleChanged = row.role !== employee.role
+
+    if (identityChanged) {
+      await updateUserIdentity(row.id, {
+        name: employee.name,
+        email: nextEmail,
+      })
     }
 
-    await updateUserIdentity(row.id, {
-      name: employee.name,
-      email: nextEmail,
-    })
+    if (roleChanged) {
+      await updateUserRole(row.id, employee.role)
+    }
   }
 }
 

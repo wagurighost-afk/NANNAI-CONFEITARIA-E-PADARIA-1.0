@@ -1,12 +1,6 @@
+import { isMasterAdmin } from './auth/roles.js'
 import { SEED_EMPLOYEES } from './data/employees.js'
 import type { AppUser, ProductionDay } from './types.js'
-
-const LEADERSHIP_POSITIONS = new Set([
-  'Diretor de Operação',
-  'Gerente Geral',
-  'Chef Executivo',
-  'Chef de Confeitaria',
-])
 
 function resolveEmployeeId(user: AppUser): string | null {
   if (user.employeeId) {
@@ -20,17 +14,7 @@ function resolveEmployeeId(user: AppUser): string | null {
 }
 
 export function canManageAllProductions(user: AppUser): boolean {
-  if (user.role === 'admin') {
-    return true
-  }
-
-  const employeeId = resolveEmployeeId(user)
-  if (!employeeId) {
-    return false
-  }
-
-  const employee = SEED_EMPLOYEES.find((entry) => entry.id === employeeId)
-  return Boolean(employee && LEADERSHIP_POSITIONS.has(employee.position))
+  return isMasterAdmin(user)
 }
 
 export function canEditProduction(user: AppUser, production: ProductionDay): boolean {

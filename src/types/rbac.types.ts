@@ -22,6 +22,7 @@ export type Permission =
   | 'waste-control:summary'
   | 'intelligence:view'
   | 'intelligence:refresh'
+  | 'nannai-insights:view'
   | 'inventory:view'
   | 'inventory:manage'
   | 'purchases:view'

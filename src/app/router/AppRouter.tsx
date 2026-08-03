@@ -33,6 +33,11 @@ const WasteControlPage = lazyPage(() =>
 const IntelligencePage = lazyPage(() =>
   import('@/features/intelligence/pages/IntelligencePage').then((m) => ({ default: m.IntelligencePage })),
 )
+const NannaiInsightsPage = lazyPage(() =>
+  import('@/features/nannai-insights/pages/NannaiInsightsPage').then((m) => ({
+    default: m.NannaiInsightsPage,
+  })),
+)
 const AuditPage = lazyPage(() =>
   import('@/features/audit/pages/AuditPage').then((m) => ({ default: m.AuditPage })),
 )
@@ -44,6 +49,11 @@ const DevCentralPage = lazyPage(() =>
 )
 const BugsPage = lazyPage(() =>
   import('@/features/bugs/pages/BugsPage').then((m) => ({ default: m.BugsPage })),
+)
+const AdvancedSettingsPage = lazyPage(() =>
+  import('@/features/advanced-settings/pages/AdvancedSettingsPage').then((m) => ({
+    default: m.AdvancedSettingsPage,
+  })),
 )
 const CommentsPage = lazyPage(() =>
   import('@/features/comments/pages/CommentsPage').then((m) => ({ default: m.CommentsPage })),
@@ -122,6 +132,9 @@ export function AppRouter() {
             <Route element={<PermissionRoute permission="waste-control:view" />}>
               <Route path={APP_ROUTES.wasteControl} element={<WasteControlPage />} />
             </Route>
+            <Route element={<PermissionRoute permission="nannai-insights:view" />}>
+              <Route path={APP_ROUTES.nannaiInsights} element={<NannaiInsightsPage />} />
+            </Route>
             <Route element={<PermissionRoute permission="intelligence:view" />}>
               <Route path={APP_ROUTES.intelligence} element={<IntelligencePage />} />
             </Route>
@@ -133,6 +146,9 @@ export function AppRouter() {
             </Route>
             <Route element={<PermissionRoute permission="dev-central:view" />}>
               <Route path={APP_ROUTES.devCentral} element={<DevCentralPage />} />
+            </Route>
+            <Route element={<PermissionRoute permission="settings:manage" />}>
+              <Route path={APP_ROUTES.advancedSettings} element={<AdvancedSettingsPage />} />
             </Route>
             <Route element={<PermissionRoute permission="bugs:view" />}>
               <Route path={APP_ROUTES.bugs} element={<BugsPage />} />

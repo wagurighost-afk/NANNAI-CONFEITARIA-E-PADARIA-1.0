@@ -3,7 +3,7 @@ export interface SeedEmployee {
   name: string
   email: string
   position: string
-  role: 'admin' | 'staff'
+  role: import('../auth/roles.js').UserRole
 }
 
 const LEADERSHIP_POSITIONS = new Set([
@@ -29,13 +29,13 @@ function employee(
   id: string,
   name: string,
   position: string,
-  role: 'admin' | 'staff',
+  role: SeedEmployee['role'],
 ): SeedEmployee {
   return { id, name, email: email(name, position), position, role }
 }
 
 export const SEED_EMPLOYEES: SeedEmployee[] = [
-  employee('emp-david', 'David Oliveira', 'Chef de Confeitaria', 'admin'),
+  employee('emp-david', 'Devid Oliveira', 'Chef de Confeitaria', 'founder'),
   employee('emp-adriana', 'Adriana dos Santos', 'Confeiteiro', 'staff'),
   employee('emp-hosana', 'Hosana da Conceição', 'Confeiteiro', 'staff'),
   employee('emp-larissa', 'Larissa Maximiano', 'Auxiliar de Confeitaria', 'staff'),
@@ -43,7 +43,7 @@ export const SEED_EMPLOYEES: SeedEmployee[] = [
   employee('emp-helena', 'Maria Helena', 'Confeiteiro', 'staff'),
   employee('emp-matheus', 'Matheus da Silva', 'Confeiteiro', 'staff'),
   employee('emp-rafaela', 'Jessica Rafaela', 'Auxiliar de Confeitaria', 'staff'),
-  employee('emp-mauro', 'Mauro José', 'Auxiliar de Confeitaria', 'staff'),
+  employee('emp-mauro', 'Mauro José', 'Auxiliar de Confeitaria', 'founder'),
   employee('emp-thayse', 'Thayse Brunele', 'Auxiliar de Confeitaria', 'staff'),
   employee('emp-vinicius', 'Glaydson Vinicius', 'Auxiliar de Padaria', 'staff'),
   employee('emp-williamys', 'Wiliamys Monteiro', 'Padeiro', 'staff'),

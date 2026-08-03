@@ -85,6 +85,13 @@ export const MAIN_NAVIGATION: readonly AppNavItem[] = [
     permission: 'pop:view',
   },
   {
+    id: 'nannai-insights',
+    label: 'NANNAI Insights',
+    href: APP_ROUTES.nannaiInsights,
+    icon: 'LineChart',
+    permission: 'nannai-insights:view',
+  },
+  {
     id: 'intelligence',
     label: 'Dashboard Executivo',
     href: APP_ROUTES.intelligence,
@@ -111,6 +118,13 @@ export const MAIN_NAVIGATION: readonly AppNavItem[] = [
     href: APP_ROUTES.devCentral,
     icon: 'Terminal',
     permission: 'dev-central:view',
+  },
+  {
+    id: 'advanced-settings',
+    label: 'Configurações Avançadas',
+    href: APP_ROUTES.advancedSettings,
+    icon: 'Settings2',
+    permission: 'settings:manage',
   },
   {
     id: 'bugs',

@@ -1,26 +1,15 @@
-import type { User } from '@/types/auth.types'
-import { resolveEmployeeForUser } from '@/core/auth/employeeResolver'
-import { isLeadershipPosition } from '@/features/employees/constants/positionConfig'
+import { isMasterAdmin } from '@/core/auth/roles'
 
-/** Acesso total ao sistema: administrador e cargos de liderança. */
-export function hasFullSystemAccess(user: User | null): boolean {
-  if (!user) {
-    return false
-  }
-
-  if (user.role === 'admin') {
-    return true
-  }
-
-  const employee = resolveEmployeeForUser(user)
-  return Boolean(employee && isLeadershipPosition(employee.position))
+/** Acesso total ao sistema — determinado exclusivamente pelo papel (RBAC). */
+export function hasFullSystemAccess(user: import('@/types/auth.types').User | null): boolean {
+  return isMasterAdmin(user)
 }
 
-/** Dashboard Chef — admin e liderança operacional. */
-export function canViewChefDashboard(user: User | null): boolean {
+/** Dashboard Chef — administradores master. */
+export function canViewChefDashboard(user: import('@/types/auth.types').User | null): boolean {
   return hasFullSystemAccess(user)
 }
 
-export function canManageOperationalData(user: User | null): boolean {
+export function canManageOperationalData(user: import('@/types/auth.types').User | null): boolean {
   return hasFullSystemAccess(user)
 }

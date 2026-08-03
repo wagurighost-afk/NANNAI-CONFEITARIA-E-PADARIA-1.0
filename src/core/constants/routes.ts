@@ -14,6 +14,7 @@ export const APP_ROUTES = {
   pop: '/pop',
   changePassword: '/alterar-senha',
   intelligence: '/intelligence',
+  nannaiInsights: '/nannai-insights',
   audit: '/auditoria',
   labels: '/etiquetas',
   niimbot: '/niimbot',
@@ -21,6 +22,7 @@ export const APP_ROUTES = {
   niimbotPrintTest: '/niimbot/teste',
   laboratorio: '/laboratorio-nannai',
   devCentral: '/central-desenvolvedor',
+  advancedSettings: '/configuracoes-avancadas',
   bugs: '/central-bugs',
   notFound: '*',
 } as const

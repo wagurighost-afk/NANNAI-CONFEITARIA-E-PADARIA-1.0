@@ -1,4 +1,7 @@
 import { Badge } from '@/components/ui'
+import { SystemBadges } from '@/components/auth/SystemBadges'
+import { UserRoleBadge } from '@/components/auth/UserRoleBadge'
+import type { UserRole } from '@/types/auth.types'
 import type {
   DevCentralErrorEntry,
   DevCentralLogEntry,
@@ -21,8 +24,12 @@ export function DevCentralOnlineUsersPanel({ users }: { users: DevCentralOnlineU
           className="flex flex-col gap-1 rounded-xl border border-border bg-surface/60 p-3 sm:flex-row sm:items-center sm:justify-between"
         >
           <div>
-            <p className="font-medium text-foreground">{user.userName}</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="font-medium text-foreground">{user.userName}</p>
+              <SystemBadges badges={user.badges} size="sm" />
+            </div>
             <p className="text-xs text-muted-foreground">{user.userEmail}</p>
+            <UserRoleBadge role={user.role as UserRole} className="mt-2" />
           </div>
           <div className="text-xs text-muted-foreground">
             <Badge variant="success">online</Badge>

@@ -11,9 +11,11 @@ import {
   FlaskConical,
   History,
   LayoutDashboard,
+  LineChart,
   MessageSquare,
   PanelLeftClose,
   PanelLeftOpen,
+  Settings2,
   Sparkles,
   Tags,
   Terminal,
@@ -31,6 +33,7 @@ import { cn } from '@/utils/cn'
 
 const NAV_ICONS: Record<string, LucideIcon> = {
   LayoutDashboard,
+  LineChart,
   BrainCircuit,
   Bug,
   MessageSquare,
@@ -47,6 +50,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   Wheat,
   History,
   FlaskConical,
+  Settings2,
   Terminal,
 }
 

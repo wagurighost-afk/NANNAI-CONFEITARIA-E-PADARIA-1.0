@@ -18,6 +18,7 @@ import {
   getRequestSamples,
   serverStartedAt,
 } from './metricsCollector.js'
+import { getRoleLabel, getSystemBadgesForRole, type UserRole } from '../auth/roles.js'
 import { getOnlineUserCount, listOnlineUsers } from './presence.js'
 import type {
   DevCentralDashboard,
@@ -115,7 +116,11 @@ export async function getDevCentralDashboard(): Promise<DevCentralDashboard> {
 
   return {
     generatedAt: new Date().toISOString(),
-    onlineUsers: listOnlineUsers(),
+    onlineUsers: listOnlineUsers().map((session) => ({
+      ...session,
+      roleLabel: getRoleLabel(session.role as UserRole),
+      badges: getSystemBadgesForRole(session.role as UserRole),
+    })),
     onlineUserCount: getOnlineUserCount(),
     metrics: {
       averageResponseMs: getAverageResponseMs(),

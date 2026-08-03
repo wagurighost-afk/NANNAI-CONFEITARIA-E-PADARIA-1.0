@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
 import { KeyRound, LogOut, Menu, Moon, Sun } from 'lucide-react'
 import { InstallAppButton } from '@/components/common/InstallAppButton'
-import { Badge } from '@/components/ui/Badge'
+import { SystemBadges } from '@/components/auth/SystemBadges'
+import { UserRoleBadge } from '@/components/auth/UserRoleBadge'
 import { Button } from '@/components/ui/Button'
+import { getSystemBadgesForUser } from '@/core/auth/roles'
 import { APP_ROUTES } from '@/core/constants'
 import { useAuth } from '@/hooks/useAuth'
 import { useTheme } from '@/hooks/useTheme'
@@ -53,7 +55,10 @@ export function Header({ onOpenMobileSidebar, className }: HeaderProps) {
               <p className="text-sm font-medium text-foreground">{user.name}</p>
               <p className="text-xs text-muted-foreground">{user.email}</p>
             </div>
-            <Badge variant="accent">{user.role}</Badge>
+            <div className="flex flex-col items-end gap-1">
+              <UserRoleBadge role={user.role} />
+              <SystemBadges badges={getSystemBadgesForUser(user)} size="sm" />
+            </div>
           </div>
         ) : null}
 

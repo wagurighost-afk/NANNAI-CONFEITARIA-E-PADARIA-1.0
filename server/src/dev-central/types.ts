@@ -4,6 +4,8 @@ export interface DevCentralOnlineUser {
   userName: string
   userEmail: string
   role: string
+  roleLabel: string
+  badges: Array<'founder'>
   connectedAt: string
   lastSeenAt: string
 }

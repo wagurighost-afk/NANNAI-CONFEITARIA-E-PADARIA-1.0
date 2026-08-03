@@ -1,6 +1,9 @@
 import { Crown } from 'lucide-react'
 import { Breadcrumb, EmptyState, PageHeader, PageShell } from '@/components/common'
+import { FounderBadge } from '@/components/auth/SystemBadges'
 import { Skeleton } from '@/components/ui'
+import { isFounder } from '@/core/auth/roles'
+import { useAuth } from '@/hooks/useAuth'
 import { LaboratorioFeatureCard } from '@/features/laboratorio/components/LaboratorioFeatureCard'
 import { LaboratorioFiltersBar } from '@/features/laboratorio/components/LaboratorioFiltersBar'
 import {
@@ -15,6 +18,7 @@ import { getErrorMessage } from '@/core/errors'
 import { useToast } from '@/hooks'
 
 export function LaboratorioPage() {
+  const { user } = useAuth()
   const { push } = useToast()
   const {
     summary,
@@ -85,10 +89,13 @@ export function LaboratorioPage() {
         title="Laboratório NANNAI"
         description="Ambiente exclusivo de testes, betas e funcionalidades experimentais do sistema."
         actions={
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-            <Crown className="size-4" aria-hidden />
-            Administrador Master
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              <Crown className="size-4" aria-hidden />
+              Administrador Master
+            </span>
+            {isFounder(user) ? <FounderBadge /> : null}
+          </div>
         }
       />
 

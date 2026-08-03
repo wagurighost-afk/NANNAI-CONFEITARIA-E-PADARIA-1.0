@@ -17,15 +17,18 @@ import {
   revokeRefreshToken,
 } from './seed.js'
 import type { AppUser, AuthSession } from './types.js'
+import { getSystemBadgesForRole } from './auth/roles.js'
 import type { UserRow } from './db/index.js'
 
 function mapUser(row: UserRow): AppUser {
+  const badges = getSystemBadgesForRole(row.role)
   return {
     id: row.id,
     email: row.email,
     role: row.role,
     name: row.name,
     ...(row.employee_id ? { employeeId: row.employee_id } : {}),
+    ...(badges.length > 0 ? { badges } : {}),
   }
 }
 

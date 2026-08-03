@@ -1,6 +1,9 @@
 import { useRef, useState } from 'react'
 import { Camera } from 'lucide-react'
 import { Badge, Button, Drawer, Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui'
+import { SystemBadges } from '@/components/auth/SystemBadges'
+import { UserRoleBadge } from '@/components/auth/UserRoleBadge'
+import { resolveEmployeeAuthProfile } from '@/core/auth/employeeAuthProfile'
 import { EmployeeAvatar } from '@/features/employees/components/EmployeeAvatar'
 import { EmployeeStatusBadge } from '@/features/employees/components/EmployeeStatusBadge'
 import { EmployeeDaysOffPanel } from '@/features/schedule/components/EmployeeDaysOffPanel'
@@ -56,6 +59,8 @@ export function EmployeeProfileDrawer({
       </Drawer>
     )
   }
+
+  const authProfile = resolveEmployeeAuthProfile(employee.id)
 
   const handlePhotoPick = async (file: File | null) => {
     if (!file || !onPhotoChange) {
@@ -155,6 +160,12 @@ export function EmployeeProfileDrawer({
         </div>
         <div className="min-w-0 space-y-2">
           <EmployeeStatusBadge status={employee.status} />
+          {authProfile ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <UserRoleBadge role={authProfile.role} />
+              <SystemBadges badges={authProfile.badges} size="sm" />
+            </div>
+          ) : null}
           <p className="truncate text-sm text-muted-foreground">{employee.email}</p>
           <p className="text-sm text-muted-foreground">{employee.phone}</p>
         </div>
@@ -171,6 +182,7 @@ export function EmployeeProfileDrawer({
 
         <TabsContent value="info" className="space-y-3 text-sm">
           <InfoRow label="Cargo" value={employee.position} />
+          {authProfile ? <InfoRow label="Papel" value={authProfile.roleLabel} /> : null}
           <InfoRow label="Setor" value={employee.sector} />
           <InfoRow label="Turno" value={employee.shift} />
           <InfoRow label="Admissão" value={formatDate(employee.admissionDate)} />

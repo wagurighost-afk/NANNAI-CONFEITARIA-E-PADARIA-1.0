@@ -1,9 +1,15 @@
+import type { UserRole } from './auth/roles.js'
+
+export type { UserRole } from './auth/roles.js'
+export type { SystemBadge } from './auth/roles.js'
+
 export interface AppUser {
   id: string
   email: string
-  role: 'admin' | 'manager' | 'staff' | 'viewer'
+  role: UserRole
   employeeId?: string
   name: string
+  badges?: import('./auth/roles.js').SystemBadge[]
 }
 
 export interface AuthTokens {
@@ -108,6 +114,7 @@ export interface RealtimeEvent {
     | 'laboratorio'
     | 'dev-central'
     | 'bugs'
+    | 'settings'
   action: string
   productionId?: string
   recipeId?: string

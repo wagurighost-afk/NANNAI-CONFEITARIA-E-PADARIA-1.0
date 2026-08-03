@@ -69,6 +69,10 @@ export async function updateUserIdentity(
   await getStore().updateUserIdentity(id, input)
 }
 
+export async function updateUserRole(id: string, role: import('../types.js').AppUser['role']): Promise<void> {
+  await getStore().updateUserRole(id, role)
+}
+
 export async function deleteRefreshTokensForUser(userId: string): Promise<void> {
   await getStore().deleteRefreshTokensForUser(userId)
 }

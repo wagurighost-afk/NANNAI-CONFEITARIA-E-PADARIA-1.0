@@ -1,5 +1,6 @@
 import { Crown, RefreshCw } from 'lucide-react'
 import { Breadcrumb, PageHeader, PageShell } from '@/components/common'
+import { FounderBadge } from '@/components/auth/SystemBadges'
 import { Button, Card, CardContent, CardHeader, CardTitle, Skeleton } from '@/components/ui'
 import { DevCentralChartsSection } from '@/features/dev-central/components/DevCentralChartsSection'
 import { DevCentralKpis } from '@/features/dev-central/components/DevCentralKpis'
@@ -11,9 +12,12 @@ import {
 } from '@/features/dev-central/components/DevCentralPanels'
 import { useDevCentral } from '@/features/dev-central/hooks/useDevCentral'
 import { APP_ROUTES } from '@/core/constants'
+import { isFounder } from '@/core/auth/roles'
 import { formatDateTimeBr } from '@/utils/formatDate'
+import { useAuth } from '@/hooks/useAuth'
 
 export function DevCentralPage() {
+  const { user } = useAuth()
   const { dashboard, isLoading, isRefreshing, refresh } = useDevCentral()
 
   return (
@@ -34,6 +38,7 @@ export function DevCentralPage() {
               <Crown className="size-4" aria-hidden />
               Administrador Master
             </span>
+            {isFounder(user) ? <FounderBadge /> : null}
             <Button
               type="button"
               variant="outline"

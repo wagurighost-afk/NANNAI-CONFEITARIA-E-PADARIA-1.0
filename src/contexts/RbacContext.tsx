@@ -8,6 +8,7 @@ import { canAccessIntelligence } from '@/core/permissions/intelligenceAccess'
 import { canViewAuditLogs } from '@/core/permissions/auditAccess'
 import { canAccessDevCentral } from '@/core/permissions/devCentralAccess'
 import { canManageBugStatus } from '@/core/permissions/bugsAccess'
+import { canAccessNannaiInsights } from '@/core/permissions/nannaiInsightsAccess'
 import { canAccessLaboratorio } from '@/core/permissions/laboratorioAccess'
 import { hasFullSystemAccess } from '@/core/permissions/systemAccess'
 import { useAuth } from '@/hooks/useAuth'
@@ -79,6 +80,9 @@ export function RbacProvider({ children }: RbacProviderProps) {
     }
     if (canManageBugStatus(user) && !base.includes('bugs:manage')) {
       base.push('bugs:manage')
+    }
+    if (canAccessNannaiInsights(user) && !base.includes('nannai-insights:view')) {
+      base.push('nannai-insights:view')
     }
     return base
   }, [role, user])

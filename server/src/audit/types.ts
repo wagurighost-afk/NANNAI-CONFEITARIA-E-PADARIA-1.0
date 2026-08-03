@@ -12,6 +12,7 @@ export type AuditEntityType =
   | 'monthly_schedule'
   | 'intelligence'
   | 'label'
+  | 'settings'
 
 export type AuditAction =
   | 'create'

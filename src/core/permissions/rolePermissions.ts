@@ -1,36 +1,40 @@
 import type { Permission, RolePermissionsMap } from '@/types/rbac.types'
-import type { UserRole } from '@/types/auth.types'
+
+const MASTER_ADMIN_PERMISSIONS = [
+  'dashboard:view',
+  'employees:view',
+  'employees:manage',
+  'ingredients:view',
+  'ingredients:manage',
+  'production:view',
+  'production:manage',
+  'labels:view',
+  'labels:print',
+  'schedule:view',
+  'schedule:manage',
+  'cleaning-schedule:view',
+  'cleaning-schedule:manage',
+  'recipes:view',
+  'recipes:manage',
+  'pop:view',
+  'inventory:view',
+  'inventory:manage',
+  'purchases:view',
+  'purchases:manage',
+  'users:manage',
+  'settings:manage',
+  'laboratorio:view',
+  'laboratorio:manage',
+  'dev-central:view',
+  'bugs:view',
+  'bugs:report',
+  'bugs:manage',
+  'nannai-insights:view',
+] as const satisfies readonly Permission[]
 
 export const ROLE_PERMISSIONS: RolePermissionsMap = {
-  admin: [
-    'dashboard:view',
-    'employees:view',
-    'employees:manage',
-    'ingredients:view',
-    'ingredients:manage',
-    'production:view',
-    'production:manage',
-    'labels:view',
-    'labels:print',
-    'schedule:view',
-    'schedule:manage',
-    'cleaning-schedule:view',
-    'cleaning-schedule:manage',
-    'recipes:view',
-    'recipes:manage',
-    'pop:view',
-    'inventory:view',
-    'inventory:manage',
-    'purchases:view',
-    'purchases:manage',
-    'users:manage',
-    'settings:manage',
-    'laboratorio:view',
-    'laboratorio:manage',
-    'dev-central:view',
-    'bugs:view',
-    'bugs:report',
-  ],
+  founder: MASTER_ADMIN_PERMISSIONS,
+  admin: MASTER_ADMIN_PERMISSIONS,
   manager: [
     'dashboard:view',
     'production:view',
@@ -43,6 +47,7 @@ export const ROLE_PERMISSIONS: RolePermissionsMap = {
     'pop:view',
     'bugs:view',
     'bugs:report',
+    'nannai-insights:view',
   ],
   staff: [
     'dashboard:view',
@@ -62,7 +67,7 @@ export const ROLE_PERMISSIONS: RolePermissionsMap = {
 
 export const DEFAULT_PERMISSIONS: readonly Permission[] = []
 
-export function getPermissionsForRole(role: UserRole | null): readonly Permission[] {
+export function getPermissionsForRole(role: import('@/types/auth.types').UserRole | null): readonly Permission[] {
   if (!role) {
     return DEFAULT_PERMISSIONS
   }
@@ -70,6 +75,9 @@ export function getPermissionsForRole(role: UserRole | null): readonly Permissio
   return ROLE_PERMISSIONS[role]
 }
 
-export function roleHasPermission(role: UserRole | null, permission: Permission): boolean {
+export function roleHasPermission(
+  role: import('@/types/auth.types').UserRole | null,
+  permission: Permission,
+): boolean {
   return getPermissionsForRole(role).includes(permission)
 }

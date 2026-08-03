@@ -40,7 +40,7 @@ const PRODUCTION_EXTRAS: Record<string, ProductionSeedExtras> = {
       {
         id: 'cmt-helena-001',
         authorId: 'emp-david',
-        authorName: 'David Oliveira',
+        authorName: 'Devid Oliveira',
         message: 'Priorizar macarons até 14h.',
         photos: [],
         createdAt: appDateTimeAt(14, 0),

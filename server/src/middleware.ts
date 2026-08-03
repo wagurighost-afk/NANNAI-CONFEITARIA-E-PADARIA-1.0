@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from 'express'
 import { verifyAccessToken } from './jwt.js'
 import { getUserById } from './auth.service.js'
+import { isMasterAdmin } from './auth/roles.js'
 import type { AppUser } from './types.js'
 
 export interface AuthedRequest extends Request {
@@ -38,7 +39,7 @@ export function requireManager(req: AuthedRequest, res: Response, next: NextFunc
     return
   }
 
-  if (req.user.role !== 'admin' && req.user.role !== 'manager') {
+  if (!isMasterAdmin(req.user) && req.user.role !== 'manager') {
     res.status(403).json({ message: 'Sem permissão para alterar receitas.' })
     return
   }
