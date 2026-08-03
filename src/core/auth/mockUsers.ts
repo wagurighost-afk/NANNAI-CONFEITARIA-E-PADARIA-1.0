@@ -64,15 +64,20 @@ const KNOWN_USERS = new Map(
   ].map((user) => [user.email.toLowerCase(), user]),
 )
 
+const MOCK_LOGIN_ALIASES: Record<string, string> = {
+  'david.oliveira@nannai.com.br': 'devid.oliveira@nannai.com.br',
+}
+
 export function resolveMockUserByEmail(email: string): User {
   const normalized = email.trim().toLowerCase()
-  const user = KNOWN_USERS.get(normalized)
+  const resolved = MOCK_LOGIN_ALIASES[normalized] ?? normalized
+  const user = KNOWN_USERS.get(resolved)
 
   if (!user) {
     throw new Error('E-mail não autorizado. Use o e-mail corporativo cadastrado.')
   }
 
-  return { ...user, email }
+  return { ...user, email: user.email }
 }
 
 /** E-mails com permissão para alterar dados do sistema (master admin). */
