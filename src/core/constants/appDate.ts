@@ -1,29 +1,37 @@
 import type { WeekDay } from '@/features/cleaning-schedule/types/cleaningSchedule.types'
 
-const JS_WEEKDAY_TO_APP: Record<number, WeekDay> = {
-  0: 'Domingo',
-  1: 'Segunda',
-  2: 'Terça',
-  3: 'Quarta',
-  4: 'Quinta',
-  5: 'Sexta',
-  6: 'Sábado',
+/** Fuso operacional da NANNAI (Brasil). Evita divergência com hosts em UTC (ex.: Render). */
+export const APP_TIMEZONE = 'America/Sao_Paulo'
+
+const JS_WEEKDAY_TO_APP: Record<string, WeekDay> = {
+  Sun: 'Domingo',
+  Mon: 'Segunda',
+  Tue: 'Terça',
+  Wed: 'Quarta',
+  Thu: 'Quinta',
+  Fri: 'Sexta',
+  Sat: 'Sábado',
 }
 
-/** Data operacional no formato ISO (YYYY-MM-DD), fuso local. */
-export function getAppTodayIso(): string {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
+/** Data operacional no formato ISO (YYYY-MM-DD), sempre em Brasília. */
+export function getAppTodayIso(now = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: APP_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now)
 }
 
 /** @deprecated Use getAppTodayIso() — data operacional é sempre o dia atual. */
 export const APP_REFERENCE_DATE = getAppTodayIso()
 
-export function getAppReferenceWeekday(): WeekDay {
-  return JS_WEEKDAY_TO_APP[new Date().getDay()] ?? 'Segunda'
+export function getAppReferenceWeekday(now = new Date()): WeekDay {
+  const weekday = new Intl.DateTimeFormat('en-US', {
+    timeZone: APP_TIMEZONE,
+    weekday: 'short',
+  }).format(now)
+  return JS_WEEKDAY_TO_APP[weekday] ?? 'Segunda'
 }
 
 /** @deprecated Use getAppReferenceWeekday(). */
