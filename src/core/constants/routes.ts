@@ -15,6 +15,7 @@ export const APP_ROUTES = {
   pop: '/pop',
   changePassword: '/alterar-senha',
   intelligence: '/intelligence',
+  executivePanel: '/painel-executivo',
   nannaiInsights: '/nannai-insights',
   audit: '/auditoria',
   labels: '/etiquetas',

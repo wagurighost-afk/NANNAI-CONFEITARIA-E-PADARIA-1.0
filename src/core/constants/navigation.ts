@@ -99,6 +99,13 @@ export const MAIN_NAVIGATION: readonly AppNavItem[] = [
     permission: 'nannai-insights:view',
   },
   {
+    id: 'executive-panel',
+    label: 'Painel Executivo',
+    href: APP_ROUTES.executivePanel,
+    icon: 'Gauge',
+    permission: 'executive-panel:view',
+  },
+  {
     id: 'intelligence',
     label: 'Dashboard Executivo',
     href: APP_ROUTES.intelligence,

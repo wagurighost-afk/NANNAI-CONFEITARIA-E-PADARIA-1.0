@@ -10,6 +10,7 @@ import {
   Factory,
   FileText,
   FlaskConical,
+  Gauge,
   History,
   LayoutDashboard,
   LineChart,
@@ -35,6 +36,7 @@ import { cn } from '@/utils/cn'
 const NAV_ICONS: Record<string, LucideIcon> = {
   LayoutDashboard,
   LineChart,
+  Gauge,
   BrainCircuit,
   Bug,
   MessageSquare,
