@@ -69,6 +69,10 @@ export async function updateUserIdentity(
   await getStore().updateUserIdentity(id, input)
 }
 
+export async function updateUserEmployeeId(id: string, employeeId: string | null): Promise<void> {
+  await getStore().updateUserEmployeeId(id, employeeId)
+}
+
 export async function updateUserRole(id: string, role: import('../types.js').AppUser['role']): Promise<void> {
   await getStore().updateUserRole(id, role)
 }

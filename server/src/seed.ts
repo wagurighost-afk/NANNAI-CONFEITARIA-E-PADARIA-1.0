@@ -11,7 +11,9 @@ import {
   findRefreshToken,
   getMeta,
   insertRefreshToken,
+  findUserByEmail,
   findUserByEmployeeId,
+  findUserById,
   insertUser,
   loadAllProductionRecords,
   loadProductionRecord,
@@ -19,6 +21,7 @@ import {
   saveProductionRecord,
   saveRecipeRecord,
   setMeta,
+  updateUserEmployeeId,
   updateUserIdentity,
   updateUserRole,
 } from './db/index.js'
@@ -31,6 +34,7 @@ import {
 } from './data/activeProduction.js'
 import { PRODUCTION_DIVISION } from './data/productionDivision.js'
 import { buildDailyProduction, buildSeedProductions, getTodayIso } from './data/productionSeed.js'
+import type { UserRow } from './db/types.js'
 import type { ProductionDay } from './types.js'
 
 const ROLLOVER_META_KEY = 'production_rollover_date'
@@ -45,7 +49,7 @@ export async function seedDatabase(): Promise<void> {
       password_hash: passwordHash,
       password_plain: config.defaultPassword,
       role: SEED_ADMIN.role,
-      employee_id: 'emp-david',
+      employee_id: null,
       name: SEED_ADMIN.name,
     })
 
@@ -125,20 +129,23 @@ export async function saveProduction(production: ProductionDay): Promise<Product
 }
 
 async function syncSeedEmployeeIdentities(): Promise<void> {
+  await detachSeedAdminFromEmployee()
+
   for (const employee of SEED_EMPLOYEES) {
-    const row = await findUserByEmployeeId(employee.id)
+    const row = await resolveSeedEmployeeUser(employee.id)
     if (!row) {
       continue
     }
 
     const nextEmail = employee.email.toLowerCase()
-    const identityChanged = row.name !== employee.name || row.email.toLowerCase() !== nextEmail
+    const targetEmail = await resolveSeedEmail(row, nextEmail)
+    const identityChanged = row.name !== employee.name || row.email.toLowerCase() !== targetEmail
     const roleChanged = row.role !== employee.role
 
     if (identityChanged) {
       await updateUserIdentity(row.id, {
         name: employee.name,
-        email: nextEmail,
+        email: targetEmail,
       })
     }
 
@@ -146,6 +153,45 @@ async function syncSeedEmployeeIdentities(): Promise<void> {
       await updateUserRole(row.id, employee.role)
     }
   }
+}
+
+async function detachSeedAdminFromEmployee(): Promise<void> {
+  const admin = await findUserById(SEED_ADMIN.id)
+  if (!admin?.employee_id) {
+    return
+  }
+
+  await updateUserEmployeeId(SEED_ADMIN.id, null)
+}
+
+async function resolveSeedEmployeeUser(employeeId: string): Promise<UserRow | undefined> {
+  const canonical = await findUserById(`usr-${employeeId}`)
+  if (canonical) {
+    return canonical
+  }
+
+  const linked = await findUserByEmployeeId(employeeId)
+  if (linked && linked.id !== SEED_ADMIN.id) {
+    return linked
+  }
+
+  return undefined
+}
+
+async function resolveSeedEmail(row: UserRow, nextEmail: string): Promise<string> {
+  if (row.email.toLowerCase() === nextEmail) {
+    return nextEmail
+  }
+
+  const owner = await findUserByEmail(nextEmail)
+  if (!owner || owner.id === row.id) {
+    return nextEmail
+  }
+
+  console.warn(
+    `[seed] E-mail ${nextEmail} já pertence a ${owner.id}; mantendo ${row.email} em ${row.id}.`,
+  )
+  return row.email.toLowerCase()
 }
 
 export async function loadProductionById(id: string): Promise<ProductionDay | null> {

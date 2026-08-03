@@ -311,6 +311,16 @@ export function createPostgresStore(): DatabaseStore {
       }
     },
 
+    async updateUserEmployeeId(id, employeeId) {
+      const { rowCount } = await pool.query('UPDATE users SET employee_id = $2 WHERE id = $1', [
+        id,
+        employeeId,
+      ])
+      if (!rowCount) {
+        throw new Error('Usuário não encontrado.')
+      }
+    },
+
     async updateUserRole(id, role) {
       const { rowCount } = await pool.query('UPDATE users SET role = $2 WHERE id = $1', [id, role])
       if (!rowCount) {
