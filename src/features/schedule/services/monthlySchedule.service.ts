@@ -1,7 +1,7 @@
-import { env } from '@/config/env'
 import { ApiMonthlyScheduleRepository } from '@/features/schedule/repositories/ApiMonthlyScheduleRepository'
 import { MockMonthlyScheduleRepository } from '@/features/schedule/repositories/MockMonthlyScheduleRepository'
 import type { MonthlyScheduleRepository } from '@/features/schedule/repositories/MonthlyScheduleRepository'
+import { usesCloudPersistence } from '@/core/persistence/cloudPersistence'
 import type {
   ImportMonthlyScheduleInput,
   MonthlySchedule,
@@ -12,9 +12,9 @@ import { buildScheduleAttachmentFromFile } from '@/features/schedule/utils/build
 import { parseMonthlyScheduleFile } from '@/features/schedule/utils/parseMonthlyScheduleExcel'
 import { matchEmployeeIdByScheduleName } from '@/features/schedule/utils/matchScheduleEmployee'
 
-const repository: MonthlyScheduleRepository = env.useMock
-  ? new MockMonthlyScheduleRepository()
-  : new ApiMonthlyScheduleRepository()
+const repository: MonthlyScheduleRepository = usesCloudPersistence()
+  ? new ApiMonthlyScheduleRepository()
+  : new MockMonthlyScheduleRepository()
 
 export const monthlyScheduleService = {
   list(): Promise<MonthlySchedule[]> {
@@ -38,7 +38,7 @@ export const monthlyScheduleService = {
       parsed = null
     }
 
-    if (env.useMock) {
+    if (!usesCloudPersistence()) {
       const attachment = await buildScheduleAttachmentFromFile(file)
 
       if (!parsed) {

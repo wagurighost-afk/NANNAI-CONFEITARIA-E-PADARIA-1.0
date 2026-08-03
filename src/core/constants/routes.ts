@@ -5,6 +5,7 @@ export const APP_ROUTES = {
   employees: '/colaboradores',
   ingredients: '/ingredientes',
   production: '/producao',
+  productionConference: '/conferencia-producao',
   breadControl: '/controle-paes',
   wasteControl: '/controle-desperdicio',
   schedule: '/escala',

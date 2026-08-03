@@ -1,7 +1,7 @@
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { Breadcrumb, EmptyState, PageHeader, PageShell } from '@/components/common'
+import { Breadcrumb, CloudPersistenceNotice, EmptyState, PageHeader, PageShell } from '@/components/common'
 import { Button, ConfirmDialog, Modal, Skeleton } from '@/components/ui'
 import { LabelPrintDialogContent } from '@/features/labels/components/LabelPrintDialog'
 import { buildLabelDraftFromProduction } from '@/features/labels/utils/buildLabelFromProduction'
@@ -24,6 +24,7 @@ import {
   canOpenProductionForm,
 } from '@/features/production/utils/productionPermissions'
 import { APP_ROUTES } from '@/core/constants'
+import { CLOUD_SAVED_MESSAGE } from '@/core/persistence/cloudPersistence'
 import { getErrorMessage } from '@/core/errors'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks'
@@ -219,6 +220,8 @@ export function ProductionPage() {
 
       <ProductionKpisSection kpis={kpis} isLoading={isKpisLoading} />
 
+      <CloudPersistenceNotice />
+
       <ProductionConferenceKpisSection kpis={conferenceKpis} isLoading={isLoading} />
 
       <div className="mb-6">
@@ -319,7 +322,7 @@ export function ProductionPage() {
             })
             push({
               title: 'Status atualizado',
-              description: `Item marcado como ${status}.`,
+              description: CLOUD_SAVED_MESSAGE,
               variant: 'success',
             })
             if (status === 'Concluído' && canPrintLabels) {
@@ -349,7 +352,7 @@ export function ProductionPage() {
             })
             push({
               title: 'Conferência atualizada',
-              description: 'Status do item registrado com sucesso.',
+              description: CLOUD_SAVED_MESSAGE,
               variant: 'success',
             })
           } catch (error: unknown) {

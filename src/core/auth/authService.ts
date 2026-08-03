@@ -2,6 +2,7 @@ import type { AuthSession, LoginCredentials, User } from '@/types/auth.types'
 import { env } from '@/config/env'
 import { apiClient } from '@/core/api'
 import { resolveMockUserByEmail } from '@/core/auth/mockUsers'
+import { usesCloudPersistence } from '@/core/persistence/cloudPersistence'
 import { EMPLOYEES_MOCK } from '@/features/employees/mocks/employees.mock'
 import { STORAGE_KEYS } from '@/core/constants/storageKeys'
 import { logger } from '@/core/logger'
@@ -27,7 +28,7 @@ export interface ResetEmployeePasswordResult extends EmployeePasswordInfo {
  * Real endpoints will be wired when the backend is available.
  * Until then, a local mock keeps the architecture demonstrable.
  */
-const USE_MOCK_AUTH = env.useMock
+const USE_MOCK_AUTH = !usesCloudPersistence()
 const MOCK_DEFAULT_PASSWORD = 'Nannai@2026'
 const MOCK_PASSWORDS_KEY = 'nannai_mock_passwords'
 

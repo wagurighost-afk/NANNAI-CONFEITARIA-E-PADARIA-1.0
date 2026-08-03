@@ -1,7 +1,7 @@
-import { env } from '@/config/env'
 import { ApiRecipeRepository } from '@/features/recipes/repositories/ApiRecipeRepository'
 import { MockRecipeRepository } from '@/features/recipes/repositories/MockRecipeRepository'
 import type { RecipeRepository } from '@/features/recipes/repositories/RecipeRepository'
+import { usesCloudPersistence } from '@/core/persistence/cloudPersistence'
 import type {
   CreateRecipeInput,
   Recipe,
@@ -10,9 +10,9 @@ import type {
   UpdateRecipeInput,
 } from '@/features/recipes/types/recipe.types'
 
-const repository: RecipeRepository = env.useMock
-  ? new MockRecipeRepository()
-  : new ApiRecipeRepository()
+const repository: RecipeRepository = usesCloudPersistence()
+  ? new ApiRecipeRepository()
+  : new MockRecipeRepository()
 
 export const recipesService = {
   list(query: RecipeListQuery) {

@@ -23,6 +23,13 @@ export const MAIN_NAVIGATION: readonly AppNavItem[] = [
     permission: 'production:view',
   },
   {
+    id: 'production-conference',
+    label: 'Conferência diária',
+    href: APP_ROUTES.productionConference,
+    icon: 'ClipboardCheck',
+    permission: 'production:view',
+  },
+  {
     id: 'labels',
     label: 'Etiquetas',
     href: APP_ROUTES.labels,

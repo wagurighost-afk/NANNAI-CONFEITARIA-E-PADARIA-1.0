@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ProductionConferenceBadge } from '@/features/production/components/ProductionConferenceBadge'
+import { ProductionConferenceItemRow } from '@/features/production/components/ProductionConferenceItemRow'
 import { ProductionConferenceStatusPicker } from '@/features/production/components/ProductionConferenceStatusPicker'
 import {
   filterProductionItemsByConference,
@@ -11,7 +11,6 @@ import type {
   ProductionDay,
   ProductionItem,
 } from '@/features/production/types/production.types'
-import { formatDateTimeBr } from '@/utils/formatDate'
 
 export interface ProductionConferencePanelProps {
   production: ProductionDay
@@ -29,7 +28,7 @@ export function ProductionConferencePanel({
   const [pickerItem, setPickerItem] = useState<ProductionItem | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
-  const sortedItems = [...production.items].sort((a, b) => a.order - b.order)
+  const sortedItems = [...production.items].sort((left, right) => left.order - right.order)
   const visibleItems = filterProductionItemsByConference(sortedItems, conferenceFilter)
 
   const handleSelect = async (status: ProductionConferenceStatus) => {
@@ -57,38 +56,28 @@ export function ProductionConferencePanel({
   return (
     <>
       <ul className="space-y-2">
-        {visibleItems.map((item) => {
-          const conference = item.conference
-          const status = getItemConferenceStatus(item)
-
-          return (
-            <li key={item.id}>
-              <button
-                type="button"
-                className="flex w-full flex-col gap-2 rounded-xl border border-border p-3 text-left transition-colors hover:bg-muted/40 disabled:cursor-default disabled:hover:bg-transparent"
-                disabled={!canUpdateConference || !onConferenceChange}
-                onClick={() => {
-                  if (canUpdateConference && onConferenceChange) {
-                    setPickerItem(item)
-                  }
-                }}
-              >
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <p className="font-medium">{item.name}</p>
-                  <ProductionConferenceBadge item={item} />
-                </div>
-                {conference ? (
-                  <p className="text-xs text-muted-foreground">
-                    Conferido por {conference.checkedByName} em{' '}
-                    {formatDateTimeBr(conference.checkedAt)}
-                  </p>
-                ) : status !== 'nao_iniciado' ? null : (
-                  <p className="text-xs text-muted-foreground">Aguardando conferência.</p>
-                )}
-              </button>
-            </li>
-          )
-        })}
+        {visibleItems.map((item) => (
+          <li key={item.id}>
+            <ProductionConferenceItemRow
+              entry={{
+                productionId: production.id,
+                productionCode: production.productionCode,
+                employeeName: production.employeeName,
+                date: production.date,
+                shift: production.shift,
+                sector: production.sector,
+                item,
+              }}
+              showContext={false}
+              canUpdate={canUpdateConference && Boolean(onConferenceChange)}
+              onClick={() => {
+                if (canUpdateConference && onConferenceChange) {
+                  setPickerItem(item)
+                }
+              }}
+            />
+          </li>
+        ))}
       </ul>
 
       <ProductionConferenceStatusPicker

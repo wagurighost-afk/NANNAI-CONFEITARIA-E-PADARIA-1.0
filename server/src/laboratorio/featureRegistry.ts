@@ -28,7 +28,7 @@ export const LABORATORIO_MODULES: readonly LaboratorioModuleDefinition[] = [
 
 export const LABORATORIO_FEATURES: readonly LaboratorioFeatureDefinition[] = [
   { id: 'production-core', moduleId: 'production', name: 'Produção diária', description: 'CRUD de produções, itens e comentários.', defaultCategory: 'em_desenvolvimento', defaultLifecycle: 'producao', defaultEnabled: true, route: '/producao', version: '1.5.x' },
-  { id: 'production-conference', moduleId: 'production', name: 'Conferência diária', description: 'Status visual de conferência por item.', defaultCategory: 'beta', defaultLifecycle: 'beta', defaultEnabled: true, route: '/producao', version: '1.5.2' },
+  { id: 'production-conference', moduleId: 'production', name: 'Conferência diária', description: 'Status visual de conferência por item.', defaultCategory: 'beta', defaultLifecycle: 'beta', defaultEnabled: true, route: '/conferencia-producao', version: '1.6.6' },
   { id: 'labels-layout-v2', moduleId: 'labels', name: 'Layout de etiquetas v2', description: 'Nome do produto em destaque com fonte adaptativa.', defaultCategory: 'beta', defaultLifecycle: 'beta', defaultEnabled: true, route: '/etiquetas', version: '1.5.3' },
   { id: 'labels-niimbot', moduleId: 'labels', name: 'Impressão NIIMBOT', description: 'Etiquetas via Bluetooth B1/B1 Pro.', defaultCategory: 'em_desenvolvimento', defaultLifecycle: 'producao', defaultEnabled: true, route: '/etiquetas', version: '1.5.0' },
   { id: 'niimbot-multi-printer', moduleId: 'niimbot', name: 'Registry multi-impressora', description: 'Cadastro de várias NIIMBOT.', defaultCategory: 'em_desenvolvimento', defaultLifecycle: 'producao', defaultEnabled: true, route: '/niimbot/configuracoes' },

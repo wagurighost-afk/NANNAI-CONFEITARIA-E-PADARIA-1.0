@@ -1,4 +1,4 @@
-import { env } from '@/config/env'
+import { usesCloudPersistence } from '@/core/persistence/cloudPersistence'
 import { apiClient } from '@/core/api/apiClient'
 import type { EmployeeShift, ProductionSector } from '@/features/employees/types/employee.types'
 import { MockProductionRepository } from '@/features/production/repositories/MockProductionRepository'
@@ -99,9 +99,9 @@ export async function sendRecipesToProduction(
     })
     const existing = findMatchingProduction(productions, options)
     if (existing) {
-      return env.useMock
-        ? appendRecipesMock(existing.id, items)
-        : appendRecipesApi(existing.id, items)
+      return usesCloudPersistence()
+        ? appendRecipesApi(existing.id, items)
+        : appendRecipesMock(existing.id, items)
     }
   }
 

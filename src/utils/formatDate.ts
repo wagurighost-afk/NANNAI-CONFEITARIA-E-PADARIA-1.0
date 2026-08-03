@@ -25,3 +25,16 @@ export function formatDateTimeBr(isoDate: string): string {
 
   return `${datePart} às ${timePart}`
 }
+
+export function formatTimeBr(isoDate: string): string {
+  const date = new Date(isoDate)
+  if (Number.isNaN(date.getTime())) {
+    return isoDate
+  }
+
+  return date.toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+}

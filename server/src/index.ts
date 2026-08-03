@@ -44,11 +44,13 @@ app.use('/api/uploads', (_req, res, next) => {
 }, express.static(config.uploadsDir))
 
 app.get('/api/health', (_req, res) => {
+  const cloudDatabase = isPostgresEnabled()
   res.json({
     status: 'ok',
     service: 'nannai-api',
     mode: isProduction ? 'production' : 'development',
-    database: isPostgresEnabled() ? 'postgresql' : 'json-file',
+    database: cloudDatabase ? 'postgresql' : 'json-file',
+    persistence: cloudDatabase ? 'cloud' : 'local-file',
   })
 })
 
@@ -87,12 +89,21 @@ app.use((error: unknown, req: express.Request, res: express.Response, _next: exp
 })
 
 async function startServer(): Promise<void> {
+  if (isProduction && !isPostgresEnabled()) {
+    console.error(
+      'DATABASE_URL não configurado. Em produção os dados precisam ser salvos no PostgreSQL (nuvem).',
+    )
+    process.exit(1)
+  }
+
   await initDatabase()
   await seedDatabase()
 
   app.listen(config.port, () => {
     console.log(`NANNAI API rodando em http://localhost:${config.port}`)
-    console.log(`Banco: ${isPostgresEnabled() ? 'PostgreSQL' : 'arquivo JSON local'}`)
+    console.log(
+      `Persistência: ${isPostgresEnabled() ? 'PostgreSQL (nuvem)' : 'arquivo JSON local (somente desenvolvimento)'}`,
+    )
     if (isProduction && fs.existsSync(distPath)) {
       console.log('App PWA servido a partir de /dist')
     }

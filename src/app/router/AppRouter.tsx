@@ -24,6 +24,11 @@ const DashboardPage = lazyPage(() =>
 const ProductionPage = lazyPage(() =>
   import('@/features/production/pages/ProductionPage').then((m) => ({ default: m.ProductionPage })),
 )
+const ProductionConferencePage = lazyPage(() =>
+  import('@/features/production/pages/ProductionConferencePage').then((m) => ({
+    default: m.ProductionConferencePage,
+  })),
+)
 const BreadControlPage = lazyPage(() =>
   import('@/features/bread-control/pages/BreadControlPage').then((m) => ({ default: m.BreadControlPage })),
 )
@@ -120,6 +125,7 @@ export function AppRouter() {
           <Route element={<AppLayout />}>
             <Route path={APP_ROUTES.dashboard} element={<DashboardPage />} />
             <Route path={APP_ROUTES.production} element={<ProductionPage />} />
+            <Route path={APP_ROUTES.productionConference} element={<ProductionConferencePage />} />
             <Route element={<PermissionRoute permission="labels:view" />}>
               <Route path={APP_ROUTES.labels} element={<LabelsPage />} />
             </Route>

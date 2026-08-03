@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { env } from '@/config/env'
+import { usesCloudPersistence } from '@/core/persistence/cloudPersistence'
 import { scheduleQueryInvalidation } from '@/core/realtime/scheduleQueryInvalidation'
 import { authService } from '@/services'
 import { useAuth } from '@/hooks/useAuth'
@@ -10,7 +11,7 @@ export function useRealtimeSync(): void {
   const { isAuthenticated } = useAuth()
 
   useEffect(() => {
-    if (!isAuthenticated || env.useMock) {
+    if (!isAuthenticated || !usesCloudPersistence()) {
       return
     }
 

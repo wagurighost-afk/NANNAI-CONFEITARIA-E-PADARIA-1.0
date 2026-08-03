@@ -89,9 +89,11 @@ export function useProduction() {
     [productionQuery.data],
   )
 
+  const filteredProductions = productionQuery.data ?? []
+
   const visibleProductions = useMemo(
-    () => filterProductionsByConference(productionQuery.data ?? [], filters.conferenceFilter ?? 'all'),
-    [productionQuery.data, filters.conferenceFilter],
+    () => filterProductionsByConference(filteredProductions, filters.conferenceFilter ?? 'all'),
+    [filteredProductions, filters.conferenceFilter],
   )
 
   const selectedProductionQuery = useQuery({
@@ -220,6 +222,7 @@ export function useProduction() {
 
   return {
     productions: visibleProductions,
+    filteredProductions,
     conferenceKpis,
     kpis,
     isLoading: productionQuery.isLoading,

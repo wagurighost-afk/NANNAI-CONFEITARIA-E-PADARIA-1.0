@@ -1,5 +1,5 @@
-import { env } from '@/config/env'
 import type { ProductionRepository } from '@/features/production/repositories/ProductionRepository'
+import { usesCloudPersistence } from '@/core/persistence/cloudPersistence'
 import { MockProductionRepository } from '@/features/production/repositories/MockProductionRepository'
 import { ApiProductionRepository } from '@/features/production/repositories/ApiProductionRepository'
 import type {
@@ -14,10 +14,12 @@ import type {
   UpdateProductionItemConferenceInput,
 } from '@/features/production/types/production.types'
 
-const USE_MOCK = env.useMock
-
 function createRepository(): ProductionRepository {
-  return USE_MOCK ? new MockProductionRepository() : new ApiProductionRepository()
+  if (usesCloudPersistence()) {
+    return new ApiProductionRepository()
+  }
+
+  return new MockProductionRepository()
 }
 
 const repository = createRepository()
