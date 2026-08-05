@@ -154,6 +154,36 @@ export interface WastePhaseRecord {
   phaseTotal: number
 }
 
+export type WasteConferenceStatus =
+  | 'aguardando_conferencia'
+  | 'conferido'
+  | 'necessita_revisao'
+
+export interface WasteAssignmentInfo {
+  responsibleEmployeeId: string
+  responsibleEmployeeName: string
+  responsiblePosition: string
+  responsibleShift: string
+  assignedAt: string
+  assignedById: string
+  assignedByName: string
+  sector: string
+}
+
+export interface WasteClosingInfo {
+  closedAt: string
+  closedById: string
+  closedByName: string
+}
+
+export interface WasteConferenceInfo {
+  status: WasteConferenceStatus
+  checkedById: string | null
+  checkedByName: string | null
+  checkedAt: string | null
+  notes: string
+}
+
 export interface WasteControlDay {
   id: string
   date: string
@@ -165,6 +195,9 @@ export interface WasteControlDay {
   wasteKgTotal: number
   dayTotal: number
   updatedAt: string
+  assignment?: WasteAssignmentInfo | null
+  closing?: WasteClosingInfo | null
+  conference?: WasteConferenceInfo | null
 }
 
 export interface SaveWasteControlDayInput {
@@ -174,6 +207,25 @@ export interface SaveWasteControlDayInput {
   monthlyGoalKg: number
   dessertsQty?: number
   phases: Record<WastePhase, Array<{ productId: string; units: number; wasteKg: number }>>
+  /** Quando true, registra fechamento e envia para conferência do Chef. */
+  finalize?: boolean
+}
+
+export interface AssignWasteResponsibleInput {
+  date: string
+  buffet: WasteBuffetType
+  responsibleEmployeeId: string
+  responsibleEmployeeName: string
+  responsiblePosition: string
+  responsibleShift: string
+  sector: string
+}
+
+export interface ConferenceWasteDayInput {
+  date: string
+  buffet: WasteBuffetType
+  status: WasteConferenceStatus
+  notes?: string
 }
 
 export interface WasteControlMonthlySummary {

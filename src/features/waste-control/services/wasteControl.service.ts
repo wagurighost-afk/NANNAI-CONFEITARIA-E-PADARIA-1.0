@@ -1,5 +1,7 @@
 import { apiClient } from '@/core/api/apiClient'
 import type {
+  AssignWasteResponsibleInput,
+  ConferenceWasteDayInput,
   SaveWasteControlDayInput,
   WasteBuffetType,
   WasteControlDay,
@@ -25,6 +27,24 @@ export const wasteControlService = {
   async saveDay(input: SaveWasteControlDayInput): Promise<WasteControlDay> {
     const { data } = await apiClient.put<WasteControlDay>(
       `/waste-control/days/${input.date}`,
+      input,
+      { params: { buffet: input.buffet } },
+    )
+    return data
+  },
+
+  async assignResponsible(input: AssignWasteResponsibleInput): Promise<WasteControlDay> {
+    const { data } = await apiClient.patch<WasteControlDay>(
+      `/waste-control/days/${input.date}/responsible`,
+      input,
+      { params: { buffet: input.buffet } },
+    )
+    return data
+  },
+
+  async conferenceDay(input: ConferenceWasteDayInput): Promise<WasteControlDay> {
+    const { data } = await apiClient.patch<WasteControlDay>(
+      `/waste-control/days/${input.date}/conference`,
       input,
       { params: { buffet: input.buffet } },
     )

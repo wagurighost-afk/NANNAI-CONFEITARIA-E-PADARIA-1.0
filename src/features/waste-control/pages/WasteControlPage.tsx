@@ -13,6 +13,9 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui'
+import type { AssignableEmployee } from '@/features/assignment'
+import { isLeadershipUser } from '@/core/permissions/leadershipAccess'
+import { WasteAssignmentPanel } from '@/features/waste-control/components/WasteAssignmentPanel'
 import { WasteDailyColumnsTable } from '@/features/waste-control/components/WasteDailyColumnsTable'
 import { WasteMonthlyCharts } from '@/features/waste-control/components/WasteMonthlyCharts'
 import {
@@ -21,6 +24,8 @@ import {
   WASTE_PHASES,
 } from '@/features/waste-control/constants/wasteControl.constants'
 import {
+  useAssignWasteResponsible,
+  useConferenceWasteDay,
   useSaveWasteControlDay,
   useWasteControlDay,
   useWasteControlSummary,
@@ -28,6 +33,7 @@ import {
 } from '@/features/waste-control/hooks/useWasteControl'
 import type {
   WasteBuffetType,
+  WasteConferenceStatus,
   WasteControlDay,
   WastePhase,
   WastePhaseDraft,
@@ -38,6 +44,7 @@ import {
   toIsoDate,
 } from '@/features/waste-control/utils/wasteControlFormat'
 import { APP_ROUTES } from '@/core/constants'
+import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks'
 import { usePermission } from '@/hooks/usePermission'
 
@@ -81,13 +88,18 @@ export function WasteControlPage() {
     reposicao: {},
     finalizacao: {},
   })
+  const [pickerPrompted, setPickerPrompted] = useState(false)
 
   const { push } = useToast()
+  const { user } = useAuth()
   const { hasPermission } = usePermission()
   const canViewSummary = hasPermission('waste-control:summary')
+  const canConference = isLeadershipUser(user)
   const productsQuery = useWasteProducts(buffet)
   const dayQuery = useWasteControlDay(selectedDate, buffet)
   const saveMutation = useSaveWasteControlDay()
+  const assignMutation = useAssignWasteResponsible()
+  const conferenceMutation = useConferenceWasteDay()
 
   const [year, month] = selectedDate.split('-').map(Number)
   const summaryQuery = useWasteControlSummary(year ?? 2026, month ?? 1)
@@ -102,7 +114,12 @@ export function WasteControlPage() {
     setPhaseDrafts(buildDraftFromDay(dayQuery.data))
   }, [dayQuery.data])
 
+  useEffect(() => {
+    setPickerPrompted(false)
+  }, [selectedDate, buffet])
+
   const products = productsQuery.data ?? []
+  const needsResponsible = Boolean(dayQuery.data && !dayQuery.data.assignment && !pickerPrompted)
 
   const dayPreview = useMemo(() => {
     let wasteKgTotal = 0
@@ -138,29 +155,93 @@ export function WasteControlPage() {
     }))
   }
 
-  const handleSave = async () => {
-    try {
-      await saveMutation.mutateAsync({
-        date: selectedDate,
-        buffet,
-        pax,
-        monthlyGoalKg,
-        dessertsQty,
-        phases: {
-          entrada: draftToPayload(phaseDrafts.entrada),
-          reposicao: draftToPayload(phaseDrafts.reposicao),
-          finalizacao: draftToPayload(phaseDrafts.finalizacao),
-        },
-      })
+  const buildSavePayload = (finalize = false) => ({
+    date: selectedDate,
+    buffet,
+    pax,
+    monthlyGoalKg,
+    dessertsQty,
+    phases: {
+      entrada: draftToPayload(phaseDrafts.entrada),
+      reposicao: draftToPayload(phaseDrafts.reposicao),
+      finalizacao: draftToPayload(phaseDrafts.finalizacao),
+    },
+    ...(finalize ? { finalize: true as const } : {}),
+  })
+
+  const handleSave = async (finalize = false) => {
+    if (finalize && !dayQuery.data?.assignment) {
       push({
-        title: 'Controle salvo',
-        description: `${WASTE_BUFFET_LABELS[buffet]} · ${selectedDate}`,
+        title: 'Responsável obrigatório',
+        description: 'Selecione o responsável presente antes de finalizar a contagem.',
+        variant: 'danger',
+      })
+      setPickerPrompted(true)
+      return
+    }
+
+    try {
+      await saveMutation.mutateAsync(buildSavePayload(finalize))
+      push({
+        title: finalize ? 'Contagem finalizada' : 'Controle salvo',
+        description: finalize
+          ? `${WASTE_BUFFET_LABELS[buffet]} enviado para conferência do Chef.`
+          : `${WASTE_BUFFET_LABELS[buffet]} · ${selectedDate}`,
         variant: 'success',
       })
-    } catch {
+    } catch (error) {
       push({
         title: 'Erro ao salvar',
-        description: 'Não foi possível salvar o controle de desperdício.',
+        description: error instanceof Error ? error.message : 'Não foi possível salvar o controle.',
+        variant: 'danger',
+      })
+    }
+  }
+
+  const handleAssign = async (employee: AssignableEmployee) => {
+    try {
+      await assignMutation.mutateAsync({
+        date: selectedDate,
+        buffet,
+        responsibleEmployeeId: employee.employeeId,
+        responsibleEmployeeName: employee.name,
+        responsiblePosition: String(employee.position),
+        responsibleShift: employee.shift,
+        sector: buffet,
+      })
+      setPickerPrompted(true)
+      push({
+        title: 'Responsável definido',
+        description: employee.name,
+        variant: 'success',
+      })
+    } catch (error) {
+      push({
+        title: 'Falha na atribuição',
+        description: error instanceof Error ? error.message : 'Não foi possível atribuir.',
+        variant: 'danger',
+      })
+      throw error
+    }
+  }
+
+  const handleConference = async (status: WasteConferenceStatus, notes: string) => {
+    try {
+      await conferenceMutation.mutateAsync({
+        date: selectedDate,
+        buffet,
+        status,
+        notes,
+      })
+      push({
+        title: 'Conferência atualizada',
+        description: WASTE_BUFFET_LABELS[buffet],
+        variant: 'success',
+      })
+    } catch (error) {
+      push({
+        title: 'Falha na conferência',
+        description: error instanceof Error ? error.message : 'Não foi possível conferir.',
         variant: 'danger',
       })
     }
@@ -181,16 +262,29 @@ export function WasteControlPage() {
         title="Controle de Desperdício"
         description="Registro compartilhado em tempo real — entrada, reposição e finalização (Café da Manhã, Chá e Jantar)."
         actions={
-          <Button
-            onClick={() => {
-              void handleSave()
-            }}
-            isLoading={saveMutation.isPending}
-            className="w-full sm:w-auto"
-          >
-            <Save className="size-4" />
-            Salvar dia
-          </Button>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <Button
+              variant="outline"
+              onClick={() => {
+                void handleSave(false)
+              }}
+              isLoading={saveMutation.isPending}
+              className="w-full sm:w-auto"
+            >
+              <Save className="size-4" />
+              Salvar dia
+            </Button>
+            <Button
+              onClick={() => {
+                void handleSave(true)
+              }}
+              isLoading={saveMutation.isPending}
+              disabled={Boolean(dayQuery.data?.closing)}
+              className="w-full sm:w-auto"
+            >
+              Finalizar e enviar
+            </Button>
+          </div>
         }
       />
 
@@ -256,7 +350,10 @@ export function WasteControlPage() {
               </Button>
             ))}
             <Badge variant="muted" className="ml-auto self-center">
-              Atualizado: {dayQuery.data?.updatedAt ? new Date(dayQuery.data.updatedAt).toLocaleString('pt-BR') : '—'}
+              Atualizado:{' '}
+              {dayQuery.data?.updatedAt
+                ? new Date(dayQuery.data.updatedAt).toLocaleString('pt-BR')
+                : '—'}
             </Badge>
             <Button
               type="button"
@@ -270,6 +367,23 @@ export function WasteControlPage() {
               Atualizar
             </Button>
           </div>
+
+          <WasteAssignmentPanel
+            date={selectedDate}
+            buffet={buffet}
+            day={dayQuery.data}
+            canConference={canConference}
+            onAssign={handleAssign}
+            onConference={handleConference}
+            isAssigning={assignMutation.isPending}
+            isConferencing={conferenceMutation.isPending}
+          />
+
+          {needsResponsible ? (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              Selecione o responsável presente para abrir a contagem deste buffet.
+            </div>
+          ) : null}
 
           <div className="flex flex-wrap gap-2">
             <Badge variant="accent">Dia: {formatWasteMoney(dayPreview.dayTotal)}</Badge>
