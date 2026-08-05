@@ -96,7 +96,7 @@ export function ProductsPage() {
     isImporting,
   } = useProducts()
 
-  const handleImport = async (part: 'part1' | 'part2' | 'all') => {
+  const handleImport = async (part: 'part1' | 'part2' | 'part3' | 'all') => {
     try {
       const summary = await importMaster(part)
       push({
@@ -162,13 +162,13 @@ export function ProductsPage() {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    void handleImport('part2')
+                    void handleImport('part3')
                   }}
                   isLoading={isImporting}
                   className="w-full sm:w-auto"
                 >
                   <Download className="size-4" />
-                  Importar Parte 2
+                  Importar Parte 3
                 </Button>
                 <Button
                   variant="outline"

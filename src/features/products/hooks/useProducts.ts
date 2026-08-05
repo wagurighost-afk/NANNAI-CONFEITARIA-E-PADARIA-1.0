@@ -48,12 +48,15 @@ export function useProducts() {
   })
 
   const importMutation = useMutation({
-    mutationFn: (part: 'part1' | 'part2' | 'all' = 'all') => {
+    mutationFn: (part: 'part1' | 'part2' | 'part3' | 'all' = 'all') => {
       if (part === 'part1') {
         return productsService.importMasterPart1()
       }
       if (part === 'part2') {
         return productsService.importMasterPart2()
+      }
+      if (part === 'part3') {
+        return productsService.importMasterPart3()
       }
       return productsService.importMasterAll()
     },

@@ -9,6 +9,7 @@ import {
 } from './db/index.js'
 import { PRODUCTS_MASTER_PART1 } from './data/productsMasterPart1.js'
 import { PRODUCTS_MASTER_PART2 } from './data/productsMasterPart2.js'
+import { PRODUCTS_MASTER_PART3 } from './data/productsMasterPart3.js'
 import type { CatalogProduct, ProductImportSummary, ProductOrigin, ProductStatus } from './types.js'
 
 const LAST_IMPORT_META_KEY = 'products_last_import_summary'
@@ -222,17 +223,22 @@ export async function importMasterPart2(): Promise<ProductImportSummary> {
   return importMasterProducts(PRODUCTS_MASTER_PART2, { partLabel: 'Cadastro Mestre — Parte 2' })
 }
 
+export async function importMasterPart3(): Promise<ProductImportSummary> {
+  return importMasterProducts(PRODUCTS_MASTER_PART3, { partLabel: 'Cadastro Mestre — Parte 3' })
+}
+
 /** Importa todas as partes do Cadastro Mestre em sequência e devolve o resumo agregado. */
 export async function importMasterAllParts(): Promise<ProductImportSummary> {
   const part1 = await importMasterPart1()
   const part2 = await importMasterPart2()
+  const part3 = await importMasterPart3()
   const summary: ProductImportSummary = {
-    partLabel: 'Cadastro Mestre — Partes 1 e 2',
-    created: part1.created + part2.created,
-    updated: part1.updated + part2.updated,
-    ignored: part1.ignored + part2.ignored,
-    totalProcessed: part1.totalProcessed + part2.totalProcessed,
-    importedAt: part2.importedAt,
+    partLabel: 'Cadastro Mestre — Partes 1 a 3',
+    created: part1.created + part2.created + part3.created,
+    updated: part1.updated + part2.updated + part3.updated,
+    ignored: part1.ignored + part2.ignored + part3.ignored,
+    totalProcessed: part1.totalProcessed + part2.totalProcessed + part3.totalProcessed,
+    importedAt: part3.importedAt,
   }
   await setMeta(LAST_IMPORT_META_KEY, JSON.stringify(summary))
   return summary

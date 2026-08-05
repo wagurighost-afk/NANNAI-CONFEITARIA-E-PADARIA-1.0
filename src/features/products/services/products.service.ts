@@ -43,6 +43,11 @@ export const productsService = {
     return data
   },
 
+  async importMasterPart3(): Promise<ProductImportSummary> {
+    const { data } = await apiClient.post<ProductImportSummary>('/products/import/master-part-3')
+    return data
+  },
+
   async importMasterAll(): Promise<ProductImportSummary> {
     const { data } = await apiClient.post<ProductImportSummary>('/products/import/master')
     return data

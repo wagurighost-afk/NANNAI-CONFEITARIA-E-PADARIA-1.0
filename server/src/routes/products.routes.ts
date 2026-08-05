@@ -8,6 +8,7 @@ import {
   importMasterAllParts,
   importMasterPart1,
   importMasterPart2,
+  importMasterPart3,
   listProducts,
   removeProduct,
   updateProduct,
@@ -39,6 +40,15 @@ productsRouter.post('/import/master-part-1', requireManager, async (_req, res) =
 productsRouter.post('/import/master-part-2', requireManager, async (_req, res) => {
   try {
     const summary = await importMasterPart2()
+    res.json(summary)
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Falha na importação.' })
+  }
+})
+
+productsRouter.post('/import/master-part-3', requireManager, async (_req, res) => {
+  try {
+    const summary = await importMasterPart3()
     res.json(summary)
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Falha na importação.' })
