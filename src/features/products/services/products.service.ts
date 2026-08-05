@@ -38,6 +38,16 @@ export const productsService = {
     return data
   },
 
+  async importMasterPart2(): Promise<ProductImportSummary> {
+    const { data } = await apiClient.post<ProductImportSummary>('/products/import/master-part-2')
+    return data
+  },
+
+  async importMasterAll(): Promise<ProductImportSummary> {
+    const { data } = await apiClient.post<ProductImportSummary>('/products/import/master')
+    return data
+  },
+
   async getLastImportSummary(): Promise<ProductImportSummary | null> {
     const { data } = await apiClient.get<ProductImportSummary | null>('/products/import-summary')
     return data

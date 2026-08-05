@@ -5,7 +5,9 @@ import {
   createProduct,
   getLastImportSummary,
   getProductById,
+  importMasterAllParts,
   importMasterPart1,
+  importMasterPart2,
   listProducts,
   removeProduct,
   updateProduct,
@@ -28,6 +30,24 @@ productsRouter.get('/import-summary', async (_req, res) => {
 productsRouter.post('/import/master-part-1', requireManager, async (_req, res) => {
   try {
     const summary = await importMasterPart1()
+    res.json(summary)
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Falha na importação.' })
+  }
+})
+
+productsRouter.post('/import/master-part-2', requireManager, async (_req, res) => {
+  try {
+    const summary = await importMasterPart2()
+    res.json(summary)
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Falha na importação.' })
+  }
+})
+
+productsRouter.post('/import/master', requireManager, async (_req, res) => {
+  try {
+    const summary = await importMasterAllParts()
     res.json(summary)
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Falha na importação.' })

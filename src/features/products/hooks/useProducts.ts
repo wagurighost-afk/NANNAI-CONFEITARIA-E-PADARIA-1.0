@@ -48,7 +48,15 @@ export function useProducts() {
   })
 
   const importMutation = useMutation({
-    mutationFn: () => productsService.importMasterPart1(),
+    mutationFn: (part: 'part1' | 'part2' | 'all' = 'all') => {
+      if (part === 'part1') {
+        return productsService.importMasterPart1()
+      }
+      if (part === 'part2') {
+        return productsService.importMasterPart2()
+      }
+      return productsService.importMasterAll()
+    },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: QUERY_KEY })
     },
@@ -89,7 +97,7 @@ export function useProducts() {
     createProduct: createMutation.mutateAsync,
     updateProduct: updateMutation.mutateAsync,
     removeProduct: deleteMutation.mutateAsync,
-    importMasterPart1: importMutation.mutateAsync,
+    importMaster: importMutation.mutateAsync,
     isSaving: createMutation.isPending || updateMutation.isPending,
     isImporting: importMutation.isPending,
     isDeleting: deleteMutation.isPending,

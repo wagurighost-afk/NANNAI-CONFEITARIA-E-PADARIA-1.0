@@ -91,17 +91,17 @@ export function ProductsPage() {
     closeForm,
     createProduct,
     updateProduct,
-    importMasterPart1,
+    importMaster,
     isSaving,
     isImporting,
   } = useProducts()
 
-  const handleImport = async () => {
+  const handleImport = async (part: 'part1' | 'part2' | 'all') => {
     try {
-      const summary = await importMasterPart1()
+      const summary = await importMaster(part)
       push({
         title: 'Importação concluída',
-        description: `${summary.created} cadastrados · ${summary.updated} atualizados · ${summary.ignored} ignorados`,
+        description: `${summary.partLabel}: ${summary.created} cadastrados · ${summary.updated} atualizados · ${summary.ignored} ignorados`,
         variant: 'success',
       })
     } catch (error: unknown) {
@@ -158,17 +158,30 @@ export function ProductsPage() {
         actions={
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
             {canManage ? (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  void handleImport()
-                }}
-                isLoading={isImporting}
-                className="w-full sm:w-auto"
-              >
-                <Download className="size-4" />
-                Importar Cadastro Mestre (Parte 1)
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    void handleImport('part2')
+                  }}
+                  isLoading={isImporting}
+                  className="w-full sm:w-auto"
+                >
+                  <Download className="size-4" />
+                  Importar Parte 2
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    void handleImport('all')
+                  }}
+                  isLoading={isImporting}
+                  className="w-full sm:w-auto"
+                >
+                  <Download className="size-4" />
+                  Importar Cadastro Mestre
+                </Button>
+              </>
             ) : null}
             {canManage ? (
               <Button onClick={openCreate} className="w-full sm:w-auto">
