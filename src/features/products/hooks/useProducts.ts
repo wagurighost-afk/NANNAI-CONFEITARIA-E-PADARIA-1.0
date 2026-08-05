@@ -48,7 +48,7 @@ export function useProducts() {
   })
 
   const importMutation = useMutation({
-    mutationFn: (part: 'part1' | 'part2' | 'part3' | 'all' = 'all') => {
+    mutationFn: (part: 'part1' | 'part2' | 'part3' | 'part4' | 'all' = 'all') => {
       if (part === 'part1') {
         return productsService.importMasterPart1()
       }
@@ -57,6 +57,9 @@ export function useProducts() {
       }
       if (part === 'part3') {
         return productsService.importMasterPart3()
+      }
+      if (part === 'part4') {
+        return productsService.importMasterPart4()
       }
       return productsService.importMasterAll()
     },
