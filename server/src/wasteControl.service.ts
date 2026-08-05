@@ -3,9 +3,14 @@ import { safeAudit } from './audit/safeAudit.js'
 import type { AuditActor } from './audit/types.js'
 import { loadWasteControlDay, loadWasteControlDaysInMonth, saveWasteControlDay } from './db/index.js'
 import { emitRealtime } from './events.js'
+import { isLeadershipUser } from './auth/leadershipAccess.js'
 import type {
+  AppUser,
+  AssignWasteResponsibleInput,
+  ConferenceWasteDayInput,
   SaveWasteControlDayInput,
   WasteBuffetType,
+  WasteConferenceInfo,
   WasteControlDay,
   WasteControlMonthlySummary,
   WasteControlProduct,
@@ -110,6 +115,27 @@ export async function saveWasteControlDayRecord(
     wasteKgTotal,
     dayTotal,
     updatedAt: now,
+    assignment: existing?.assignment ?? null,
+    closing: existing?.closing ?? null,
+    conference: existing?.conference ?? null,
+  }
+
+  if (input.finalize) {
+    if (!record.assignment) {
+      throw new Error('Selecione o responsável antes de finalizar a contagem.')
+    }
+    record.closing = {
+      closedAt: now,
+      closedById: actor?.userId ?? 'system',
+      closedByName: actor?.userName ?? 'Sistema',
+    }
+    record.conference = {
+      status: 'aguardando_conferencia',
+      checkedById: null,
+      checkedByName: null,
+      checkedAt: null,
+      notes: record.conference?.notes ?? '',
+    }
   }
 
   await saveWasteControlDay(record)
@@ -118,10 +144,101 @@ export async function saveWasteControlDayRecord(
     entityType: 'waste_control',
     entityId: record.id,
     action: existing ? 'update' : 'create',
-    summary: `Controle de desperdício (${input.buffet}) do dia ${input.date} salvo`,
+    summary: input.finalize
+      ? `Contagem de desperdício (${input.buffet}) finalizada e enviada para conferência`
+      : `Controle de desperdício (${input.buffet}) do dia ${input.date} salvo`,
     before: existing,
     after: record,
   })
+  return record
+}
+
+export async function assignWasteResponsible(
+  input: AssignWasteResponsibleInput,
+  actor: AuditActor,
+): Promise<WasteControlDay> {
+  const existing =
+    (await loadWasteControlDay(dayId(input.date, input.buffet))) ??
+    createEmptyWasteDay(input.date, input.buffet)
+
+  const now = new Date().toISOString()
+  const record: WasteControlDay = {
+    ...existing,
+    assignment: {
+      responsibleEmployeeId: input.responsibleEmployeeId,
+      responsibleEmployeeName: input.responsibleEmployeeName,
+      responsiblePosition: input.responsiblePosition,
+      responsibleShift: input.responsibleShift,
+      assignedAt: now,
+      assignedById: actor.userId,
+      assignedByName: actor.userName,
+      sector: input.sector,
+    },
+    updatedAt: now,
+  }
+
+  await saveWasteControlDay(record)
+  emitRealtime({ scope: 'waste-control', action: 'assigned', dayId: record.id })
+  await safeAudit(actor, {
+    entityType: 'waste_control',
+    entityId: record.id,
+    action: 'update',
+    summary: `Responsável ${input.responsibleEmployeeName} atribuído ao desperdício (${input.buffet})`,
+    before: existing,
+    after: record,
+  })
+  return record
+}
+
+export async function conferenceWasteDay(
+  input: ConferenceWasteDayInput,
+  user: AppUser,
+): Promise<WasteControlDay> {
+  if (!isLeadershipUser(user)) {
+    throw new Error('Somente a liderança pode conferir a contagem.')
+  }
+
+  const existing = await loadWasteControlDay(dayId(input.date, input.buffet))
+  if (!existing) {
+    throw new Error('Contagem não encontrada.')
+  }
+  if (!existing.closing) {
+    throw new Error('Finalize a contagem antes de conferir.')
+  }
+
+  const now = new Date().toISOString()
+  const conference: WasteConferenceInfo = {
+    status: input.status,
+    checkedById: user.id,
+    checkedByName: user.name,
+    checkedAt: now,
+    notes: input.notes?.trim() ?? '',
+  }
+
+  const record: WasteControlDay = {
+    ...existing,
+    conference,
+    updatedAt: now,
+  }
+
+  await saveWasteControlDay(record)
+  emitRealtime({ scope: 'waste-control', action: 'conference', dayId: record.id })
+  await safeAudit(
+    {
+      userId: user.id,
+      userName: user.name,
+      userEmail: user.email,
+      ...(user.employeeId ? { employeeId: user.employeeId } : {}),
+    },
+    {
+      entityType: 'waste_control',
+      entityId: record.id,
+      action: 'update',
+      summary: `Conferência de desperdício (${input.buffet}): ${input.status}`,
+      before: existing,
+      after: record,
+    },
+  )
   return record
 }
 
@@ -191,5 +308,8 @@ export function createEmptyWasteDay(date: string, buffet: WasteBuffetType): Wast
     wasteKgTotal: 0,
     dayTotal: 0,
     updatedAt: new Date().toISOString(),
+    assignment: null,
+    closing: null,
+    conference: null,
   }
 }
