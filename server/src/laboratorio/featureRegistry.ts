@@ -19,6 +19,7 @@ export const LABORATORIO_MODULES: readonly LaboratorioModuleDefinition[] = [
   { id: 'audit', name: 'Auditoria', description: 'Trilha de alterações do sistema.', defaultEnabled: true, icon: 'History' },
   { id: 'employees', name: 'Colaboradores', description: 'Cadastro de equipe.', defaultEnabled: true, icon: 'Users' },
   { id: 'ingredients', name: 'Ingredientes', description: 'Cadastro de insumos.', defaultEnabled: true, icon: 'Wheat' },
+  { id: 'products', name: 'Cadastro de Produtos', description: 'Catálogo mestre com custo por porção.', defaultEnabled: true, icon: 'Package' },
   { id: 'laboratorio', name: 'Laboratório NANNAI', description: 'Ambiente de testes e flags.', defaultEnabled: true, icon: 'FlaskConical' },
   { id: 'inventory', name: 'Estoque', description: 'Módulo planejado de estoque.', defaultEnabled: false, icon: 'Package' },
   { id: 'purchases', name: 'Compras', description: 'Módulo planejado de compras.', defaultEnabled: false, icon: 'ShoppingCart' },

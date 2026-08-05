@@ -28,6 +28,7 @@ import {
 } from './db/index.js'
 import { MONTHLY_SCHEDULE_SEED } from './data/monthlyScheduleSeed.js'
 import { RECIPES_SEED } from './data/recipesSeed.js'
+import { importMasterPart1 } from './products.service.js'
 import { SEED_ADMIN, SEED_EMPLOYEES } from './data/employees.js'
 import {
   ACTIVE_PRODUCTION_IDS,
@@ -90,6 +91,12 @@ export async function seedDatabase(): Promise<void> {
       await saveMonthlyScheduleRecord(schedule)
     }
   }
+
+  // Upsert do Cadastro Mestre (Parte 1): cria novos e atualiza só o custo.
+  const productsImport = await importMasterPart1()
+  console.log(
+    `[seed] Cadastro Mestre Parte 1 — cadastrados: ${productsImport.created}, atualizados: ${productsImport.updated}, ignorados: ${productsImport.ignored}`,
+  )
 }
 
 export async function rolloverProductionsIfNeeded(): Promise<boolean> {

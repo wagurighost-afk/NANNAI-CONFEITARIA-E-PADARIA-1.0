@@ -2,7 +2,14 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { config } from '../config.js'
 import type { DatabaseFile, DatabaseStore, RefreshTokenRow, UserRow } from './types.js'
-import type { BreadControlDay, MonthlySchedule, ProductionDay, Recipe, WasteControlDay } from '../types.js'
+import type {
+  BreadControlDay,
+  CatalogProduct,
+  MonthlySchedule,
+  ProductionDay,
+  Recipe,
+  WasteControlDay,
+} from '../types.js'
 import type { PaginatedRecipes, RecipeListQuery, RecipeStats } from '../types.js'
 import { computeRecipeStats, listRecipesFromMemory } from '../recipes/recipeQuery.js'
 
@@ -13,6 +20,7 @@ function emptyDb(): DatabaseFile {
     users: [],
     productions: [],
     recipes: [],
+    products: [],
     monthly_schedules: [],
     bread_control_days: [],
     waste_control_days: [],
@@ -29,6 +37,7 @@ function normalizeDb(parsed: Partial<DatabaseFile>): DatabaseFile {
     users: parsed.users ?? [],
     productions: parsed.productions ?? [],
     recipes: parsed.recipes ?? [],
+    products: parsed.products ?? [],
     monthly_schedules: parsed.monthly_schedules ?? [],
     bread_control_days: parsed.bread_control_days ?? [],
     waste_control_days: parsed.waste_control_days ?? [],
@@ -250,6 +259,35 @@ export function createJsonStore(): DatabaseStore {
     async deleteRecipeRecord(id) {
       const db = readDb()
       db.recipes = db.recipes.filter((item) => item.id !== id)
+      writeDb(db)
+    },
+
+    async countProducts() {
+      return readDb().products.length
+    },
+
+    async loadAllProducts() {
+      return readDb().products
+    },
+
+    async loadProductRecord(id) {
+      return readDb().products.find((product) => product.id === id) ?? null
+    },
+
+    async saveProductRecord(product) {
+      const db = readDb()
+      const index = db.products.findIndex((item) => item.id === product.id)
+      if (index >= 0) {
+        db.products[index] = product
+      } else {
+        db.products.push(product)
+      }
+      writeDb(db)
+    },
+
+    async deleteProductRecord(id) {
+      const db = readDb()
+      db.products = db.products.filter((item) => item.id !== id)
       writeDb(db)
     },
 

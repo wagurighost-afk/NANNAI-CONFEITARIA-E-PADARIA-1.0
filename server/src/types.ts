@@ -519,3 +519,29 @@ export interface LabelListResult {
   total: number
   items: LabelRecord[]
 }
+
+export type ProductStatus = 'Ativo' | 'Inativo'
+export type ProductOrigin = 'Cadastro Mestre' | 'Manual'
+
+/** Produto do Cadastro de Produtos (catálogo mestre editável). */
+export interface CatalogProduct {
+  id: string
+  name: string
+  /** Nome normalizado para deduplicação. */
+  nameKey: string
+  costPerPortion: number
+  status: ProductStatus
+  origin: ProductOrigin
+  editable: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ProductImportSummary {
+  partLabel: string
+  created: number
+  updated: number
+  ignored: number
+  totalProcessed: number
+  importedAt: string
+}

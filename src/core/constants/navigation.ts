@@ -161,4 +161,11 @@ export const MAIN_NAVIGATION: readonly AppNavItem[] = [
     icon: 'Wheat',
     permission: 'ingredients:view',
   },
+  {
+    id: 'products',
+    label: 'Cadastro de Produtos',
+    href: APP_ROUTES.products,
+    icon: 'Package',
+    permission: 'products:view',
+  },
 ] as const

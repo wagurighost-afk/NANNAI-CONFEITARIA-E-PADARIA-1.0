@@ -4,6 +4,7 @@ export const APP_ROUTES = {
   dashboard: '/',
   employees: '/colaboradores',
   ingredients: '/ingredientes',
+  products: '/cadastro-produtos',
   production: '/producao',
   productionConference: '/conferencia-producao',
   breadControl: '/controle-paes',

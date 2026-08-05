@@ -6,6 +6,8 @@ export type Permission =
   | 'employees:manage'
   | 'ingredients:view'
   | 'ingredients:manage'
+  | 'products:view'
+  | 'products:manage'
   | 'production:view'
   | 'production:manage'
   | 'production:own'

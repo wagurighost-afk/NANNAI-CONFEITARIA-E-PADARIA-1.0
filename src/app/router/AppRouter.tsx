@@ -91,6 +91,9 @@ const EmployeesPage = lazyPage(() =>
 const IngredientsPage = lazyPage(() =>
   import('@/features/ingredients/pages/IngredientsPage').then((m) => ({ default: m.IngredientsPage })),
 )
+const ProductsPage = lazyPage(() =>
+  import('@/features/products/pages/ProductsPage').then((m) => ({ default: m.ProductsPage })),
+)
 const LabelsPage = lazyPage(() =>
   import('@/features/labels/pages/LabelsPage').then((m) => ({ default: m.LabelsPage })),
 )
@@ -180,6 +183,9 @@ export function AppRouter() {
             </Route>
             <Route element={<PermissionRoute permission="ingredients:view" />}>
               <Route path={APP_ROUTES.ingredients} element={<IngredientsPage />} />
+            </Route>
+            <Route element={<PermissionRoute permission="products:view" />}>
+              <Route path={APP_ROUTES.products} element={<ProductsPage />} />
             </Route>
             <Route path={APP_ROUTES.changePassword} element={<ChangePasswordPage />} />
             <Route path="*" element={<Navigate to={APP_ROUTES.dashboard} replace />} />
