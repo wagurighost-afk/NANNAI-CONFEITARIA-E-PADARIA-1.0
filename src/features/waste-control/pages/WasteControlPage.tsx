@@ -88,7 +88,7 @@ export function WasteControlPage() {
     reposicao: {},
     finalizacao: {},
   })
-  const [pickerPrompted, setPickerPrompted] = useState(false)
+  const [forceOpenPicker, setForceOpenPicker] = useState(false)
 
   const { push } = useToast()
   const { user } = useAuth()
@@ -115,11 +115,11 @@ export function WasteControlPage() {
   }, [dayQuery.data])
 
   useEffect(() => {
-    setPickerPrompted(false)
+    setForceOpenPicker(false)
   }, [selectedDate, buffet])
 
   const products = productsQuery.data ?? []
-  const needsResponsible = Boolean(dayQuery.data && !dayQuery.data.assignment && !pickerPrompted)
+  const needsResponsible = Boolean(dayQuery.data && !dayQuery.data.assignment)
 
   const dayPreview = useMemo(() => {
     let wasteKgTotal = 0
@@ -176,7 +176,7 @@ export function WasteControlPage() {
         description: 'Selecione o responsável presente antes de finalizar a contagem.',
         variant: 'danger',
       })
-      setPickerPrompted(true)
+      setForceOpenPicker(true)
       return
     }
 
@@ -209,7 +209,7 @@ export function WasteControlPage() {
         responsibleShift: employee.shift,
         sector: buffet,
       })
-      setPickerPrompted(true)
+      setForceOpenPicker(false)
       push({
         title: 'Responsável definido',
         description: employee.name,
@@ -377,12 +377,24 @@ export function WasteControlPage() {
             onConference={handleConference}
             isAssigning={assignMutation.isPending}
             isConferencing={conferenceMutation.isPending}
+            forceOpenPicker={forceOpenPicker}
+            onPickerOpenChange={(open) => {
+              if (!open) {
+                setForceOpenPicker(false)
+              }
+            }}
           />
 
           {needsResponsible ? (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              Selecione o responsável presente para abrir a contagem deste buffet.
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setForceOpenPicker(true)
+              }}
+              className="w-full rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-left text-sm text-amber-900 transition hover:bg-amber-100"
+            >
+              Selecione o funcionário responsável para abrir a contagem deste buffet.
+            </button>
           ) : null}
 
           <div className="flex flex-wrap gap-2">

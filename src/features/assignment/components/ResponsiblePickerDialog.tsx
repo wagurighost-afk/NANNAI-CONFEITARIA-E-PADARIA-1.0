@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Button, Modal } from '@/components/ui'
 import { AssignableEmployeeCard } from '@/features/assignment/components/AssignableEmployeeCard'
 import { ASSIGNMENT_SECTOR_LABELS } from '@/features/assignment/constants/assignment.constants'
@@ -31,12 +31,18 @@ export function ResponsiblePickerDialog({
   )
   const selected = candidates.find((item) => item.employeeId === selectedId) ?? null
 
+  useEffect(() => {
+    if (open) {
+      setSelectedId(null)
+    }
+  }, [open, sector])
+
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title="Selecionar responsável"
-      description={`Abertura da contagem — ${ASSIGNMENT_SECTOR_LABELS[sector]}. Somente colaboradores presentes.`}
+      title="Selecionar funcionário"
+      description={`Abertura da contagem — ${ASSIGNMENT_SECTOR_LABELS[sector]}. Somente colaboradores presentes na escala.`}
       size="lg"
       footer={
         <div className="flex justify-end gap-2">
@@ -52,7 +58,7 @@ export function ResponsiblePickerDialog({
               }
             }}
           >
-            Confirmar responsável
+            Confirmar funcionário
           </Button>
         </div>
       }
@@ -61,13 +67,13 @@ export function ResponsiblePickerDialog({
         <p className="text-sm text-muted-foreground">Carregando escala…</p>
       ) : selectable.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-6 text-sm text-muted-foreground">
-          Não há responsáveis disponíveis para este setor no dia selecionado.
-          Verifique a Escala Mensal e a Escala Diária (presentes apenas).
+          Não há funcionários disponíveis para este setor no dia selecionado.
+          Verifique a Escala Mensal e a Escala Diária (somente quem está presente).
         </div>
       ) : (
         <ul className="grid max-h-[50vh] gap-2 overflow-y-auto sm:grid-cols-2">
           {candidates.map((employee) => (
-            <li key={employee.employeeId}>
+            <li key={`${employee.employeeId}-${employee.name}`}>
               <AssignableEmployeeCard
                 employee={employee}
                 selected={selectedId === employee.employeeId}
