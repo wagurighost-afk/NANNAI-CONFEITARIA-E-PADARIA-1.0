@@ -60,8 +60,9 @@ O hook escuta Escala Mensal + Escala Diária + catálogo de colaboradores e atua
 
 ### Abertura
 1. Usuário abre/registra um buffet
-2. Painel pede responsável (modal com foto, nome, cargo, turno, status)
-3. `PATCH /api/waste-control/days/:date/responsible?buffet=`
+2. O modal de seleção do funcionário abre automaticamente (também pelo botão **Selecionar funcionário**)
+3. Lista usa Escala Mensal do dia + Escala Diária; cargos da planilha (`PASTELEIRA`, `PADEIRO`, etc.) são reconhecidos
+4. `PATCH /api/waste-control/days/:date/responsible?buffet=`
 
 ### Fechamento
 1. Botão **Finalizar e enviar**

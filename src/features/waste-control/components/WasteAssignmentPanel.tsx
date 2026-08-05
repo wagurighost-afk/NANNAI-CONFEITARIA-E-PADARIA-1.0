@@ -1,5 +1,5 @@
 import { ClipboardCheck, UserRound } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Badge, Button, TextArea } from '@/components/ui'
 import {
   ResponsiblePickerDialog,
@@ -25,6 +25,9 @@ export interface WasteAssignmentPanelProps {
   onConference: (status: WasteConferenceStatus, notes: string) => Promise<void>
   isAssigning?: boolean
   isConferencing?: boolean
+  /** Força abertura do seletor (ex.: ao tentar finalizar sem responsável). */
+  forceOpenPicker?: boolean
+  onPickerOpenChange?: (open: boolean) => void
 }
 
 const CONFERENCE_OPTIONS: WasteConferenceStatus[] = [
@@ -42,6 +45,8 @@ export function WasteAssignmentPanel({
   onConference,
   isAssigning = false,
   isConferencing = false,
+  forceOpenPicker = false,
+  onPickerOpenChange,
 }: WasteAssignmentPanelProps) {
   const sector = buffet as AssignmentSector
   const [pickerOpen, setPickerOpen] = useState(false)
@@ -50,9 +55,49 @@ export function WasteAssignmentPanel({
   const assignment = day?.assignment
   const conference = day?.conference
   const closing = day?.closing
+  const autoOpenedKeyRef = useRef<string | null>(null)
+  const contextKey = `${date}|${buffet}`
+
+  const openPicker = () => {
+    if (closing) {
+      return
+    }
+    setPickerOpen(true)
+    onPickerOpenChange?.(true)
+  }
+
+  const closePicker = () => {
+    setPickerOpen(false)
+    onPickerOpenChange?.(false)
+  }
+
+  // Abre automaticamente uma vez ao iniciar a contagem sem responsável.
+  useEffect(() => {
+    if (!day || assignment || closing || isLoading) {
+      return
+    }
+    if (autoOpenedKeyRef.current === contextKey) {
+      return
+    }
+    autoOpenedKeyRef.current = contextKey
+    openPicker()
+    // openPicker é estável o suficiente para este fluxo controlado por contextKey.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- evita reabrir a cada render do pai
+  }, [contextKey, day, assignment, closing, isLoading])
+
+  useEffect(() => {
+    if (forceOpenPicker && !closing) {
+      openPicker()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- forceOpenPicker é o gatilho externo
+  }, [forceOpenPicker, closing])
+
+  useEffect(() => {
+    setNotes(day?.conference?.notes ?? '')
+  }, [day?.conference?.notes])
 
   return (
-    <section className="space-y-3 rounded-2xl border border-border bg-card/80 p-4">
+    <section className="space-y-3 rounded-2xl border border-amber-200/80 bg-amber-50/70 p-4 dark:border-amber-900/50 dark:bg-amber-950/20">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="flex items-center gap-2 font-medium text-foreground">
@@ -60,16 +105,17 @@ export function WasteAssignmentPanel({
             Responsável da contagem
           </h3>
           <p className="mt-1 text-xs text-muted-foreground">
-            Abertura e fechamento com base na Escala Mensal e Diária (somente presentes).
+            Escolha quem está presente na Escala Mensal/Diária antes de registrar o buffet.
           </p>
         </div>
         <Button
           type="button"
-          variant="secondary"
+          variant={assignment ? 'secondary' : 'primary'}
           disabled={isAssigning || Boolean(closing)}
-          onClick={() => setPickerOpen(true)}
+          onClick={openPicker}
+          className="w-full sm:w-auto"
         >
-          {assignment ? 'Trocar responsável' : 'Selecionar responsável'}
+          {assignment ? 'Trocar responsável' : 'Selecionar funcionário'}
         </Button>
       </div>
 
@@ -84,9 +130,13 @@ export function WasteAssignmentPanel({
           </p>
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">
-          Nenhum responsável selecionado. Abra a contagem escolhendo um colaborador presente.
-        </p>
+        <button
+          type="button"
+          onClick={openPicker}
+          className="w-full rounded-xl border border-dashed border-amber-300 bg-background/80 px-3 py-3 text-left text-sm text-amber-950 transition hover:border-amber-400 hover:bg-background dark:border-amber-800 dark:text-amber-100"
+        >
+          Nenhum responsável selecionado. Toque aqui para escolher o funcionário presente.
+        </button>
       )}
 
       {closing ? (
@@ -153,9 +203,9 @@ export function WasteAssignmentPanel({
         sector={sector}
         candidates={candidates}
         isLoading={isLoading}
-        onClose={() => setPickerOpen(false)}
+        onClose={closePicker}
         onConfirm={(employee) => {
-          void onAssign(employee).then(() => setPickerOpen(false))
+          void onAssign(employee).then(() => closePicker())
         }}
       />
     </section>
