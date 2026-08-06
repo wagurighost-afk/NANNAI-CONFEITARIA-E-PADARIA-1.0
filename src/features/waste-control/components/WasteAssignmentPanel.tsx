@@ -25,6 +25,9 @@ export interface WasteAssignmentPanelProps {
   onConference: (status: WasteConferenceStatus, notes: string) => Promise<void>
   isAssigning?: boolean
   isConferencing?: boolean
+  /** Controlado pelo pai para permitir abertura automática do seletor. */
+  pickerOpen: boolean
+  onPickerOpenChange: (open: boolean) => void
 }
 
 const CONFERENCE_OPTIONS: WasteConferenceStatus[] = [
@@ -42,9 +45,10 @@ export function WasteAssignmentPanel({
   onConference,
   isAssigning = false,
   isConferencing = false,
+  pickerOpen,
+  onPickerOpenChange,
 }: WasteAssignmentPanelProps) {
   const sector = buffet as AssignmentSector
-  const [pickerOpen, setPickerOpen] = useState(false)
   const [notes, setNotes] = useState(day?.conference?.notes ?? '')
   const { candidates, isLoading } = useAssignableEmployees(date, sector)
   const assignment = day?.assignment
@@ -57,17 +61,18 @@ export function WasteAssignmentPanel({
         <div>
           <h3 className="flex items-center gap-2 font-medium text-foreground">
             <UserRound className="size-4" />
-            Responsável da contagem
+            Responsável pela contagem completa
           </h3>
           <p className="mt-1 text-xs text-muted-foreground">
-            Abertura e fechamento com base na Escala Mensal e Diária (somente presentes).
+            Uma única pessoa presente faz entrada, reposição e finalização, e finaliza este
+            registro. Baseado na Escala Mensal e Diária.
           </p>
         </div>
         <Button
           type="button"
           variant="secondary"
           disabled={isAssigning || Boolean(closing)}
-          onClick={() => setPickerOpen(true)}
+          onClick={() => onPickerOpenChange(true)}
         >
           {assignment ? 'Trocar responsável' : 'Selecionar responsável'}
         </Button>
@@ -82,18 +87,26 @@ export function WasteAssignmentPanel({
           <p className="mt-1 text-xs text-muted-foreground">
             Atribuído em {formatDateTimeBr(assignment.assignedAt)} por {assignment.assignedByName}
           </p>
+          {!closing ? (
+            <p className="mt-2 text-xs text-accent">
+              {assignment.responsibleEmployeeName} está liberado(a) para lançar entrada, reposição
+              e finalização, e para finalizar a contagem.
+            </p>
+          ) : null}
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">
-          Nenhum responsável selecionado. Abra a contagem escolhendo um colaborador presente.
-        </p>
+        <div className="rounded-xl border border-dashed border-amber-300 bg-amber-50/60 p-3 text-sm text-amber-900">
+          Nenhum responsável selecionado. A contagem (entrada, reposição e finalização) fica
+          bloqueada até escolher um colaborador presente.
+        </div>
       )}
 
       {closing ? (
         <div className="rounded-xl border border-border bg-background/70 p-3 text-sm">
-          <p className="font-medium text-foreground">Fechamento registrado</p>
+          <p className="font-medium text-foreground">Contagem finalizada</p>
           <p className="text-xs text-muted-foreground">
-            {formatDateTimeBr(closing.closedAt)} · {closing.closedByName}
+            {closing.closedByName} concluiu entrada, reposição e finalização em{' '}
+            {formatDateTimeBr(closing.closedAt)}.
           </p>
         </div>
       ) : null}
@@ -153,9 +166,9 @@ export function WasteAssignmentPanel({
         sector={sector}
         candidates={candidates}
         isLoading={isLoading}
-        onClose={() => setPickerOpen(false)}
+        onClose={() => onPickerOpenChange(false)}
         onConfirm={(employee) => {
-          void onAssign(employee).then(() => setPickerOpen(false))
+          void onAssign(employee).then(() => onPickerOpenChange(false))
         }}
       />
     </section>

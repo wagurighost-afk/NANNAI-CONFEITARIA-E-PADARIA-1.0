@@ -1,5 +1,5 @@
 import { RefreshCw, Save, Search } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Breadcrumb, PageHeader, PageShell } from '@/components/common'
 import {
@@ -125,6 +125,8 @@ export function WasteControlPage() {
     finalizacao: {},
   })
   const [pickerPrompted, setPickerPrompted] = useState(false)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const autoOpenedKeyRef = useRef<string | null>(null)
 
   const { push } = useToast()
   const { user } = useAuth()
@@ -159,7 +161,24 @@ export function WasteControlPage() {
     setPickerPrompted(false)
   }, [selectedDate, buffet])
 
-  const needsResponsible = Boolean(dayQuery.data && !dayQuery.data.assignment && !pickerPrompted)
+  // Abre o seletor de responsável automaticamente ao iniciar a contagem do buffet/dia.
+  useEffect(() => {
+    if (!dayQuery.data || dayQuery.isLoading) {
+      return
+    }
+    const key = `${selectedDate}|${buffet}`
+    if (dayQuery.data.assignment || dayQuery.data.closing) {
+      return
+    }
+    if (autoOpenedKeyRef.current === key) {
+      return
+    }
+    autoOpenedKeyRef.current = key
+    setPickerOpen(true)
+  }, [dayQuery.data, dayQuery.isLoading, selectedDate, buffet])
+
+  const hasResponsible = Boolean(dayQuery.data?.assignment)
+  const needsResponsible = Boolean(dayQuery.data && !hasResponsible && !pickerPrompted)
 
   const dayPreview = useMemo(() => {
     let wasteKgTotal = 0
@@ -253,7 +272,7 @@ export function WasteControlPage() {
       setPickerPrompted(true)
       push({
         title: 'Responsável definido',
-        description: employee.name,
+        description: `${employee.name} pode lançar entrada, reposição e finalização, e finalizar a contagem.`,
         variant: 'success',
       })
     } catch (error) {
@@ -301,7 +320,7 @@ export function WasteControlPage() {
 
       <PageHeader
         title="Controle de Desperdício"
-        description="Um único bloco: a lista e os custos vêm do Cadastro de Produtos."
+        description="Um único responsável presente faz entrada, reposição e finalização, e finaliza a contagem. Lista e custos vêm do Cadastro de Produtos."
         actions={
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
             <Button
@@ -418,11 +437,24 @@ export function WasteControlPage() {
             onConference={handleConference}
             isAssigning={assignMutation.isPending}
             isConferencing={conferenceMutation.isPending}
+            pickerOpen={pickerOpen}
+            onPickerOpenChange={setPickerOpen}
           />
 
           {needsResponsible ? (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              Selecione o responsável presente para abrir a contagem deste buffet.
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              <span>
+                Selecione o funcionário responsável presente para liberar a contagem (entrada,
+                reposição e finalização) deste buffet.
+              </span>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => setPickerOpen(true)}
+              >
+                Selecionar responsável
+              </Button>
             </div>
           ) : null}
 
@@ -473,6 +505,7 @@ export function WasteControlPage() {
               phaseDrafts={phaseDrafts}
               onChange={handlePhaseChange}
               search={search}
+              disabled={!hasResponsible}
             />
           )}
         </TabsContent>

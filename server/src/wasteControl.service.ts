@@ -82,11 +82,26 @@ export async function getWasteControlDay(
   return loadWasteControlDay(dayId(date, buffet))
 }
 
+function hasAnyPhaseEntry(phases: SaveWasteControlDayInput['phases']): boolean {
+  return PHASES.some((phase) =>
+    (phases[phase] ?? []).some((item) => item.units > 0 || item.wasteKg > 0),
+  )
+}
+
 export async function saveWasteControlDayRecord(
   input: SaveWasteControlDayInput,
   actor?: AuditActor,
 ): Promise<WasteControlDay> {
   const existing = await loadWasteControlDay(dayId(input.date, input.buffet))
+
+  // Só o responsável presente pode abrir a contagem: sem atribuição, nenhum
+  // lançamento de entrada/reposição/finalização é aceito.
+  if (hasAnyPhaseEntry(input.phases) && !existing?.assignment) {
+    throw new Error(
+      'Selecione o responsável presente antes de registrar entrada, reposição ou finalização.',
+    )
+  }
+
   const products = await listLinkedWasteProducts(input.buffet)
   const phases = PHASES.reduce(
     (acc, phase) => {
@@ -120,10 +135,12 @@ export async function saveWasteControlDayRecord(
     if (!record.assignment) {
       throw new Error('Selecione o responsável antes de finalizar a contagem.')
     }
+    // Quem finaliza é o mesmo responsável que fez entrada/reposição/finalização,
+    // não necessariamente o usuário logado no sistema (podem ser contas compartilhadas).
     record.closing = {
       closedAt: now,
-      closedById: actor?.userId ?? 'system',
-      closedByName: actor?.userName ?? 'Sistema',
+      closedById: record.assignment.responsibleEmployeeId,
+      closedByName: record.assignment.responsibleEmployeeName,
     }
     record.conference = {
       status: 'aguardando_conferencia',
