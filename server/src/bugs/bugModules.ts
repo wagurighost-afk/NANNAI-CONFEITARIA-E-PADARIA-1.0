@@ -14,6 +14,7 @@ export const BUG_MODULE_OPTIONS = [
   { id: 'audit', name: 'Auditoria' },
   { id: 'employees', name: 'Colaboradores' },
   { id: 'ingredients', name: 'Ingredientes' },
+  { id: 'products', name: 'Cadastro de Produtos' },
   { id: 'auth', name: 'Login / Autenticação' },
   { id: 'outro', name: 'Outro' },
 ] as const

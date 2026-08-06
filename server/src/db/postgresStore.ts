@@ -2,7 +2,14 @@ import pg from 'pg'
 import { config } from '../config.js'
 import { readJsonDatabaseFile } from './jsonStore.js'
 import type { DatabaseFile, DatabaseStore } from './types.js'
-import type { BreadControlDay, MonthlySchedule, ProductionDay, Recipe, WasteControlDay } from '../types.js'
+import type {
+  BreadControlDay,
+  CatalogProduct,
+  MonthlySchedule,
+  ProductionDay,
+  Recipe,
+  WasteControlDay,
+} from '../types.js'
 import type { PaginatedRecipes, RecipeListQuery, RecipeStats } from '../types.js'
 import { normalizeRecipeListQuery } from '../recipes/recipeQuery.js'
 import { tokenizeRecipeSearch } from '../recipes/recipeSearch.js'
@@ -40,6 +47,14 @@ CREATE TABLE IF NOT EXISTS recipes (
   id TEXT PRIMARY KEY,
   payload JSONB NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS products (
+  id TEXT PRIMARY KEY,
+  name_key TEXT NOT NULL,
+  payload JSONB NOT NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_products_name_key ON products(name_key);
 
 CREATE TABLE IF NOT EXISTS monthly_schedules (
   id TEXT PRIMARY KEY,
@@ -170,6 +185,14 @@ async function importJsonIfEmpty(pool: pg.Pool): Promise<void> {
         `INSERT INTO recipes (id, payload) VALUES ($1, $2::jsonb)
          ON CONFLICT (id) DO NOTHING`,
         [recipe.id, JSON.stringify(recipe)],
+      )
+    }
+
+    for (const product of snapshot.products ?? []) {
+      await client.query(
+        `INSERT INTO products (id, name_key, payload) VALUES ($1, $2, $3::jsonb)
+         ON CONFLICT (id) DO NOTHING`,
+        [product.id, product.nameKey, JSON.stringify(product)],
       )
     }
 
@@ -548,6 +571,36 @@ export function createPostgresStore(): DatabaseStore {
 
     async deleteRecipeRecord(id) {
       await pool.query('DELETE FROM recipes WHERE id = $1', [id])
+    },
+
+    async countProducts() {
+      const { rows } = await pool.query<{ count: string }>('SELECT COUNT(*)::text AS count FROM products')
+      return Number(rows[0]?.count ?? 0)
+    },
+
+    async loadAllProducts() {
+      const { rows } = await pool.query<{ payload: CatalogProduct }>('SELECT payload FROM products')
+      return rows.map((row) => row.payload)
+    },
+
+    async loadProductRecord(id) {
+      const { rows } = await pool.query<{ payload: CatalogProduct }>(
+        'SELECT payload FROM products WHERE id = $1',
+        [id],
+      )
+      return rows[0]?.payload ?? null
+    },
+
+    async saveProductRecord(product) {
+      await pool.query(
+        `INSERT INTO products (id, name_key, payload) VALUES ($1, $2, $3::jsonb)
+         ON CONFLICT (id) DO UPDATE SET name_key = EXCLUDED.name_key, payload = EXCLUDED.payload`,
+        [product.id, product.nameKey, JSON.stringify(product)],
+      )
+    },
+
+    async deleteProductRecord(id) {
+      await pool.query('DELETE FROM products WHERE id = $1', [id])
     },
 
     async countMonthlySchedules() {

@@ -28,6 +28,12 @@ import {
 } from './db/index.js'
 import { MONTHLY_SCHEDULE_SEED } from './data/monthlyScheduleSeed.js'
 import { RECIPES_SEED } from './data/recipesSeed.js'
+import {
+  importMasterPart1,
+  importMasterPart2,
+  importMasterPart3,
+  importMasterPart4,
+} from './products.service.js'
 import { SEED_ADMIN, SEED_EMPLOYEES } from './data/employees.js'
 import {
   ACTIVE_PRODUCTION_IDS,
@@ -90,6 +96,24 @@ export async function seedDatabase(): Promise<void> {
       await saveMonthlyScheduleRecord(schedule)
     }
   }
+
+  // Upsert do Cadastro Mestre: cria novos e atualiza só o custo.
+  const part1 = await importMasterPart1()
+  console.log(
+    `[seed] Cadastro Mestre Parte 1 — cadastrados: ${part1.created}, atualizados: ${part1.updated}, ignorados: ${part1.ignored}`,
+  )
+  const part2 = await importMasterPart2()
+  console.log(
+    `[seed] Cadastro Mestre Parte 2 — cadastrados: ${part2.created}, atualizados: ${part2.updated}, ignorados: ${part2.ignored}`,
+  )
+  const part3 = await importMasterPart3()
+  console.log(
+    `[seed] Cadastro Mestre Parte 3 — cadastrados: ${part3.created}, atualizados: ${part3.updated}, ignorados: ${part3.ignored}`,
+  )
+  const part4 = await importMasterPart4()
+  console.log(
+    `[seed] Cadastro Mestre Parte 4 — cadastrados: ${part4.created}, atualizados: ${part4.updated}, ignorados: ${part4.ignored}`,
+  )
 }
 
 export async function rolloverProductionsIfNeeded(): Promise<boolean> {

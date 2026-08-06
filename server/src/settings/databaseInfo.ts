@@ -29,6 +29,7 @@ export function getDatabaseInfo(): DatabaseInfo {
     { name: 'users', count: db.users.length },
     { name: 'productions', count: db.productions.length },
     { name: 'recipes', count: db.recipes.length },
+    { name: 'products', count: db.products.length },
     { name: 'monthly_schedules', count: db.monthly_schedules.length },
     { name: 'bread_control_days', count: db.bread_control_days.length },
     { name: 'waste_control_days', count: db.waste_control_days.length },

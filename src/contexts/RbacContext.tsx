@@ -23,6 +23,8 @@ const OPERATIONAL_PERMISSIONS: Permission[] = [
   'cleaning-schedule:manage',
   'employees:manage',
   'ingredients:manage',
+  'products:view',
+  'products:manage',
 ]
 
 export const RbacContext = createContext<RbacContextValue | null>(null)
