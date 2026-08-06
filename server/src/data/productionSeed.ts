@@ -5,13 +5,11 @@ import {
 } from './activeProduction.js'
 import { PRODUCTION_DIVISION, type ProductionDivisionEntry } from './productionDivision.js'
 import type { ProductionDay, ProductionItem } from '../types.js'
+import { getOperationalTodayIso } from '../utils/operationalDate.js'
 
+/** Data operacional (YYYY-MM-DD) no fuso de Brasília — não usar o fuso do host (ex.: UTC no Render). */
 export function getTodayIso(): string {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
+  return getOperationalTodayIso()
 }
 
 function computeProgress(items: ProductionItem[]): number {
