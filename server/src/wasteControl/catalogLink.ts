@@ -64,6 +64,7 @@ function catalogToWasteProduct(
     sector: seed?.sector ?? inferSector(product.name),
     catalogProductId: product.id,
     costFromCatalog: true,
+    origin: product.origin,
   }
 }
 

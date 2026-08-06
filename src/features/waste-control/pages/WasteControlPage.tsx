@@ -431,9 +431,21 @@ export function WasteControlPage() {
             <Link to={APP_ROUTES.products} className="font-medium text-foreground underline-offset-2 hover:underline">
               Cadastro de Produtos
             </Link>
-            {products.length > 0
-              ? ` — ${products.length} produtos ativos neste buffet.`
-              : ' — nenhum produto ativo. Cadastre ou ative itens no catálogo.'}
+            {products.length > 0 ? (
+              <>
+                {' '}
+                — <span className="font-medium text-foreground">{products.length}</span> produtos
+                ativos (mestre + manuais), com custo/porção.
+                {products.some((item) => item.origin === 'Manual') ? (
+                  <span className="mt-1 block text-xs">
+                    Inclui {products.filter((item) => item.origin === 'Manual').length} produto(s)
+                    manual(is).
+                  </span>
+                ) : null}
+              </>
+            ) : (
+              ' — nenhum produto ativo. Cadastre ou ative itens no catálogo.'
+            )}
           </div>
 
           <div className="flex flex-wrap gap-2">

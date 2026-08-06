@@ -1,4 +1,4 @@
-import { Input } from '@/components/ui'
+import { Badge, Input } from '@/components/ui'
 import {
   WASTE_PHASE_LABELS,
   WASTE_PHASES,
@@ -155,7 +155,12 @@ export function WasteDailyColumnsTable({
             {filtered.map((product) => (
               <tr key={product.id} className="border-b border-border/60">
                 <td className="sticky left-0 z-10 bg-surface px-4 py-2.5">
-                  <p className="font-medium leading-snug">{product.name}</p>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <p className="font-medium leading-snug">{product.name}</p>
+                    {product.origin === 'Manual' ? (
+                      <Badge variant="accent">Manual</Badge>
+                    ) : null}
+                  </div>
                   <p className="text-xs text-muted-foreground">{product.sector}</p>
                 </td>
                 <td className="px-3 py-2.5 text-right font-semibold tabular-nums text-foreground">
@@ -202,7 +207,12 @@ export function WasteDailyColumnsTable({
           <div key={product.id} className="rounded-xl border border-border bg-surface p-3">
             <div className="mb-2 flex items-start justify-between gap-2">
               <div>
-                <p className="text-sm font-medium leading-snug">{product.name}</p>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <p className="text-sm font-medium leading-snug">{product.name}</p>
+                  {product.origin === 'Manual' ? (
+                    <Badge variant="accent">Manual</Badge>
+                  ) : null}
+                </div>
                 <p className="text-xs text-muted-foreground">{product.sector}</p>
               </div>
               <p className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
