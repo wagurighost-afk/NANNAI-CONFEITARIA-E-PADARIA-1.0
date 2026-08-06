@@ -61,11 +61,11 @@ export function WasteAssignmentPanel({
         <div>
           <h3 className="flex items-center gap-2 font-medium text-foreground">
             <UserRound className="size-4" />
-            Responsável pela contagem completa
+            Responsável pela contagem (opcional)
           </h3>
           <p className="mt-1 text-xs text-muted-foreground">
-            Uma única pessoa presente faz entrada, reposição e finalização, e finaliza este
-            registro. Baseado na Escala Mensal e Diária.
+            Indique quem está fazendo a contagem completa (entrada, reposição e finalização) — essa
+            pessoa também pode finalizar o registro. Baseado na Escala Mensal e Diária.
           </p>
         </div>
         <Button
@@ -87,26 +87,19 @@ export function WasteAssignmentPanel({
           <p className="mt-1 text-xs text-muted-foreground">
             Atribuído em {formatDateTimeBr(assignment.assignedAt)} por {assignment.assignedByName}
           </p>
-          {!closing ? (
-            <p className="mt-2 text-xs text-accent">
-              {assignment.responsibleEmployeeName} está liberado(a) para lançar entrada, reposição
-              e finalização, e para finalizar a contagem.
-            </p>
-          ) : null}
         </div>
       ) : (
-        <div className="rounded-xl border border-dashed border-amber-300 bg-amber-50/60 p-3 text-sm text-amber-900">
-          Nenhum responsável selecionado. A contagem (entrada, reposição e finalização) fica
-          bloqueada até escolher um colaborador presente.
-        </div>
+        <p className="text-sm text-muted-foreground">
+          Nenhum responsável selecionado ainda. Você pode registrar a contagem normalmente e
+          indicar o responsável quando quiser — obrigatório apenas para finalizar.
+        </p>
       )}
 
       {closing ? (
         <div className="rounded-xl border border-border bg-background/70 p-3 text-sm">
-          <p className="font-medium text-foreground">Contagem finalizada</p>
+          <p className="font-medium text-foreground">Fechamento registrado</p>
           <p className="text-xs text-muted-foreground">
-            {closing.closedByName} concluiu entrada, reposição e finalização em{' '}
-            {formatDateTimeBr(closing.closedAt)}.
+            {formatDateTimeBr(closing.closedAt)} · {closing.closedByName}
           </p>
         </div>
       ) : null}

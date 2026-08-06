@@ -1,5 +1,5 @@
 import { RefreshCw, Save, Search } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Breadcrumb, PageHeader, PageShell } from '@/components/common'
 import {
@@ -126,7 +126,6 @@ export function WasteControlPage() {
   })
   const [pickerPrompted, setPickerPrompted] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
-  const autoOpenedKeyRef = useRef<string | null>(null)
 
   const { push } = useToast()
   const { user } = useAuth()
@@ -161,23 +160,8 @@ export function WasteControlPage() {
     setPickerPrompted(false)
   }, [selectedDate, buffet])
 
-  // Abre o seletor de responsável automaticamente ao iniciar a contagem do buffet/dia.
-  useEffect(() => {
-    if (!dayQuery.data || dayQuery.isLoading) {
-      return
-    }
-    const key = `${selectedDate}|${buffet}`
-    if (dayQuery.data.assignment || dayQuery.data.closing) {
-      return
-    }
-    if (autoOpenedKeyRef.current === key) {
-      return
-    }
-    autoOpenedKeyRef.current = key
-    setPickerOpen(true)
-  }, [dayQuery.data, dayQuery.isLoading, selectedDate, buffet])
-
   const hasResponsible = Boolean(dayQuery.data?.assignment)
+  // Indicar um responsável é opcional durante a contagem; só é obrigatório para finalizar.
   const needsResponsible = Boolean(dayQuery.data && !hasResponsible && !pickerPrompted)
 
   const dayPreview = useMemo(() => {
@@ -320,7 +304,7 @@ export function WasteControlPage() {
 
       <PageHeader
         title="Controle de Desperdício"
-        description="Um único responsável presente faz entrada, reposição e finalização, e finaliza a contagem. Lista e custos vêm do Cadastro de Produtos."
+        description="Registro compartilhado — entrada, reposição e finalização. Lista e custos vêm do Cadastro de Produtos."
         actions={
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
             <Button
@@ -444,8 +428,8 @@ export function WasteControlPage() {
           {needsResponsible ? (
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
               <span>
-                Selecione o funcionário responsável presente para liberar a contagem (entrada,
-                reposição e finalização) deste buffet.
+                Opcional: indique o funcionário presente que está fazendo a contagem completa
+                (entrada, reposição e finalização) — é ele quem finaliza o registro.
               </span>
               <Button
                 type="button"
@@ -505,7 +489,6 @@ export function WasteControlPage() {
               phaseDrafts={phaseDrafts}
               onChange={handlePhaseChange}
               search={search}
-              disabled={!hasResponsible}
             />
           )}
         </TabsContent>
