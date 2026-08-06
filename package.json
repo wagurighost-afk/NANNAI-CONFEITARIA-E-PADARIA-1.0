@@ -1,7 +1,7 @@
 {
   "name": "nannai-confeitaria-e-padaria",
   "private": true,
-  "version": "1.6.6",
+  "version": "1.7.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,6 +9,7 @@
     "dev:all": "concurrently -n web,api -c blue,green \"npm run dev\" \"npm run dev:server\"",
     "build": "tsc -b && vite build",
     "build:production": "tsc -b && vite build --mode production",
+    "generate:brand": "node scripts/generate-brand-assets.mjs",
     "start:production": "npm run start --prefix server",
     "lint": "oxlint",
     "preview": "vite preview"
@@ -42,6 +43,7 @@
     "@vitejs/plugin-react": "^6.0.3",
     "concurrently": "^9.1.2",
     "oxlint": "^1.71.0",
+    "sharp": "^0.35.3",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
     "vite": "^8.1.1",

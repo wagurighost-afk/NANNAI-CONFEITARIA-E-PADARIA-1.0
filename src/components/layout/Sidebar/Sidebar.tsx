@@ -11,6 +11,7 @@ import {
   FileText,
   FlaskConical,
   History,
+  Info,
   LayoutDashboard,
   LineChart,
   MessageSquare,
@@ -26,7 +27,8 @@ import {
   X,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { env } from '@/config/env'
+import { BrandLogo } from '@/components/brand'
+import { APP_ROUTES } from '@/core/constants'
 import type { AppNavItem } from '@/core/constants'
 import { useNavigation } from '@/hooks/useNavigation'
 import { Button } from '@/components/ui/Button'
@@ -138,16 +140,9 @@ export function Sidebar({
           )}
         >
           {!isCollapsed ? (
-            <div className="min-w-0">
-              <p className="font-display text-lg leading-tight tracking-tight">NANNAI</p>
-              <p className="truncate text-[11px] text-sidebar-foreground/70">
-                {env.appName.replace('NANNAI ', '')}
-              </p>
-            </div>
+            <BrandLogo variant="compact" className="text-sidebar-foreground" priority />
           ) : (
-            <span className="hidden font-display text-lg lg:inline" aria-hidden>
-              N
-            </span>
+            <BrandLogo variant="icon" priority imageClassName="size-9" />
           )}
 
           <Button
@@ -182,6 +177,25 @@ export function Sidebar({
             onNavigate={onCloseMobile}
           />
         </nav>
+
+        <div className="border-t border-white/10 p-2">
+          <NavLink
+            to={APP_ROUTES.about}
+            onClick={onCloseMobile}
+            className={({ isActive }) =>
+              cn(
+                'flex min-h-11 items-center gap-3 rounded-lg px-3 py-3 text-base transition-colors sm:py-2.5 sm:text-sm',
+                'text-sidebar-foreground/80 hover:bg-white/10 hover:text-sidebar-foreground active:bg-white/15',
+                isActive && 'bg-white/15 text-sidebar-foreground font-medium',
+                isCollapsed && 'justify-center px-2 lg:min-h-0 lg:py-2.5',
+              )
+            }
+            title={isCollapsed ? 'Sobre' : undefined}
+          >
+            <Info className="size-5 shrink-0" aria-hidden />
+            {!isCollapsed ? <span>Sobre</span> : null}
+          </NavLink>
+        </div>
       </aside>
     </>
   )

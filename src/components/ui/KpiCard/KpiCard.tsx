@@ -33,7 +33,7 @@ export function KpiCard({
           <CardTitle className="mt-1 text-3xl tabular-nums">{value}</CardTitle>
         </div>
         {icon ? (
-          <div className="rounded-xl bg-muted p-2 text-muted-foreground" aria-hidden>
+          <div className="rounded-xl bg-accent/10 p-2 text-accent" aria-hidden>
             {icon}
           </div>
         ) : null}

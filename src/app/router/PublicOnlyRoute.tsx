@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom'
-import { Spinner } from '@/components/ui/Spinner'
+import { BrandSplashScreen } from '@/components/brand'
 import { APP_ROUTES } from '@/core/constants'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -11,11 +11,7 @@ export function PublicOnlyRoute({ redirectTo = APP_ROUTES.dashboard }: PublicOnl
   const { isAuthenticated, isBootstrapping } = useAuth()
 
   if (isBootstrapping) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Spinner size="lg" label="Verificando sessão" />
-      </div>
-    )
+    return <BrandSplashScreen message="Verificando sessão..." />
   }
 
   if (isAuthenticated) {

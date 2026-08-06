@@ -32,9 +32,9 @@ export interface ToastContextValue {
 export const ToastContext = createContext<ToastContextValue | null>(null)
 
 const variantClasses: Record<ToastVariant, string> = {
-  default: 'border-border bg-surface-elevated',
-  success: 'border-success/30 bg-surface-elevated',
-  danger: 'border-danger/30 bg-surface-elevated',
+  default: 'border-border bg-surface-elevated ring-1 ring-accent/5',
+  success: 'border-success/30 bg-surface-elevated ring-1 ring-success/10',
+  danger: 'border-danger/30 bg-surface-elevated ring-1 ring-danger/10',
 }
 
 const TOAST_API: ToastContextValue = {

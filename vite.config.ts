@@ -4,39 +4,57 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+const BRAND_THEME_COLOR = '#401E13'
+const BRAND_BACKGROUND_COLOR = '#FDF8F3'
+
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'pwa-192x192.png', 'pwa-512x512.png'],
+      includeAssets: [
+        'favicon.svg',
+        'favicon-16x16.png',
+        'favicon-32x32.png',
+        'apple-touch-icon.png',
+        'pwa-192x192.png',
+        'pwa-512x512.png',
+        'brand/nannai-brand-full.webp',
+        'brand/nannai-brand-full.png',
+        'brand/nannai-icon.webp',
+        'icons/icon-16.png',
+        'icons/icon-32.png',
+        'icons/icon-64.png',
+        'icons/icon-180.png',
+        'icons/icon-192.png',
+        'icons/icon-256.png',
+        'icons/icon-512.png',
+      ],
       manifest: {
-        name: 'NANNAI — Confeitaria e Padaria',
+        name: 'NANNAI — Food Operations Management System',
         short_name: 'NANNAI',
-        description: 'Gestão operacional da confeitaria e padaria NANNAI',
+        description:
+          'Sistema de Gestão Operacional para Alimentos & Bebidas — Confeitaria e Padaria',
         lang: 'pt-BR',
-        start_url: '/?v=1.4.1',
+        start_url: '/?v=1.7.0',
         scope: '/',
-        id: '/?v=1.4.1',
+        id: '/?v=1.7.0',
         display: 'standalone',
         orientation: 'portrait-primary',
-        theme_color: '#3E2723',
-        background_color: '#1a1210',
+        theme_color: BRAND_THEME_COLOR,
+        background_color: BRAND_BACKGROUND_COLOR,
         categories: ['business', 'productivity'],
         icons: [
+          { src: '/icons/icon-16.png', sizes: '16x16', type: 'image/png' },
+          { src: '/icons/icon-32.png', sizes: '32x32', type: 'image/png' },
+          { src: '/icons/icon-64.png', sizes: '64x64', type: 'image/png' },
+          { src: '/icons/icon-180.png', sizes: '180x180', type: 'image/png' },
+          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/icons/icon-256.png', sizes: '256x256', type: 'image/png' },
+          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
           {
-            src: '/pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: '/pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-          },
-          {
-            src: '/pwa-512x512.png',
+            src: '/icons/icon-512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable',
@@ -46,7 +64,7 @@ export default defineConfig({
       workbox: {
         skipWaiting: true,
         clientsClaim: true,
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,docx,xlsx}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2,docx,xlsx}'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [

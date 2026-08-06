@@ -104,6 +104,9 @@ const NiimbotPrintTestPage = lazyPage(() =>
     default: m.NiimbotPrintTestPage,
   })),
 )
+const AboutPage = lazyPage(() =>
+  import('@/features/about/pages/AboutPage').then((m) => ({ default: m.AboutPage })),
+)
 const NotFoundPage = lazyPage(() =>
   import('@/features/errors/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })),
 )
@@ -174,6 +177,7 @@ export function AppRouter() {
               <Route path={APP_ROUTES.ingredients} element={<IngredientsPage />} />
             </Route>
             <Route path={APP_ROUTES.changePassword} element={<ChangePasswordPage />} />
+            <Route path={APP_ROUTES.about} element={<AboutPage />} />
             <Route path="*" element={<Navigate to={APP_ROUTES.dashboard} replace />} />
           </Route>
         </Route>

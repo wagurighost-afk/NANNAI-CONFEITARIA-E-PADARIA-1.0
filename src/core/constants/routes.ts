@@ -25,6 +25,7 @@ export const APP_ROUTES = {
   devCentral: '/central-desenvolvedor',
   advancedSettings: '/configuracoes-avancadas',
   bugs: '/central-bugs',
+  about: '/sobre',
   notFound: '*',
 } as const
 

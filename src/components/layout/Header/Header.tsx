@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom'
 import { KeyRound, LogOut, Menu, Moon, Sun } from 'lucide-react'
 import { InstallAppButton } from '@/components/common/InstallAppButton'
+import { BrandLogo } from '@/components/brand'
 import { SystemBadges } from '@/components/auth/SystemBadges'
 import { UserRoleBadge } from '@/components/auth/UserRoleBadge'
 import { Button } from '@/components/ui/Button'
+import { BRAND } from '@/core/constants/brand'
 import { getSystemBadgesForUser } from '@/core/auth/roles'
 import { APP_ROUTES } from '@/core/constants'
 import { useAuth } from '@/hooks/useAuth'
@@ -29,7 +31,7 @@ export function Header({ onOpenMobileSidebar, className }: HeaderProps) {
         className,
       )}
     >
-      <div className="flex min-w-0 items-center gap-1 sm:gap-2">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
         <Button
           variant="ghost"
           size="md"
@@ -39,13 +41,15 @@ export function Header({ onOpenMobileSidebar, className }: HeaderProps) {
         >
           <Menu className="size-5" />
         </Button>
-        <div className="min-w-0 hidden sm:block">
-          <p className="truncate text-sm font-medium text-foreground">Painel de gestão</p>
-          <p className="truncate text-xs text-muted-foreground">Confeitaria e Padaria</p>
+        <div className="hidden min-w-0 sm:block">
+          <BrandLogo variant="compact" className="text-foreground" />
         </div>
-        <p className="truncate font-display text-base font-semibold text-foreground sm:hidden">
-          NANNAI
-        </p>
+        <div className="min-w-0 sm:hidden">
+          <BrandLogo variant="icon" priority />
+        </div>
+        <div className="hidden min-w-0 lg:block">
+          <p className="truncate text-xs text-muted-foreground">{BRAND.systemName}</p>
+        </div>
       </div>
 
       <div className="flex shrink-0 items-center gap-0.5 sm:gap-2">

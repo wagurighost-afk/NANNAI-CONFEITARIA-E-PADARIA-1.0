@@ -11,6 +11,7 @@ import {
   YAxis,
 } from 'recharts'
 import { ChartCard } from '@/components/ui'
+import { CHART_THEME } from '@/core/constants/chartTheme'
 import {
   WASTE_BUFFET_LABELS,
   WASTE_PHASE_LABELS,
@@ -64,7 +65,7 @@ export function WasteMonthlyCharts({ summary }: WasteMonthlyChartsProps) {
               <XAxis dataKey="name" />
               <YAxis tickFormatter={(value) => `R$ ${value}`} />
               <Tooltip formatter={(value) => formatWasteMoney(Number(value ?? 0))} />
-              <Bar dataKey="total" fill="hsl(var(--accent))" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="total" fill={CHART_THEME.accent} radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -78,7 +79,7 @@ export function WasteMonthlyCharts({ summary }: WasteMonthlyChartsProps) {
               <XAxis dataKey="name" />
               <YAxis tickFormatter={(value) => `R$ ${value}`} />
               <Tooltip formatter={(value) => formatWasteMoney(Number(value ?? 0))} />
-              <Bar dataKey="total" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="total" fill={CHART_THEME.primary} radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -92,7 +93,7 @@ export function WasteMonthlyCharts({ summary }: WasteMonthlyChartsProps) {
               <XAxis dataKey="name" />
               <YAxis tickFormatter={(value) => `R$ ${value}`} />
               <Tooltip formatter={(value) => formatWasteMoney(Number(value ?? 0))} />
-              <Bar dataKey="total" fill="#c45c26" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="total" fill={CHART_THEME.series[2]} radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -110,9 +111,9 @@ export function WasteMonthlyCharts({ summary }: WasteMonthlyChartsProps) {
               <YAxis tickFormatter={(value) => `R$ ${value}`} />
               <Tooltip formatter={(value) => formatWasteMoney(Number(value ?? 0))} />
               <Legend />
-              <Line type="monotone" dataKey="cafe" name={WASTE_BUFFET_LABELS.cafe} stroke="#8b5e34" strokeWidth={2} />
-              <Line type="monotone" dataKey="cha" name={WASTE_BUFFET_LABELS.cha} stroke="hsl(var(--accent))" strokeWidth={2} />
-              <Line type="monotone" dataKey="jantar" name={WASTE_BUFFET_LABELS.jantar} stroke="hsl(var(--primary))" strokeWidth={2} />
+              <Line type="monotone" dataKey="cafe" name={WASTE_BUFFET_LABELS.cafe} stroke={CHART_THEME.series[2]} strokeWidth={2} />
+              <Line type="monotone" dataKey="cha" name={WASTE_BUFFET_LABELS.cha} stroke={CHART_THEME.accent} strokeWidth={2} />
+              <Line type="monotone" dataKey="jantar" name={WASTE_BUFFET_LABELS.jantar} stroke={CHART_THEME.primary} strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
         </div>
