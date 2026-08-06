@@ -14,6 +14,10 @@ export interface WasteControlProduct {
   unitPrice: number
   buffets: WasteBuffetType[]
   sector: WasteSector
+  /** ID no Cadastro de Produtos, quando vinculado por nome. */
+  catalogProductId?: string | null
+  /** true quando o custo veio do Cadastro de Produtos. */
+  costFromCatalog?: boolean
 }
 
 export interface WasteLineItem {
@@ -24,6 +28,7 @@ export interface WasteLineItem {
   wasteKg: number
   unitPrice: number
   total: number
+  catalogProductId?: string | null
 }
 
 export interface WastePhaseRecord {

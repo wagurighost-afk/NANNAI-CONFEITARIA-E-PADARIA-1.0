@@ -154,7 +154,7 @@ export function ProductsPage() {
 
       <PageHeader
         title="Cadastro de Produtos"
-        description="Catálogo mestre com custo por porção — editável e sem duplicidades."
+        description="Catálogo mestre com custo por porção — usado no desperdício do dia. Editável e sem duplicidades."
         actions={
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
             {canManage ? (

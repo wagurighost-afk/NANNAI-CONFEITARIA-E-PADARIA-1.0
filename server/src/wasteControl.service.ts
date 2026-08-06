@@ -1,9 +1,9 @@
-import { listWasteProductsForBuffet, WASTE_PRODUCTS } from './data/wasteProductsSeed.js'
 import { safeAudit } from './audit/safeAudit.js'
 import type { AuditActor } from './audit/types.js'
 import { loadWasteControlDay, loadWasteControlDaysInMonth, saveWasteControlDay } from './db/index.js'
 import { emitRealtime } from './events.js'
 import { isLeadershipUser } from './auth/leadershipAccess.js'
+import { listLinkedWasteProducts } from './wasteControl/catalogLink.js'
 import type {
   AppUser,
   AssignWasteResponsibleInput,
@@ -35,33 +35,31 @@ function roundKg(value: number): number {
 }
 
 function buildPhaseItems(
-  buffet: WasteBuffetType,
+  products: WasteControlProduct[],
   items: Array<{ productId: string; units: number; wasteKg: number }>,
 ): WastePhaseRecord {
-  const productMap = new Map(
-    listWasteProductsForBuffet(buffet).map((product) => [product.id, product]),
-  )
+  const productMap = new Map(products.map((product) => [product.id, product]))
 
-  const lineItems: WasteLineItem[] = items
-    .map((item) => {
-      const product = productMap.get(item.productId)
-      if (!product) {
-        return null
-      }
-      const units = Number.isFinite(item.units) ? Math.max(0, item.units) : 0
-      const wasteKg = Number.isFinite(item.wasteKg) ? Math.max(0, item.wasteKg) : 0
-      const total = roundMoney(wasteKg * product.unitPrice)
-      return {
-        productId: product.id,
-        productName: product.name,
-        sector: product.sector,
-        units,
-        wasteKg: roundKg(wasteKg),
-        unitPrice: product.unitPrice,
-        total,
-      }
+  const lineItems: WasteLineItem[] = []
+  for (const item of items) {
+    const product = productMap.get(item.productId)
+    if (!product) {
+      continue
+    }
+    const units = Number.isFinite(item.units) ? Math.max(0, item.units) : 0
+    const wasteKg = Number.isFinite(item.wasteKg) ? Math.max(0, item.wasteKg) : 0
+    const total = roundMoney(wasteKg * product.unitPrice)
+    lineItems.push({
+      productId: product.id,
+      productName: product.name,
+      sector: product.sector,
+      units,
+      wasteKg: roundKg(wasteKg),
+      unitPrice: product.unitPrice,
+      total,
+      catalogProductId: product.catalogProductId ?? null,
     })
-    .filter((item): item is WasteLineItem => item !== null)
+  }
 
   const wasteKgTotal = roundKg(lineItems.reduce((sum, item) => sum + item.wasteKg, 0))
   const phaseTotal = roundMoney(lineItems.reduce((sum, item) => sum + item.total, 0))
@@ -73,11 +71,9 @@ function emptyPhase(): WastePhaseRecord {
   return { items: [], wasteKgTotal: 0, phaseTotal: 0 }
 }
 
-export function listWasteProducts(buffet?: WasteBuffetType): WasteControlProduct[] {
-  if (!buffet) {
-    return WASTE_PRODUCTS
-  }
-  return listWasteProductsForBuffet(buffet)
+/** Produtos do dia vinculados ao Cadastro de Produtos (custo por porção). */
+export async function listWasteProducts(buffet?: WasteBuffetType): Promise<WasteControlProduct[]> {
+  return listLinkedWasteProducts(buffet)
 }
 
 export async function getWasteControlDay(
@@ -92,9 +88,10 @@ export async function saveWasteControlDayRecord(
   actor?: AuditActor,
 ): Promise<WasteControlDay> {
   const existing = await loadWasteControlDay(dayId(input.date, input.buffet))
+  const products = await listLinkedWasteProducts(input.buffet)
   const phases = PHASES.reduce(
     (acc, phase) => {
-      acc[phase] = buildPhaseItems(input.buffet, input.phases[phase] ?? [])
+      acc[phase] = buildPhaseItems(products, input.phases[phase] ?? [])
       return acc
     },
     {} as Record<WastePhase, WastePhaseRecord>,

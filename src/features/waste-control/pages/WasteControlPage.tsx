@@ -1,5 +1,6 @@
 import { RefreshCw, Save, Search } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Breadcrumb, PageHeader, PageShell } from '@/components/common'
 import {
   Badge,
@@ -260,7 +261,7 @@ export function WasteControlPage() {
 
       <PageHeader
         title="Controle de Desperdício"
-        description="Registro compartilhado em tempo real — entrada, reposição e finalização (Café da Manhã, Chá e Jantar)."
+        description="Custos por porção vêm do Cadastro de Produtos. Registro em tempo real — entrada, reposição e finalização."
         actions={
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
             <Button
@@ -384,6 +385,20 @@ export function WasteControlPage() {
               Selecione o responsável presente para abrir a contagem deste buffet.
             </div>
           ) : null}
+
+          <div className="rounded-2xl border border-border bg-card/70 px-4 py-3 text-sm text-muted-foreground">
+            Custos do dia vinculados ao{' '}
+            <Link to={APP_ROUTES.products} className="font-medium text-foreground underline-offset-2 hover:underline">
+              Cadastro de Produtos
+            </Link>
+            . Ao salvar, o valor por porção do catálogo é gravado na contagem.
+            {products.length > 0 ? (
+              <span className="mt-1 block text-xs">
+                {products.filter((item) => item.costFromCatalog).length} de {products.length} itens
+                com custo do catálogo neste buffet.
+              </span>
+            ) : null}
+          </div>
 
           <div className="flex flex-wrap gap-2">
             <Badge variant="accent">Dia: {formatWasteMoney(dayPreview.dayTotal)}</Badge>

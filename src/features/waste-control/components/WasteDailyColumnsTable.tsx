@@ -141,7 +141,8 @@ export function WasteDailyColumnsTable({
                 <td className="sticky left-0 z-10 bg-surface px-4 py-2.5">
                   <p className="font-medium leading-snug">{product.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {product.sector} · {formatWasteMoney(product.unitPrice)}/kg
+                    {product.sector} · {formatWasteMoney(product.unitPrice)}/porção
+                    {product.costFromCatalog ? ' · Cadastro de Produtos' : ''}
                   </p>
                 </td>
                 {WASTE_PHASES.map((phase) => (
@@ -187,8 +188,12 @@ export function WasteDailyColumnsTable({
             className="rounded-xl border border-border bg-surface p-3"
           >
             <p className="mb-2 text-sm font-medium leading-snug">{product.name}</p>
+            <p className="mb-2 text-xs text-muted-foreground">
+              {product.sector} · {formatWasteMoney(product.unitPrice)}/porção
+              {product.costFromCatalog ? ' · Cadastro' : ''}
+            </p>
             <div className="grid grid-cols-[1fr_repeat(3,3.5rem)] items-center gap-1">
-              <span className="text-xs text-muted-foreground">{product.sector}</span>
+              <span className="text-xs text-muted-foreground">Valores</span>
               {WASTE_PHASES.map((phase) => (
                 <Input
                   key={`${product.id}-m-${phase}`}
