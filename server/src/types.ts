@@ -196,7 +196,8 @@ export interface WasteControlDay {
   date: string
   buffet: WasteBuffetType
   pax: number
-  monthlyGoalKg: number
+  /** Meta mensal de desperdício em reais (R$). */
+  monthlyGoalReais: number
   dessertsQty: number
   phases: Record<WastePhase, WastePhaseRecord>
   wasteKgTotal: number
@@ -211,7 +212,8 @@ export interface SaveWasteControlDayInput {
   date: string
   buffet: WasteBuffetType
   pax: number
-  monthlyGoalKg: number
+  /** Meta mensal de desperdício em reais (R$). */
+  monthlyGoalReais: number
   dessertsQty?: number
   phases: Record<WastePhase, Array<{ productId: string; units: number; wasteKg: number }>>
   /** Quando true, registra fechamento e envia para conferência do Chef. */

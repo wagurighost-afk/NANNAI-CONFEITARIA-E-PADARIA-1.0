@@ -117,7 +117,7 @@ export function WasteControlPage() {
   const [buffet, setBuffet] = useState<WasteBuffetType>('cafe')
   const [search, setSearch] = useState('')
   const [pax, setPax] = useState(0)
-  const [monthlyGoalKg, setMonthlyGoalKg] = useState(0)
+  const [monthlyGoalReais, setMonthlyGoalReais] = useState(0)
   const [dessertsQty, setDessertsQty] = useState(0)
   const [phaseDrafts, setPhaseDrafts] = useState<Record<WastePhase, WastePhaseDraft>>({
     entrada: {},
@@ -149,7 +149,7 @@ export function WasteControlPage() {
       return
     }
     setPax(dayQuery.data.pax)
-    setMonthlyGoalKg(dayQuery.data.monthlyGoalKg)
+    setMonthlyGoalReais(dayQuery.data.monthlyGoalReais ?? 0)
     setDessertsQty(dayQuery.data.dessertsQty)
     setPhaseDrafts(buildDraftFromDay(dayQuery.data, products))
     // productIdsKey evita resetar a digitação a cada refetch do catálogo
@@ -203,7 +203,7 @@ export function WasteControlPage() {
     date: selectedDate,
     buffet,
     pax,
-    monthlyGoalKg,
+    monthlyGoalReais,
     dessertsQty,
     phases: {
       entrada: draftToPayload(phaseDrafts.entrada),
@@ -359,13 +359,13 @@ export function WasteControlPage() {
                 }}
               />
               <Input
-                label="Meta mensal de desperdício (kg)"
+                label="Meta mensal de desperdício (R$)"
                 type="number"
                 min={0}
-                step={0.1}
-                value={monthlyGoalKg || ''}
+                step={0.01}
+                value={monthlyGoalReais || ''}
                 onChange={(event) => {
-                  setMonthlyGoalKg(Math.max(0, Number(event.target.value) || 0))
+                  setMonthlyGoalReais(Math.max(0, Number(event.target.value) || 0))
                 }}
               />
               <Input

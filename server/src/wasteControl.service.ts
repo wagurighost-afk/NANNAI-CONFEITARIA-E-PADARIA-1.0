@@ -75,11 +75,21 @@ export async function listWasteProducts(buffet?: WasteBuffetType): Promise<Waste
   return listLinkedWasteProducts(buffet)
 }
 
+/** Migra registros antigos que salvavam a meta mensal em kg (campo renomeado para reais). */
+function migrateLegacyMonthlyGoal(record: WasteControlDay | null): WasteControlDay | null {
+  if (!record || record.monthlyGoalReais !== undefined) {
+    return record
+  }
+  const legacyKg = (record as unknown as { monthlyGoalKg?: number }).monthlyGoalKg
+  return { ...record, monthlyGoalReais: typeof legacyKg === 'number' ? legacyKg : 0 }
+}
+
 export async function getWasteControlDay(
   date: string,
   buffet: WasteBuffetType,
 ): Promise<WasteControlDay | null> {
-  return loadWasteControlDay(dayId(date, buffet))
+  const record = await loadWasteControlDay(dayId(date, buffet))
+  return migrateLegacyMonthlyGoal(record)
 }
 
 export async function saveWasteControlDayRecord(
@@ -105,7 +115,7 @@ export async function saveWasteControlDayRecord(
     date: input.date,
     buffet: input.buffet,
     pax: Math.max(0, input.pax),
-    monthlyGoalKg: Math.max(0, input.monthlyGoalKg),
+    monthlyGoalReais: Math.max(0, input.monthlyGoalReais),
     dessertsQty: Math.max(0, input.dessertsQty ?? 0),
     phases,
     wasteKgTotal,
@@ -296,7 +306,7 @@ export function createEmptyWasteDay(date: string, buffet: WasteBuffetType): Wast
     date,
     buffet,
     pax: 0,
-    monthlyGoalKg: 0,
+    monthlyGoalReais: 0,
     dessertsQty: 0,
     phases: {
       entrada: emptyPhase(),

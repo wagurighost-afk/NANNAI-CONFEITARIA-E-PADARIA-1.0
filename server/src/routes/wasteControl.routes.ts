@@ -63,7 +63,7 @@ wasteControlRouter.put('/days/:date', async (req: AuthedRequest, res) => {
       date: req.params.date,
       buffet,
       pax: Number(req.body.pax ?? 0),
-      monthlyGoalKg: Number(req.body.monthlyGoalKg ?? 0),
+      monthlyGoalReais: Number(req.body.monthlyGoalReais ?? req.body.monthlyGoalKg ?? 0),
       dessertsQty: Number(req.body.dessertsQty ?? 0),
       phases: {
         entrada: Array.isArray(req.body.phases?.entrada) ? req.body.phases.entrada : [],
