@@ -15,6 +15,8 @@ export interface WasteDailyColumnsTableProps {
   phaseDrafts: Record<WastePhase, WastePhaseDraft>
   onChange: (phase: WastePhase, productId: string, field: 'units' | 'wasteKg', value: number) => void
   search: string
+  /** Bloqueia entrada/reposição/finalização até haver um responsável presente selecionado. */
+  disabled?: boolean
 }
 
 const PHASE_HINTS: Record<WastePhase, string> = {
@@ -56,6 +58,7 @@ export function WasteDailyColumnsTable({
   phaseDrafts,
   onChange,
   search,
+  disabled = false,
 }: WasteDailyColumnsTableProps) {
   const query = search.trim().toLowerCase()
   const filtered = query
@@ -91,6 +94,15 @@ export function WasteDailyColumnsTable({
       return
     }
     onChange(phase, productId, 'units', value)
+  }
+
+  if (disabled) {
+    return (
+      <div className="rounded-2xl border border-dashed border-amber-300 bg-amber-50/60 px-4 py-10 text-center text-sm text-amber-900">
+        Selecione o responsável presente para liberar a contagem de entrada, reposição e
+        finalização deste buffet.
+      </div>
+    )
   }
 
   if (filtered.length === 0) {
