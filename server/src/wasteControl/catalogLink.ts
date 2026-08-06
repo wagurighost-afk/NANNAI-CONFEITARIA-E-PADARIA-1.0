@@ -1,6 +1,6 @@
 /**
- * Vincula Cadastro de Produtos ao Controle de Desperdício.
- * Custo do dia usa `costPerPortion` do catálogo quando o nome bate.
+ * Fonte única do desperdício do dia: Cadastro de Produtos.
+ * A seed antiga só ajuda a sugerir setor/buffet quando o nome coincide.
  */
 import { WASTE_PRODUCTS } from '../data/wasteProductsSeed.js'
 import { loadAllProducts } from '../db/index.js'
@@ -38,80 +38,85 @@ function inferSector(name: string): WasteSector {
   return 'Confeitaria'
 }
 
-function toLinkedProduct(
-  base: {
-    id: string
-    name: string
-    unit: string
-    unitPrice: number
-    buffets: WasteBuffetType[]
-    sector: WasteSector
-  },
-  catalog: CatalogProduct | undefined,
-): WasteControlProduct {
-  if (!catalog) {
-    return {
-      ...base,
-      catalogProductId: null,
-      costFromCatalog: false,
-    }
+function safeCost(value: unknown): number {
+  const amount = typeof value === 'number' ? value : Number(value)
+  if (!Number.isFinite(amount) || amount < 0) {
+    return 0
   }
+  return Math.round(amount * 100) / 100
+}
+
+function catalogToWasteProduct(
+  product: CatalogProduct,
+  seedByKey: Map<string, (typeof WASTE_PRODUCTS)[number]>,
+): WasteControlProduct {
+  const key = product.nameKey || normalizeProductNameKey(product.name)
+  const seed = seedByKey.get(key)
 
   return {
-    ...base,
-    name: catalog.name,
-    unitPrice: catalog.costPerPortion,
-    catalogProductId: catalog.id,
+    // ID estável = Cadastro de Produtos (bloco único).
+    id: product.id,
+    name: product.name,
+    unit: 'porção',
+    unitPrice: safeCost(product.costPerPortion),
+    // Produtos manuais e do mestre ficam disponíveis em todos os buffets.
+    buffets: ALL_BUFFETS,
+    sector: seed?.sector ?? inferSector(product.name),
+    catalogProductId: product.id,
     costFromCatalog: true,
   }
 }
 
 /**
- * Lista produtos de desperdício enriquecidos com o Cadastro de Produtos.
- * - Produtos da seed recebem custo do catálogo quando o nome coincide
- * - Produtos ativos só no catálogo entram como itens extras do buffet
+ * Lista do desperdício = somente produtos Ativos do Cadastro de Produtos.
  */
 export async function listLinkedWasteProducts(
   buffet?: WasteBuffetType,
 ): Promise<WasteControlProduct[]> {
   const catalog = await loadAllProducts()
-  const catalogByKey = new Map(
-    catalog.map((product) => [product.nameKey || normalizeProductNameKey(product.name), product]),
+  const seedByKey = new Map(
+    WASTE_PRODUCTS.map((product) => [normalizeProductNameKey(product.name), product]),
   )
-  const usedCatalogIds = new Set<string>()
 
-  const linkedFromSeed = WASTE_PRODUCTS.map((product) => {
-    const key = normalizeProductNameKey(product.name)
-    const match = catalogByKey.get(key)
-    if (match) {
-      usedCatalogIds.add(match.id)
-    }
-    return toLinkedProduct(product, match)
-  })
-
-  const catalogOnly = catalog
-    .filter((product) => product.status === 'Ativo' && !usedCatalogIds.has(product.id))
-    .map((product) =>
-      toLinkedProduct(
-        {
-          id: `waste-cat-${product.id}`,
-          name: product.name,
-          unit: 'KG',
-          unitPrice: product.costPerPortion,
-          buffets: ALL_BUFFETS,
-          sector: inferSector(product.name),
-        },
-        product,
-      ),
-    )
-
-  const all = [...linkedFromSeed, ...catalogOnly].sort((a, b) =>
-    a.name.localeCompare(b.name, 'pt-BR'),
-  )
+  const products = catalog
+    .filter((product) => product.status === 'Ativo')
+    .map((product) => catalogToWasteProduct(product, seedByKey))
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
 
   if (!buffet) {
-    return all
+    return products
   }
 
-  return all.filter((product) => product.buffets.includes(buffet))
+  return products.filter((product) => product.buffets.includes(buffet))
+}
+
+/**
+ * Resolve produto por ID do catálogo, ID legado waste-* ou waste-cat-*.
+ */
+export function resolveWasteProduct(
+  products: WasteControlProduct[],
+  productId: string,
+): WasteControlProduct | undefined {
+  const byId = new Map<string, WasteControlProduct>()
+
+  for (const product of products) {
+    byId.set(product.id, product)
+    if (product.catalogProductId) {
+      byId.set(product.catalogProductId, product)
+      byId.set(`waste-cat-${product.catalogProductId}`, product)
+    }
+  }
+
+  const direct = byId.get(productId)
+  if (direct) {
+    return direct
+  }
+
+  // Compatibilidade com contagens antigas que usavam waste-001, waste-002...
+  const seed = WASTE_PRODUCTS.find((item) => item.id === productId)
+  if (!seed) {
+    return undefined
+  }
+  const key = normalizeProductNameKey(seed.name)
+  return products.find((product) => normalizeProductNameKey(product.name) === key)
 }

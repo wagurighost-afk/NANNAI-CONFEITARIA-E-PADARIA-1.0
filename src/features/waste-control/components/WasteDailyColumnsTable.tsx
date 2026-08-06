@@ -23,6 +23,11 @@ const PHASE_HINTS: Record<WastePhase, string> = {
   finalizacao: 'kg',
 }
 
+function productCost(product: WasteControlProduct): number {
+  const value = Number(product.unitPrice)
+  return Number.isFinite(value) ? value : 0
+}
+
 function getEntry(
   drafts: Record<WastePhase, WastePhaseDraft>,
   phase: WastePhase,
@@ -43,7 +48,7 @@ function getPhaseValue(
 
 function rowTotal(product: WasteControlProduct, drafts: Record<WastePhase, WastePhaseDraft>) {
   const wasteKg = getPhaseValue(drafts, 'finalizacao', product.id)
-  return roundWasteMoney(wasteKg * product.unitPrice)
+  return roundWasteMoney(wasteKg * productCost(product))
 }
 
 export function WasteDailyColumnsTable({
@@ -65,7 +70,7 @@ export function WasteDailyColumnsTable({
         const value = getPhaseValue(phaseDrafts, phase, product.id)
         amount += value
         if (phase === 'finalizacao') {
-          cost += value * product.unitPrice
+          cost += value * productCost(product)
         }
       }
       acc[phase] = {
@@ -86,6 +91,14 @@ export function WasteDailyColumnsTable({
       return
     }
     onChange(phase, productId, 'units', value)
+  }
+
+  if (filtered.length === 0) {
+    return (
+      <div className="rounded-2xl border border-dashed border-border bg-muted/20 px-4 py-10 text-center text-sm text-muted-foreground">
+        Nenhum produto encontrado. Cadastre ou ative itens em <strong>Cadastro de Produtos</strong>.
+      </div>
+    )
   }
 
   return (
@@ -116,10 +129,13 @@ export function WasteDailyColumnsTable({
 
       {/* Desktop: tabela */}
       <div className="hidden overflow-x-auto rounded-xl border border-border md:block">
-        <table className="w-full min-w-[640px] text-sm">
+        <table className="w-full min-w-[720px] text-sm">
           <thead>
             <tr className="border-b border-border bg-muted/40 text-muted-foreground">
-              <th className="sticky left-0 z-10 bg-muted/95 px-4 py-3 text-left font-semibold">Item</th>
+              <th className="sticky left-0 z-10 bg-muted/95 px-4 py-3 text-left font-semibold">
+                Produto
+              </th>
+              <th className="px-3 py-3 text-right font-semibold">Custo/porção</th>
               <th className="border-l border-border/80 px-3 py-3 text-center font-semibold text-foreground">
                 Entrada
                 <span className="mt-0.5 block text-xs font-normal text-muted-foreground">(und)</span>
@@ -140,10 +156,10 @@ export function WasteDailyColumnsTable({
               <tr key={product.id} className="border-b border-border/60">
                 <td className="sticky left-0 z-10 bg-surface px-4 py-2.5">
                   <p className="font-medium leading-snug">{product.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {product.sector} · {formatWasteMoney(product.unitPrice)}/porção
-                    {product.costFromCatalog ? ' · Cadastro de Produtos' : ''}
-                  </p>
+                  <p className="text-xs text-muted-foreground">{product.sector}</p>
+                </td>
+                <td className="px-3 py-2.5 text-right font-semibold tabular-nums text-foreground">
+                  {formatWasteMoney(productCost(product))}
                 </td>
                 {WASTE_PHASES.map((phase) => (
                   <td key={`${product.id}-${phase}`} className="border-l border-border/50 px-2 py-2 text-center">
@@ -165,7 +181,7 @@ export function WasteDailyColumnsTable({
                     />
                   </td>
                 ))}
-                <td className="border-l border-border/50 px-3 py-2 text-center font-medium">
+                <td className="border-l border-border/50 px-3 py-2 text-center font-medium tabular-nums">
                   {formatWasteMoney(rowTotal(product, phaseDrafts))}
                 </td>
               </tr>
@@ -174,26 +190,27 @@ export function WasteDailyColumnsTable({
         </table>
       </div>
 
-      {/* Mobile: lista estilo anotação ENTRADA | REPOSIÇÃO | FINALIZAÇÃO */}
+      {/* Mobile */}
       <div className="space-y-3 md:hidden">
         <div className="grid grid-cols-[1fr_repeat(3,3.5rem)] gap-1 px-1 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          <span className="text-left">Item</span>
+          <span className="text-left">Produto</span>
           <span>Ent.</span>
           <span>Rep.</span>
           <span>Fin.</span>
         </div>
         {filtered.map((product) => (
-          <div
-            key={product.id}
-            className="rounded-xl border border-border bg-surface p-3"
-          >
-            <p className="mb-2 text-sm font-medium leading-snug">{product.name}</p>
-            <p className="mb-2 text-xs text-muted-foreground">
-              {product.sector} · {formatWasteMoney(product.unitPrice)}/porção
-              {product.costFromCatalog ? ' · Cadastro' : ''}
-            </p>
+          <div key={product.id} className="rounded-xl border border-border bg-surface p-3">
+            <div className="mb-2 flex items-start justify-between gap-2">
+              <div>
+                <p className="text-sm font-medium leading-snug">{product.name}</p>
+                <p className="text-xs text-muted-foreground">{product.sector}</p>
+              </div>
+              <p className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
+                {formatWasteMoney(productCost(product))}
+              </p>
+            </div>
             <div className="grid grid-cols-[1fr_repeat(3,3.5rem)] items-center gap-1">
-              <span className="text-xs text-muted-foreground">Valores</span>
+              <span className="text-xs text-muted-foreground">/porção</span>
               {WASTE_PHASES.map((phase) => (
                 <Input
                   key={`${product.id}-m-${phase}`}

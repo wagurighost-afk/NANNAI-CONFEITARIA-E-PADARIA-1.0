@@ -3,7 +3,7 @@ import type { AuditActor } from './audit/types.js'
 import { loadWasteControlDay, loadWasteControlDaysInMonth, saveWasteControlDay } from './db/index.js'
 import { emitRealtime } from './events.js'
 import { isLeadershipUser } from './auth/leadershipAccess.js'
-import { listLinkedWasteProducts } from './wasteControl/catalogLink.js'
+import { listLinkedWasteProducts, resolveWasteProduct } from './wasteControl/catalogLink.js'
 import type {
   AppUser,
   AssignWasteResponsibleInput,
@@ -38,26 +38,25 @@ function buildPhaseItems(
   products: WasteControlProduct[],
   items: Array<{ productId: string; units: number; wasteKg: number }>,
 ): WastePhaseRecord {
-  const productMap = new Map(products.map((product) => [product.id, product]))
-
   const lineItems: WasteLineItem[] = []
   for (const item of items) {
-    const product = productMap.get(item.productId)
+    const product = resolveWasteProduct(products, item.productId)
     if (!product) {
       continue
     }
     const units = Number.isFinite(item.units) ? Math.max(0, item.units) : 0
     const wasteKg = Number.isFinite(item.wasteKg) ? Math.max(0, item.wasteKg) : 0
-    const total = roundMoney(wasteKg * product.unitPrice)
+    const unitPrice = Number.isFinite(product.unitPrice) ? product.unitPrice : 0
+    const total = roundMoney(wasteKg * unitPrice)
     lineItems.push({
       productId: product.id,
       productName: product.name,
       sector: product.sector,
       units,
       wasteKg: roundKg(wasteKg),
-      unitPrice: product.unitPrice,
+      unitPrice,
       total,
-      catalogProductId: product.catalogProductId ?? null,
+      catalogProductId: product.catalogProductId ?? product.id,
     })
   }
 
