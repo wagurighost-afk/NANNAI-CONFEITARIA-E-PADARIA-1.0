@@ -1,4 +1,13 @@
-import type { AppUser, BreadControlDay, LabelRecord, MonthlySchedule, ProductionDay, Recipe, WasteControlDay } from '../types.js'
+import type {
+  AppUser,
+  BreadControlDay,
+  CatalogProduct,
+  LabelRecord,
+  MonthlySchedule,
+  ProductionDay,
+  Recipe,
+  WasteControlDay,
+} from '../types.js'
 import type { AuditLogRecord } from '../audit/types.js'
 import type { IntelligenceSnapshot } from '../intelligence/types.js'
 import type { PaginatedRecipes, RecipeListQuery, RecipeStats } from '../types.js'
@@ -23,6 +32,7 @@ export interface DatabaseFile {
   users: UserRow[]
   productions: ProductionDay[]
   recipes: Recipe[]
+  products: CatalogProduct[]
   monthly_schedules: MonthlySchedule[]
   bread_control_days: BreadControlDay[]
   waste_control_days: WasteControlDay[]
@@ -63,6 +73,11 @@ export interface DatabaseStore {
   loadRecipeRecord(id: string): Promise<Recipe | null>
   saveRecipeRecord(recipe: Recipe): Promise<void>
   deleteRecipeRecord(id: string): Promise<void>
+  countProducts(): Promise<number>
+  loadAllProducts(): Promise<CatalogProduct[]>
+  loadProductRecord(id: string): Promise<CatalogProduct | null>
+  saveProductRecord(product: CatalogProduct): Promise<void>
+  deleteProductRecord(id: string): Promise<void>
   countMonthlySchedules(): Promise<number>
   loadAllMonthlySchedules(): Promise<MonthlySchedule[]>
   loadMonthlyScheduleRecord(id: string): Promise<MonthlySchedule | null>

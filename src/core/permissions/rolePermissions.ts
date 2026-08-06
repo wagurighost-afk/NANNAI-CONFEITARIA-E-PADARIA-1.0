@@ -6,6 +6,8 @@ const MASTER_ADMIN_PERMISSIONS = [
   'employees:manage',
   'ingredients:view',
   'ingredients:manage',
+  'products:view',
+  'products:manage',
   'production:view',
   'production:manage',
   'labels:view',
@@ -44,6 +46,7 @@ export const ROLE_PERMISSIONS: RolePermissionsMap = {
     'schedule:view',
     'cleaning-schedule:view',
     'recipes:view',
+    'products:view',
     'pop:view',
     'bugs:view',
     'bugs:report',
@@ -58,11 +61,12 @@ export const ROLE_PERMISSIONS: RolePermissionsMap = {
     'schedule:view',
     'cleaning-schedule:view',
     'recipes:view',
+    'products:view',
     'pop:view',
     'bugs:view',
     'bugs:report',
   ],
-  viewer: ['dashboard:view', 'recipes:view', 'pop:view', 'bugs:view', 'bugs:report'],
+  viewer: ['dashboard:view', 'recipes:view', 'products:view', 'pop:view', 'bugs:view', 'bugs:report'],
 } as const
 
 export const DEFAULT_PERMISSIONS: readonly Permission[] = []

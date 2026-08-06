@@ -1,12 +1,28 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { wasteControlService } from '@/features/waste-control/services/wasteControl.service'
-import type { SaveWasteControlDayInput, WasteBuffetType } from '@/features/waste-control/types/wasteControl.types'
+import type {
+  AssignWasteResponsibleInput,
+  ConferenceWasteDayInput,
+  SaveWasteControlDayInput,
+  WasteBuffetType,
+} from '@/features/waste-control/types/wasteControl.types'
+
+function invalidateDay(
+  queryClient: ReturnType<typeof useQueryClient>,
+  date: string,
+  buffet: WasteBuffetType,
+) {
+  const [year, month] = date.split('-').map(Number)
+  void queryClient.invalidateQueries({ queryKey: ['waste-control', 'day', date, buffet] })
+  void queryClient.invalidateQueries({ queryKey: ['waste-control', 'summary', year, month] })
+}
 
 export function useWasteProducts(buffet: WasteBuffetType) {
   return useQuery({
     queryKey: ['waste-control', 'products', buffet],
     queryFn: () => wasteControlService.getProducts(buffet),
-    staleTime: 1000 * 60 * 30,
+    // Custos vêm do Cadastro de Produtos — refrescam com frequência.
+    staleTime: 1000 * 30,
   })
 }
 
@@ -31,9 +47,29 @@ export function useSaveWasteControlDay() {
   return useMutation({
     mutationFn: (input: SaveWasteControlDayInput) => wasteControlService.saveDay(input),
     onSuccess: (day) => {
-      const [year, month] = day.date.split('-').map(Number)
-      queryClient.invalidateQueries({ queryKey: ['waste-control', 'day', day.date, day.buffet] })
-      queryClient.invalidateQueries({ queryKey: ['waste-control', 'summary', year, month] })
+      invalidateDay(queryClient, day.date, day.buffet)
+    },
+  })
+}
+
+export function useAssignWasteResponsible() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: AssignWasteResponsibleInput) => wasteControlService.assignResponsible(input),
+    onSuccess: (day) => {
+      invalidateDay(queryClient, day.date, day.buffet)
+    },
+  })
+}
+
+export function useConferenceWasteDay() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: ConferenceWasteDayInput) => wasteControlService.conferenceDay(input),
+    onSuccess: (day) => {
+      invalidateDay(queryClient, day.date, day.buffet)
     },
   })
 }

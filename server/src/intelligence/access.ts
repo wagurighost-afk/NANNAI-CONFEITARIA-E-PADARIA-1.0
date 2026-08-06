@@ -3,10 +3,10 @@
  * @module intelligence/access
  */
 
-import { canManageUserPasswords } from '../auth/passwordAccess.js'
+import { isLeadershipUser } from '../auth/leadershipAccess.js'
 import type { AppUser } from '../types.js'
 
-/** Visualização e refresh: admin e liderança operacional. */
+/** Visualização e refresh: admin master e liderança operacional. */
 export function canAccessIntelligence(user: AppUser): boolean {
-  return canManageUserPasswords(user)
+  return isLeadershipUser(user)
 }

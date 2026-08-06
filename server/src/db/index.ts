@@ -161,6 +161,26 @@ export async function saveMonthlyScheduleRecord(schedule: Parameters<DatabaseSto
   await getStore().saveMonthlyScheduleRecord(schedule)
 }
 
+export async function countProducts(): Promise<number> {
+  return getStore().countProducts()
+}
+
+export async function loadAllProducts() {
+  return getStore().loadAllProducts()
+}
+
+export async function loadProductRecord(id: string) {
+  return getStore().loadProductRecord(id)
+}
+
+export async function saveProductRecord(product: Parameters<DatabaseStore['saveProductRecord']>[0]): Promise<void> {
+  await getStore().saveProductRecord(product)
+}
+
+export async function deleteProductRecord(id: string): Promise<void> {
+  await getStore().deleteProductRecord(id)
+}
+
 export async function loadBreadControlDay(id: string) {
   return getStore().loadBreadControlDay(id)
 }

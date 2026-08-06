@@ -45,12 +45,19 @@ Selos são derivados do papel — não dependem do cargo.
 
 ## Fundadores iniciais
 
-| Nome | Cargo (operacional) | Papel |
-|------|---------------------|-------|
-| Mauro José | Auxiliar de Confeitaria | `founder` |
-| Devid Oliveira | Chef de Confeitaria | `founder` |
+| Nome | Cargo (operacional) | Papel | Login |
+|------|---------------------|-------|-------|
+| Mauro José | Auxiliar de Confeitaria | `founder` | `Mauro.Jose@nannai.net.br` |
+| Devid Oliveira | Chef de Confeitaria | `founder` | `Devid.Oliveira@nannai.com.br` |
 
 > Mauro tem cargo de auxiliar mas papel de fundador — isso demonstra a separação cargo/papel.
+
+### Chef de Confeitaria
+
+- Conta operacional: `usr-emp-david` / `Devid.Oliveira@nannai.com.br`
+- Cargo `Chef de Confeitaria` libera Painel Executivo, Dashboard Chef, Inteligência e gestão de produções via `isLeadershipUser`
+- Papel `founder` mantém acesso master completo
+- Conta técnica `admin@nannai.com` é separada e **não** deve herdar nome/e-mail do Chef
 
 ## Arquivos principais
 
@@ -97,7 +104,7 @@ Permissões extras (bread-control, intelligence, etc.) são injetadas em `RbacCo
 
 ## Migração de bancos existentes
 
-O seed sincroniza nome, e-mail e **papel** dos colaboradores em `syncSeedEmployeeIdentities()` via `updateUserRole()`.
+O seed sincroniza nome, e-mail e **papel** dos colaboradores em `syncSeedEmployeeIdentities()` via `updateUserRole()`, e restaura a identidade canônica do admin (`admin@nannai.com`) caso tenha sido sobrescrita.
 
 ## Versão
 

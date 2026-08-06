@@ -110,6 +110,7 @@ export interface RealtimeEvent {
     | 'bread-control'
     | 'waste-control'
     | 'intelligence'
+    | 'executive-panel'
     | 'labels'
     | 'laboratorio'
     | 'dev-central'
@@ -135,6 +136,12 @@ export interface WasteControlProduct {
   unitPrice: number
   buffets: WasteBuffetType[]
   sector: WasteSector
+  /** ID no Cadastro de Produtos, quando vinculado por nome. */
+  catalogProductId?: string | null
+  /** true quando o custo veio do Cadastro de Produtos. */
+  costFromCatalog?: boolean
+  /** Origem no Cadastro de Produtos (mestre ou manual). */
+  origin?: 'Cadastro Mestre' | 'Manual' | null
 }
 
 export interface WasteLineItem {
@@ -145,6 +152,7 @@ export interface WasteLineItem {
   wasteKg: number
   unitPrice: number
   total: number
+  catalogProductId?: string | null
 }
 
 export interface WastePhaseRecord {
@@ -153,26 +161,80 @@ export interface WastePhaseRecord {
   phaseTotal: number
 }
 
+export type WasteConferenceStatus =
+  | 'aguardando_conferencia'
+  | 'conferido'
+  | 'necessita_revisao'
+
+export interface WasteAssignmentInfo {
+  responsibleEmployeeId: string
+  responsibleEmployeeName: string
+  responsiblePosition: string
+  responsibleShift: string
+  assignedAt: string
+  assignedById: string
+  assignedByName: string
+  sector: string
+}
+
+export interface WasteClosingInfo {
+  closedAt: string
+  closedById: string
+  closedByName: string
+}
+
+export interface WasteConferenceInfo {
+  status: WasteConferenceStatus
+  checkedById: string | null
+  checkedByName: string | null
+  checkedAt: string | null
+  notes: string
+}
+
 export interface WasteControlDay {
   id: string
   date: string
   buffet: WasteBuffetType
   pax: number
-  monthlyGoalKg: number
+  /** Meta mensal de desperdício em reais (R$). */
+  monthlyGoalReais: number
   dessertsQty: number
   phases: Record<WastePhase, WastePhaseRecord>
   wasteKgTotal: number
   dayTotal: number
   updatedAt: string
+  assignment?: WasteAssignmentInfo | null
+  closing?: WasteClosingInfo | null
+  conference?: WasteConferenceInfo | null
 }
 
 export interface SaveWasteControlDayInput {
   date: string
   buffet: WasteBuffetType
   pax: number
-  monthlyGoalKg: number
+  /** Meta mensal de desperdício em reais (R$). */
+  monthlyGoalReais: number
   dessertsQty?: number
   phases: Record<WastePhase, Array<{ productId: string; units: number; wasteKg: number }>>
+  /** Quando true, registra fechamento e envia para conferência do Chef. */
+  finalize?: boolean
+}
+
+export interface AssignWasteResponsibleInput {
+  date: string
+  buffet: WasteBuffetType
+  responsibleEmployeeId: string
+  responsibleEmployeeName: string
+  responsiblePosition: string
+  responsibleShift: string
+  sector: string
+}
+
+export interface ConferenceWasteDayInput {
+  date: string
+  buffet: WasteBuffetType
+  status: WasteConferenceStatus
+  notes?: string
 }
 
 export interface WasteControlMonthlySummary {
@@ -465,4 +527,30 @@ export interface LabelListQuery {
 export interface LabelListResult {
   total: number
   items: LabelRecord[]
+}
+
+export type ProductStatus = 'Ativo' | 'Inativo'
+export type ProductOrigin = 'Cadastro Mestre' | 'Manual'
+
+/** Produto do Cadastro de Produtos (catálogo mestre editável). */
+export interface CatalogProduct {
+  id: string
+  name: string
+  /** Nome normalizado para deduplicação. */
+  nameKey: string
+  costPerPortion: number
+  status: ProductStatus
+  origin: ProductOrigin
+  editable: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ProductImportSummary {
+  partLabel: string
+  created: number
+  updated: number
+  ignored: number
+  totalProcessed: number
+  importedAt: string
 }

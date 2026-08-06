@@ -38,6 +38,11 @@ const WasteControlPage = lazyPage(() =>
 const IntelligencePage = lazyPage(() =>
   import('@/features/intelligence/pages/IntelligencePage').then((m) => ({ default: m.IntelligencePage })),
 )
+const ExecutivePanelPage = lazyPage(() =>
+  import('@/features/executive-panel/pages/ExecutivePanelPage').then((m) => ({
+    default: m.ExecutivePanelPage,
+  })),
+)
 const NannaiInsightsPage = lazyPage(() =>
   import('@/features/nannai-insights/pages/NannaiInsightsPage').then((m) => ({
     default: m.NannaiInsightsPage,
@@ -85,6 +90,9 @@ const EmployeesPage = lazyPage(() =>
 )
 const IngredientsPage = lazyPage(() =>
   import('@/features/ingredients/pages/IngredientsPage').then((m) => ({ default: m.IngredientsPage })),
+)
+const ProductsPage = lazyPage(() =>
+  import('@/features/products/pages/ProductsPage').then((m) => ({ default: m.ProductsPage })),
 )
 const LabelsPage = lazyPage(() =>
   import('@/features/labels/pages/LabelsPage').then((m) => ({ default: m.LabelsPage })),
@@ -144,6 +152,9 @@ export function AppRouter() {
             <Route element={<PermissionRoute permission="nannai-insights:view" />}>
               <Route path={APP_ROUTES.nannaiInsights} element={<NannaiInsightsPage />} />
             </Route>
+            <Route element={<PermissionRoute permission="executive-panel:view" />}>
+              <Route path={APP_ROUTES.executivePanel} element={<ExecutivePanelPage />} />
+            </Route>
             <Route element={<PermissionRoute permission="intelligence:view" />}>
               <Route path={APP_ROUTES.intelligence} element={<IntelligencePage />} />
             </Route>
@@ -175,6 +186,9 @@ export function AppRouter() {
             </Route>
             <Route element={<PermissionRoute permission="ingredients:view" />}>
               <Route path={APP_ROUTES.ingredients} element={<IngredientsPage />} />
+            </Route>
+            <Route element={<PermissionRoute permission="products:view" />}>
+              <Route path={APP_ROUTES.products} element={<ProductsPage />} />
             </Route>
             <Route path={APP_ROUTES.changePassword} element={<ChangePasswordPage />} />
             <Route path={APP_ROUTES.about} element={<AboutPage />} />

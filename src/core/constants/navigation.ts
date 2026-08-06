@@ -99,6 +99,13 @@ export const MAIN_NAVIGATION: readonly AppNavItem[] = [
     permission: 'nannai-insights:view',
   },
   {
+    id: 'executive-panel',
+    label: 'Painel Executivo',
+    href: APP_ROUTES.executivePanel,
+    icon: 'Gauge',
+    permission: 'executive-panel:view',
+  },
+  {
     id: 'intelligence',
     label: 'Dashboard Executivo',
     href: APP_ROUTES.intelligence,
@@ -153,5 +160,12 @@ export const MAIN_NAVIGATION: readonly AppNavItem[] = [
     href: APP_ROUTES.ingredients,
     icon: 'Wheat',
     permission: 'ingredients:view',
+  },
+  {
+    id: 'products',
+    label: 'Cadastro de Produtos',
+    href: APP_ROUTES.products,
+    icon: 'Package',
+    permission: 'products:view',
   },
 ] as const

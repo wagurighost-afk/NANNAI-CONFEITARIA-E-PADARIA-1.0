@@ -1,10 +1,10 @@
 import type { User } from '@/types/auth.types'
 import type { ProductionDay } from '@/features/production/types/production.types'
 import { resolveEmployeeForUser } from '@/core/auth/employeeResolver'
-import { hasFullSystemAccess } from '@/core/permissions/systemAccess'
+import { isLeadershipUser } from '@/core/permissions/leadershipAccess'
 
 export function canManageProduction(user: User | null): boolean {
-  return hasFullSystemAccess(user)
+  return isLeadershipUser(user)
 }
 
 function resolveOperationalEmployeeId(user: User | null): string | null {

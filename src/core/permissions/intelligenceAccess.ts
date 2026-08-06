@@ -1,9 +1,9 @@
-import { hasFullSystemAccess } from '@/core/permissions/systemAccess'
+import { isLeadershipUser } from '@/core/permissions/leadershipAccess'
 import type { User } from '@/types/auth.types'
 
-/** Acesso à Central de Inteligência Operacional: admin e liderança. */
+/** Acesso à Central de Inteligência: admin master e liderança (Chef de Confeitaria incluso). */
 export function canAccessIntelligence(user: User | null): boolean {
-  return hasFullSystemAccess(user)
+  return isLeadershipUser(user)
 }
 
 export function canRefreshIntelligence(user: User | null): boolean {

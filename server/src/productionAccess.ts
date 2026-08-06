@@ -1,4 +1,4 @@
-import { isMasterAdmin } from './auth/roles.js'
+import { isLeadershipUser } from './auth/leadershipAccess.js'
 import { SEED_EMPLOYEES } from './data/employees.js'
 import type { AppUser, ProductionDay } from './types.js'
 
@@ -14,7 +14,7 @@ function resolveEmployeeId(user: AppUser): string | null {
 }
 
 export function canManageAllProductions(user: AppUser): boolean {
-  return isMasterAdmin(user)
+  return isLeadershipUser(user)
 }
 
 export function canEditProduction(user: AppUser, production: ProductionDay): boolean {

@@ -17,6 +17,7 @@ import {
   revokeRefreshToken,
 } from './seed.js'
 import type { AppUser, AuthSession } from './types.js'
+import { resolveLoginEmail } from './auth/loginAliases.js'
 import { getSystemBadgesForRole } from './auth/roles.js'
 import type { UserRow } from './db/index.js'
 
@@ -44,7 +45,7 @@ async function createSession(user: AppUser): Promise<AuthSession> {
 }
 
 export async function login(email: string, password: string): Promise<AuthSession> {
-  const row = await findUserByEmail(email)
+  const row = await findUserByEmail(resolveLoginEmail(email))
   if (!row) {
     throw new Error('E-mail ou senha incorretos.')
   }

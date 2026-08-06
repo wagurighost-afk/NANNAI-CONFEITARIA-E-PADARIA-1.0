@@ -2,6 +2,13 @@ export type WasteBuffetType = 'cafe' | 'cha' | 'jantar'
 export type WastePhase = 'entrada' | 'reposicao' | 'finalizacao'
 export type WasteSector = 'Confeitaria' | 'Padaria'
 
+export type WasteConferenceStatus =
+  | 'aguardando_conferencia'
+  | 'conferido'
+  | 'necessita_revisao'
+
+export type WasteProductOrigin = 'Cadastro Mestre' | 'Manual'
+
 export interface WasteControlProduct {
   id: string
   name: string
@@ -9,6 +16,12 @@ export interface WasteControlProduct {
   unitPrice: number
   buffets: WasteBuffetType[]
   sector: WasteSector
+  /** ID no Cadastro de Produtos, quando vinculado por nome. */
+  catalogProductId?: string | null
+  /** true quando o custo veio do Cadastro de Produtos. */
+  costFromCatalog?: boolean
+  /** Origem no Cadastro de Produtos (mestre ou manual). */
+  origin?: WasteProductOrigin | null
 }
 
 export interface WasteLineItem {
@@ -19,6 +32,7 @@ export interface WasteLineItem {
   wasteKg: number
   unitPrice: number
   total: number
+  catalogProductId?: string | null
 }
 
 export interface WastePhaseRecord {
@@ -27,17 +41,46 @@ export interface WastePhaseRecord {
   phaseTotal: number
 }
 
+export interface WasteAssignmentInfo {
+  responsibleEmployeeId: string
+  responsibleEmployeeName: string
+  responsiblePosition: string
+  responsibleShift: string
+  assignedAt: string
+  assignedById: string
+  assignedByName: string
+  sector: string
+}
+
+export interface WasteClosingInfo {
+  closedAt: string
+  closedById: string
+  closedByName: string
+}
+
+export interface WasteConferenceInfo {
+  status: WasteConferenceStatus
+  checkedById: string | null
+  checkedByName: string | null
+  checkedAt: string | null
+  notes: string
+}
+
 export interface WasteControlDay {
   id: string
   date: string
   buffet: WasteBuffetType
   pax: number
-  monthlyGoalKg: number
+  /** Meta mensal de desperdício em reais (R$). */
+  monthlyGoalReais: number
   dessertsQty: number
   phases: Record<WastePhase, WastePhaseRecord>
   wasteKgTotal: number
   dayTotal: number
   updatedAt: string
+  assignment?: WasteAssignmentInfo | null
+  closing?: WasteClosingInfo | null
+  conference?: WasteConferenceInfo | null
 }
 
 export type WastePhaseItemInput = {
@@ -50,9 +93,28 @@ export interface SaveWasteControlDayInput {
   date: string
   buffet: WasteBuffetType
   pax: number
-  monthlyGoalKg: number
+  /** Meta mensal de desperdício em reais (R$). */
+  monthlyGoalReais: number
   dessertsQty?: number
   phases: Record<WastePhase, WastePhaseItemInput[]>
+  finalize?: boolean
+}
+
+export interface AssignWasteResponsibleInput {
+  date: string
+  buffet: WasteBuffetType
+  responsibleEmployeeId: string
+  responsibleEmployeeName: string
+  responsiblePosition: string
+  responsibleShift: string
+  sector: string
+}
+
+export interface ConferenceWasteDayInput {
+  date: string
+  buffet: WasteBuffetType
+  status: WasteConferenceStatus
+  notes?: string
 }
 
 export interface WasteControlMonthlySummary {
