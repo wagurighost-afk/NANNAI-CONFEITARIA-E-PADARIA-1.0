@@ -2300,5 +2300,361 @@
       "jantar"
     ],
     "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-205",
+    "name": "BOLO DE MORANGO",
+    "unit": "KG",
+    "unitPrice": 1.1,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-206",
+    "name": "BOLO MESCLADO",
+    "unit": "KG",
+    "unitPrice": 0.95,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-207",
+    "name": "BOLO FORMIGUEIRO",
+    "unit": "KG",
+    "unitPrice": 0.95,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-208",
+    "name": "BOLO DE NOIVA",
+    "unit": "KG",
+    "unitPrice": 1.0,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-209",
+    "name": "BOLO DE BANANA",
+    "unit": "KG",
+    "unitPrice": 0.85,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-210",
+    "name": "BOLO DE MILHO",
+    "unit": "KG",
+    "unitPrice": 0.85,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-211",
+    "name": "BOLO DE ABACAXI",
+    "unit": "KG",
+    "unitPrice": 0.9,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-212",
+    "name": "BOLO DE MAÇÃ",
+    "unit": "KG",
+    "unitPrice": 0.9,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-213",
+    "name": "BOLO DE GOIABADA",
+    "unit": "KG",
+    "unitPrice": 0.95,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-214",
+    "name": "BOLO DE MARACUJÁ",
+    "unit": "KG",
+    "unitPrice": 1.0,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-215",
+    "name": "BOLO DE LEITE NINHO",
+    "unit": "KG",
+    "unitPrice": 1.2,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-216",
+    "name": "BOLO DE CENOURA COM CHOCOLATE",
+    "unit": "KG",
+    "unitPrice": 1.1,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-217",
+    "name": "BOLO INGLÊS",
+    "unit": "KG",
+    "unitPrice": 0.9,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-218",
+    "name": "BOLO DE AMEIXA",
+    "unit": "KG",
+    "unitPrice": 0.95,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-219",
+    "name": "BOLO DE IOGURTE",
+    "unit": "KG",
+    "unitPrice": 0.9,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-220",
+    "name": "BOLO RED VELVET",
+    "unit": "KG",
+    "unitPrice": 1.3,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-221",
+    "name": "BOLO DE CASTANHA DE CAJU",
+    "unit": "KG",
+    "unitPrice": 1.2,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-222",
+    "name": "BOLO DE NATA",
+    "unit": "KG",
+    "unitPrice": 1.0,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-223",
+    "name": "BOLO GELADO",
+    "unit": "KG",
+    "unitPrice": 1.1,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-224",
+    "name": "BOLO DE COCO QUEIMADO",
+    "unit": "KG",
+    "unitPrice": 1.0,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-225",
+    "name": "BOLO DE CHOCOLATE COM BRIGADEIRO",
+    "unit": "KG",
+    "unitPrice": 1.3,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-226",
+    "name": "BOLO DE BAUNILHA",
+    "unit": "KG",
+    "unitPrice": 0.85,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-227",
+    "name": "BOLO DA TIA",
+    "unit": "KG",
+    "unitPrice": 1.0,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-228",
+    "name": "BOLO DE CENOURA VEGANO",
+    "unit": "KG",
+    "unitPrice": 1.4,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-229",
+    "name": "BOLO DE CHOCOLATE VEGANO",
+    "unit": "KG",
+    "unitPrice": 1.5,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-230",
+    "name": "BOLO DE FUBÁ COM GOIABADA",
+    "unit": "KG",
+    "unitPrice": 0.9,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-231",
+    "name": "BOLO DE CENOURA COM COBERTURA",
+    "unit": "KG",
+    "unitPrice": 1.05,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-232",
+    "name": "BOLO DE LIMÃO",
+    "unit": "KG",
+    "unitPrice": 0.95,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-233",
+    "name": "BOLO DE COCO COM CALDA",
+    "unit": "KG",
+    "unitPrice": 1.05,
+    "buffets": [
+      "cafe",
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
+  },
+  {
+    "id": "waste-234",
+    "name": "BOLO VULCÃO DE CHOCOLATE",
+    "unit": "KG",
+    "unitPrice": 1.4,
+    "buffets": [
+      "cha",
+      "jantar"
+    ],
+    "sector": "Confeitaria"
   }
 ]
