@@ -11,18 +11,12 @@ import { PRODUCTS_MASTER_PART1 } from './data/productsMasterPart1.js'
 import { PRODUCTS_MASTER_PART2 } from './data/productsMasterPart2.js'
 import { PRODUCTS_MASTER_PART3 } from './data/productsMasterPart3.js'
 import { PRODUCTS_MASTER_PART4 } from './data/productsMasterPart4.js'
+import { normalizeProductNameKey } from './products/normalizeProductName.js'
 import type { CatalogProduct, ProductImportSummary, ProductOrigin, ProductStatus } from './types.js'
 
-const LAST_IMPORT_META_KEY = 'products_last_import_summary'
+export { normalizeProductNameKey } from './products/normalizeProductName.js'
 
-export function normalizeProductNameKey(name: string): string {
-  return name
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase()
-}
+const LAST_IMPORT_META_KEY = 'products_last_import_summary'
 
 function roundMoney(value: number): number {
   return Math.round(value * 100) / 100

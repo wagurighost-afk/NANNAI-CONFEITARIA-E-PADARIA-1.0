@@ -25,10 +25,15 @@ export function useProducts() {
     queryFn: () => productsService.getLastImportSummary(),
   })
 
+  const invalidateCatalogAndWaste = async () => {
+    await queryClient.invalidateQueries({ queryKey: QUERY_KEY })
+    await queryClient.invalidateQueries({ queryKey: ['waste-control', 'products'] })
+  }
+
   const createMutation = useMutation({
     mutationFn: (input: CreateProductInput) => productsService.create(input),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: QUERY_KEY })
+      await invalidateCatalogAndWaste()
     },
   })
 
@@ -36,14 +41,14 @@ export function useProducts() {
     mutationFn: ({ id, input }: { id: string; input: UpdateProductInput }) =>
       productsService.update(id, input),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: QUERY_KEY })
+      await invalidateCatalogAndWaste()
     },
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => productsService.remove(id),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: QUERY_KEY })
+      await invalidateCatalogAndWaste()
     },
   })
 
@@ -64,7 +69,7 @@ export function useProducts() {
       return productsService.importMasterAll()
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: QUERY_KEY })
+      await invalidateCatalogAndWaste()
     },
   })
 

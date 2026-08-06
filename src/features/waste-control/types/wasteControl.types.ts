@@ -7,6 +7,8 @@ export type WasteConferenceStatus =
   | 'conferido'
   | 'necessita_revisao'
 
+export type WasteProductOrigin = 'Cadastro Mestre' | 'Manual'
+
 export interface WasteControlProduct {
   id: string
   name: string
@@ -14,6 +16,12 @@ export interface WasteControlProduct {
   unitPrice: number
   buffets: WasteBuffetType[]
   sector: WasteSector
+  /** ID no Cadastro de Produtos, quando vinculado por nome. */
+  catalogProductId?: string | null
+  /** true quando o custo veio do Cadastro de Produtos. */
+  costFromCatalog?: boolean
+  /** Origem no Cadastro de Produtos (mestre ou manual). */
+  origin?: WasteProductOrigin | null
 }
 
 export interface WasteLineItem {
@@ -24,6 +32,7 @@ export interface WasteLineItem {
   wasteKg: number
   unitPrice: number
   total: number
+  catalogProductId?: string | null
 }
 
 export interface WastePhaseRecord {

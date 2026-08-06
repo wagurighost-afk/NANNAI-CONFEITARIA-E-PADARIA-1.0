@@ -21,7 +21,8 @@ export function useWasteProducts(buffet: WasteBuffetType) {
   return useQuery({
     queryKey: ['waste-control', 'products', buffet],
     queryFn: () => wasteControlService.getProducts(buffet),
-    staleTime: 1000 * 60 * 30,
+    // Custos vêm do Cadastro de Produtos — refrescam com frequência.
+    staleTime: 1000 * 30,
   })
 }
 

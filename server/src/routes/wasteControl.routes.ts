@@ -35,9 +35,9 @@ function parseConferenceStatus(value: unknown): WasteConferenceStatus | null {
     : null
 }
 
-wasteControlRouter.get('/products', (req, res) => {
+wasteControlRouter.get('/products', async (req, res) => {
   const buffet = parseBuffet(req.query.buffet)
-  res.json({ products: listWasteProducts(buffet ?? undefined) })
+  res.json({ products: await listWasteProducts(buffet ?? undefined) })
 })
 
 wasteControlRouter.get('/days/:date', async (req, res) => {

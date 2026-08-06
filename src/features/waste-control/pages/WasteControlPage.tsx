@@ -1,5 +1,6 @@
 import { RefreshCw, Save, Search } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Breadcrumb, PageHeader, PageShell } from '@/components/common'
 import {
   Badge,
@@ -35,6 +36,7 @@ import type {
   WasteBuffetType,
   WasteConferenceStatus,
   WasteControlDay,
+  WasteControlProduct,
   WastePhase,
   WastePhaseDraft,
 } from '@/features/waste-control/types/wasteControl.types'
@@ -48,7 +50,40 @@ import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks'
 import { usePermission } from '@/hooks/usePermission'
 
-function buildDraftFromDay(day: WasteControlDay | undefined): Record<WastePhase, WastePhaseDraft> {
+function normalizeName(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase()
+}
+
+function resolveDraftProductId(
+  item: { productId: string; productName: string; catalogProductId?: string | null },
+  products: WasteControlProduct[],
+): string {
+  const byId = products.find(
+    (product) =>
+      product.id === item.productId ||
+      product.catalogProductId === item.productId ||
+      product.id === item.catalogProductId ||
+      product.id === item.productId.replace(/^waste-cat-/, ''),
+  )
+  if (byId) {
+    return byId.id
+  }
+
+  const byName = products.find(
+    (product) => normalizeName(product.name) === normalizeName(item.productName),
+  )
+  return byName?.id ?? item.productId
+}
+
+function buildDraftFromDay(
+  day: WasteControlDay | undefined,
+  products: WasteControlProduct[],
+): Record<WastePhase, WastePhaseDraft> {
   const empty: Record<WastePhase, WastePhaseDraft> = {
     entrada: {},
     reposicao: {},
@@ -59,7 +94,8 @@ function buildDraftFromDay(day: WasteControlDay | undefined): Record<WastePhase,
   }
   for (const phase of WASTE_PHASES) {
     for (const item of day.phases[phase].items) {
-      empty[phase][item.productId] = { units: item.units, wasteKg: item.wasteKg }
+      const productId = resolveDraftProductId(item, products)
+      empty[phase][productId] = { units: item.units, wasteKg: item.wasteKg }
     }
   }
   return empty
@@ -104,6 +140,9 @@ export function WasteControlPage() {
   const [year, month] = selectedDate.split('-').map(Number)
   const summaryQuery = useWasteControlSummary(year ?? 2026, month ?? 1)
 
+  const products = productsQuery.data ?? []
+  const productIdsKey = products.map((product) => product.id).join('|')
+
   useEffect(() => {
     if (!dayQuery.data) {
       return
@@ -111,14 +150,15 @@ export function WasteControlPage() {
     setPax(dayQuery.data.pax)
     setMonthlyGoalKg(dayQuery.data.monthlyGoalKg)
     setDessertsQty(dayQuery.data.dessertsQty)
-    setPhaseDrafts(buildDraftFromDay(dayQuery.data))
-  }, [dayQuery.data])
+    setPhaseDrafts(buildDraftFromDay(dayQuery.data, products))
+    // productIdsKey evita resetar a digitação a cada refetch do catálogo
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- products derivado de productIdsKey
+  }, [dayQuery.data, productIdsKey])
 
   useEffect(() => {
     setPickerPrompted(false)
   }, [selectedDate, buffet])
 
-  const products = productsQuery.data ?? []
   const needsResponsible = Boolean(dayQuery.data && !dayQuery.data.assignment && !pickerPrompted)
 
   const dayPreview = useMemo(() => {
@@ -130,8 +170,9 @@ export function WasteControlPage() {
         if (!product) {
           continue
         }
+        const unitPrice = Number(product.unitPrice)
         wasteKgTotal += entry.wasteKg
-        dayTotal += entry.wasteKg * product.unitPrice
+        dayTotal += entry.wasteKg * (Number.isFinite(unitPrice) ? unitPrice : 0)
       }
     }
     return { wasteKgTotal, dayTotal }
@@ -260,7 +301,7 @@ export function WasteControlPage() {
 
       <PageHeader
         title="Controle de Desperdício"
-        description="Registro compartilhado em tempo real — entrada, reposição e finalização (Café da Manhã, Chá e Jantar)."
+        description="Um único bloco: a lista e os custos vêm do Cadastro de Produtos."
         actions={
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
             <Button
@@ -384,6 +425,28 @@ export function WasteControlPage() {
               Selecione o responsável presente para abrir a contagem deste buffet.
             </div>
           ) : null}
+
+          <div className="rounded-2xl border border-border bg-card/70 px-4 py-3 text-sm text-muted-foreground">
+            Lista única do{' '}
+            <Link to={APP_ROUTES.products} className="font-medium text-foreground underline-offset-2 hover:underline">
+              Cadastro de Produtos
+            </Link>
+            {products.length > 0 ? (
+              <>
+                {' '}
+                — <span className="font-medium text-foreground">{products.length}</span> produtos
+                ativos (mestre + manuais), com custo/porção.
+                {products.some((item) => item.origin === 'Manual') ? (
+                  <span className="mt-1 block text-xs">
+                    Inclui {products.filter((item) => item.origin === 'Manual').length} produto(s)
+                    manual(is).
+                  </span>
+                ) : null}
+              </>
+            ) : (
+              ' — nenhum produto ativo. Cadastre ou ative itens no catálogo.'
+            )}
+          </div>
 
           <div className="flex flex-wrap gap-2">
             <Badge variant="accent">Dia: {formatWasteMoney(dayPreview.dayTotal)}</Badge>
