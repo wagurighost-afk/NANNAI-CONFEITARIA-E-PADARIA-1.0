@@ -5,16 +5,34 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const defaultOrigins = ['http://localhost:5173', 'http://localhost:4173']
 
+/** Origens dos shells Capacitor/Electron (WebView) para sincronização em tempo real. */
+const nativeShellOrigins = [
+  'capacitor://localhost',
+  'ionic://localhost',
+  'https://localhost',
+  'http://localhost',
+]
+
+function mergeNativeOrigins(origins: string[]): string[] {
+  if (process.env.CORS_ALLOW_NATIVE === 'false') {
+    return origins
+  }
+
+  return [...new Set([...origins, ...nativeShellOrigins])]
+}
+
 function resolveCorsOrigins(): string[] | boolean {
   if (process.env.CORS_ORIGIN) {
-    return process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
+    return mergeNativeOrigins(
+      process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()),
+    )
   }
 
   if (process.env.RENDER_EXTERNAL_URL) {
-    return [process.env.RENDER_EXTERNAL_URL]
+    return mergeNativeOrigins([process.env.RENDER_EXTERNAL_URL])
   }
 
-  return defaultOrigins
+  return mergeNativeOrigins(defaultOrigins)
 }
 
 const dataDir = process.env.DATA_DIR ?? path.join(__dirname, '..', 'data')

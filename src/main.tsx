@@ -1,23 +1,21 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { registerSW } from 'virtual:pwa-register'
 import { App } from '@/app/App'
+import { bootstrapNativeShell } from '@/platform'
 import { applyDocumentTheme, resolveInitialTheme } from '@/styles/themeBootstrap'
 import '@/styles/globals.css'
 
 applyDocumentTheme(resolveInitialTheme())
 
-if ('serviceWorker' in navigator) {
-  const updateSW = registerSW({
-    immediate: true,
-    onNeedRefresh() {
-      void updateSW(true)
-    },
-    onRegisteredSW(_url, registration) {
-      void registration?.update()
-    },
-  })
+const buildTarget = import.meta.env.VITE_BUILD_TARGET ?? 'web'
+
+if (buildTarget === 'web') {
+  void import('@/pwa/registerServiceWorker').then(({ registerPwaServiceWorker }) =>
+    registerPwaServiceWorker(),
+  )
 }
+
+void bootstrapNativeShell()
 
 const rootElement = document.getElementById('root')
 

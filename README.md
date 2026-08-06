@@ -62,6 +62,12 @@ Overrides locais (não versionados): `.env.local`, `.env.*.local`
 | `npm run build` | Build de produção |
 | `npm run preview` | Preview do build |
 | `npm run lint` | Lint (oxlint) |
+| `npm run build:capacitor` | Build para Android/iOS |
+| `npm run cap:android` | Abre projeto Android (Capacitor) |
+| `npm run electron:dev` | App Windows em desenvolvimento |
+| `npm run electron:build` | Instalador Windows (.exe) |
+
+Documentação multiplataforma: [`docs/platforms/README.md`](docs/platforms/README.md)
 
 ## Instalar como app (tipo Suflex)
 

@@ -15,6 +15,16 @@ server/node_modules
 server/data
 server/uploads
 
+# Native builds
+release/
+android/.gradle/
+android/app/build/
+android/build/
+ios/App/Pods/
+*.apk
+*.aab
+*.ipa
+
 # Env — secrets e overrides locais
 .env
 .env.local

@@ -6,6 +6,7 @@ import { queryClient } from '@/config/queryClient'
 import {
   AuthProvider,
   LoadingProvider,
+  PlatformProvider,
   RbacProvider,
   ThemeProvider,
 } from '@/contexts'
@@ -19,7 +20,8 @@ export function AppProviders({ children }: AppProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <LoadingProvider>
+        <PlatformProvider>
+          <LoadingProvider>
           <ToastProvider>
             <AuthProvider>
               <RealtimeSyncProvider>
@@ -30,7 +32,8 @@ export function AppProviders({ children }: AppProvidersProps) {
               </RealtimeSyncProvider>
             </AuthProvider>
           </ToastProvider>
-        </LoadingProvider>
+          </LoadingProvider>
+        </PlatformProvider>
       </ThemeProvider>
     </QueryClientProvider>
   )
