@@ -116,12 +116,34 @@ export async function seedDatabase(): Promise<void> {
   )
 }
 
+async function ensureMissingActiveProductions(today: string): Promise<boolean> {
+  const all = await loadAllProductions()
+  const knownIds = new Set(all.map((production) => production.id))
+  let changed = false
+
+  for (const entry of PRODUCTION_DIVISION) {
+    if (SKIPPED_PRODUCTION_EMPLOYEE_IDS.has(entry.employeeId)) {
+      continue
+    }
+
+    const meta = ACTIVE_PRODUCTION_IDS[entry.employeeId]
+    if (!meta || knownIds.has(meta.id)) {
+      continue
+    }
+
+    await saveProduction(buildDailyProduction(entry, meta.id, meta.code, today))
+    changed = true
+  }
+
+  return changed
+}
+
 export async function rolloverProductionsIfNeeded(): Promise<boolean> {
   const today = getTodayIso()
   const lastRollover = await getMeta(ROLLOVER_META_KEY)
 
   if (lastRollover === today) {
-    return false
+    return ensureMissingActiveProductions(today)
   }
 
   const all = await loadAllProductions()

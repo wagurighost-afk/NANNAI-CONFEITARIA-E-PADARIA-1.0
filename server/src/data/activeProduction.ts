@@ -13,6 +13,7 @@ export const ACTIVE_PRODUCTION_IDS: Record<string, { id: string; code: string }>
   'emp-paulo': { id: 'prd-paulo', code: 'PRD-000012' },
   'emp-romario': { id: 'prd-romario', code: 'PRD-000013' },
   'emp-vinicius': { id: 'prd-vinicius', code: 'PRD-000014' },
+  'emp-luciano-bispo': { id: 'prd-luciano-bispo', code: 'PRD-000015' },
 }
 
 export const SKIPPED_PRODUCTION_EMPLOYEE_IDS = new Set(['emp-david', 'emp-elenilson'])

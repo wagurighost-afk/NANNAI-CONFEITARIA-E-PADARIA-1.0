@@ -417,7 +417,7 @@ export const EMPLOYEES_MOCK: Employee[] = [
     shift: 'Tarde',
     status: 'Ativo',
     admissionDate: '2026-08-08',
-    notes: 'Integrou a equipe da Confeitaria no turno da tarde.',
+    notes: 'Integrou a equipe da Confeitaria no turno da tarde. Mesma praça da Jessica Rafaela.',
     productions: employeeProductions('emp-luciano-bispo'),
     checklists: checklists([]),
     history: history([
@@ -425,6 +425,11 @@ export const EMPLOYEES_MOCK: Employee[] = [
         date: '2026-08-08',
         title: 'Cadastro criado',
         description: 'Colaborador adicionado ao sistema — Confeiteiro, turno da tarde.',
+      },
+      {
+        date: '2026-08-08',
+        title: 'Produções definidas',
+        description: 'Praça alinhada com a Jessica Rafaela (cremes, trufas, pudins e montagens).',
       },
     ]),
   },
