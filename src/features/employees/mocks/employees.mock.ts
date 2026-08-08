@@ -407,4 +407,25 @@ export const EMPLOYEES_MOCK: Employee[] = [
       },
     ]),
   },
+  {
+    id: 'emp-luciano-bispo',
+    name: 'Luciano Bispo',
+    email: generateCorporateEmail('Luciano Bispo', 'Confeiteiro'),
+    phone: '(81) 99900-0017',
+    position: 'Confeiteiro',
+    sector: 'Confeitaria',
+    shift: 'Tarde',
+    status: 'Ativo',
+    admissionDate: '2026-08-08',
+    notes: 'Integrou a equipe da Confeitaria no turno da tarde.',
+    productions: employeeProductions('emp-luciano-bispo'),
+    checklists: checklists([]),
+    history: history([
+      {
+        date: '2026-08-08',
+        title: 'Cadastro criado',
+        description: 'Colaborador adicionado ao sistema — Confeiteiro, turno da tarde.',
+      },
+    ]),
+  },
 ]

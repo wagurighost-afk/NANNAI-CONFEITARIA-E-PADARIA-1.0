@@ -51,6 +51,7 @@ export const SEED_EMPLOYEES: SeedEmployee[] = [
   employee('emp-luciano', 'Luciano Marcelino', 'Padeiro', 'staff'),
   employee('emp-paulo', 'Paulo Ricardo', 'Padeiro', 'staff'),
   employee('emp-elenilson', 'Elenilson', 'Padeiro', 'staff'),
+  employee('emp-luciano-bispo', 'Luciano Bispo', 'Confeiteiro', 'staff'),
 ]
 
 export const SEED_ADMIN: SeedEmployee = {
