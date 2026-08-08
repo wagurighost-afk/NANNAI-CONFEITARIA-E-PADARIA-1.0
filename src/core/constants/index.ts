@@ -7,6 +7,7 @@ export type { AppNavItem } from '@/core/constants/navigation'
 export {
   APP_REFERENCE_DATE,
   APP_REFERENCE_WEEKDAY,
+  APP_TIMEZONE,
   appDateTimeAt,
   formatAppReferenceDateBr,
   getAppDayStartIso,

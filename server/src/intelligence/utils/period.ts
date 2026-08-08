@@ -5,17 +5,14 @@
 
 import type { IntelligencePeriod } from '../types.js'
 import type { ProductionDay } from '../../types.js'
+import { getOperationalTodayIso } from '../../utils/operationalDate.js'
 
 export function monthPrefix(year: number, month: number): string {
   return `${year}-${String(month).padStart(2, '0')}-`
 }
 
 export function todayIsoDate(): string {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
+  return getOperationalTodayIso()
 }
 
 export function filterProductionsInPeriod(
