@@ -8,23 +8,47 @@ function defaultStore(): Employee[] {
   return structuredClone(EMPLOYEES_MOCK)
 }
 
+/**
+ * Acrescenta ao armazenamento local qualquer colaborador novo do catálogo
+ * base (ex.: adicionado em uma atualização) que ainda não exista lá,
+ * preservando edições já feitas nos colaboradores existentes.
+ */
+function mergeWithBaseline(persisted: Employee[]): Employee[] {
+  const knownIds = new Set(persisted.map((employee) => employee.id))
+  const missing = EMPLOYEES_MOCK.filter((employee) => !knownIds.has(employee.id))
+  if (missing.length === 0) {
+    return persisted
+  }
+  return [...persisted, ...structuredClone(missing)]
+}
+
+export function persistEmployees(employees: Employee[]): void {
+  storage.set(EMPLOYEES_STORE_KEY, JSON.stringify(employees))
+}
+
 export function loadPersistedEmployees(): Employee[] {
   const raw = storage.get(EMPLOYEES_STORE_KEY)
   if (!raw) {
-    return defaultStore()
+    const initial = defaultStore()
+    persistEmployees(initial)
+    return initial
   }
 
   try {
     const parsed = JSON.parse(raw) as Employee[]
     if (!Array.isArray(parsed) || parsed.length === 0) {
-      return defaultStore()
+      const initial = defaultStore()
+      persistEmployees(initial)
+      return initial
     }
-    return parsed
+    const merged = mergeWithBaseline(parsed)
+    if (merged !== parsed) {
+      persistEmployees(merged)
+    }
+    return merged
   } catch {
-    return defaultStore()
+    const initial = defaultStore()
+    persistEmployees(initial)
+    return initial
   }
-}
-
-export function persistEmployees(employees: Employee[]): void {
-  storage.set(EMPLOYEES_STORE_KEY, JSON.stringify(employees))
 }
