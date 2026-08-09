@@ -236,7 +236,7 @@ export function ProductionPage() {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid min-w-0 grid-cols-1 gap-4 [&>*]:min-w-0 md:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
             <Skeleton key={index} variant="rectangular" height={180} />
           ))}
@@ -248,7 +248,7 @@ export function ProductionPage() {
         />
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:hidden">
+          <div className="grid min-w-0 grid-cols-1 gap-4 [&>*]:min-w-0 md:grid-cols-2 lg:hidden">
             {productions.map((production) => (
               <ProductionCard
                 key={production.id}
@@ -260,7 +260,7 @@ export function ProductionPage() {
             ))}
           </div>
 
-          <div className="hidden lg:block">
+          <div className="hidden min-w-0 lg:block">
             {viewMode === 'table' ? (
               <ProductionTable
                 productions={productions}
@@ -269,7 +269,7 @@ export function ProductionPage() {
                 }}
               />
             ) : (
-              <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+              <div className="grid min-w-0 grid-cols-1 gap-4 [&>*]:min-w-0 xl:grid-cols-3">
                 {productions.map((production) => (
                   <ProductionCard
                     key={production.id}

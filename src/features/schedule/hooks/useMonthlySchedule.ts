@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { getAppCurrentYearMonth } from '@/core/constants/appDate'
 import { monthlyScheduleService } from '@/features/schedule/services/monthlySchedule.service'
 import type {
   MonthlyDayStatus,
@@ -9,12 +10,33 @@ import type {
 
 const QUERY_KEY = ['monthly-schedule'] as const
 
-export function useMonthlySchedule(initialYear = 2026, initialMonth = 7) {
+function pickInitialPeriod(
+  available: Array<{ year: number; month: number }> | undefined,
+  preferred: { year: number; month: number },
+): { year: number; month: number } {
+  if (!available?.length) {
+    return preferred
+  }
+  const hasCurrent = available.some(
+    (item) => item.year === preferred.year && item.month === preferred.month,
+  )
+  if (hasCurrent) {
+    return preferred
+  }
+  const latest = [...available].sort((a, b) => b.year - a.year || b.month - a.month)[0]
+  return latest ?? preferred
+}
+
+export function useMonthlySchedule(initialYear?: number, initialMonth?: number) {
   const queryClient = useQueryClient()
-  const [year, setYear] = useState(initialYear)
-  const [month, setMonth] = useState(initialMonth)
+  const currentPeriod = getAppCurrentYearMonth()
+  const [year, setYear] = useState(initialYear ?? currentPeriod.year)
+  const [month, setMonth] = useState(initialMonth ?? currentPeriod.month)
   const [swapMode, setSwapMode] = useState(false)
   const [swapSource, setSwapSource] = useState<{ rowId: string; day: number } | null>(null)
+  const [didResolvePeriod, setDidResolvePeriod] = useState(
+    initialYear !== undefined && initialMonth !== undefined,
+  )
 
   const listQuery = useQuery({
     queryKey: [...QUERY_KEY, 'list'],
@@ -26,6 +48,41 @@ export function useMonthlySchedule(initialYear = 2026, initialMonth = 7) {
     queryFn: () => monthlyScheduleService.getByYearMonth(year, month),
   })
 
+  useEffect(() => {
+    if (didResolvePeriod || listQuery.isLoading || !listQuery.data) {
+      return
+    }
+
+    const next = pickInitialPeriod(
+      listQuery.data.map((schedule) => ({ year: schedule.year, month: schedule.month })),
+      currentPeriod,
+    )
+    setYear(next.year)
+    setMonth(next.month)
+    setDidResolvePeriod(true)
+  }, [currentPeriod, didResolvePeriod, listQuery.data, listQuery.isLoading])
+
+  useEffect(() => {
+    if (!didResolvePeriod || currentQuery.isFetching || currentQuery.data || !listQuery.data?.length) {
+      return
+    }
+
+    const latest = [...listQuery.data].sort(
+      (a, b) => b.year - a.year || b.month - a.month,
+    )[0]
+    if (latest && (latest.year !== year || latest.month !== month)) {
+      setYear(latest.year)
+      setMonth(latest.month)
+    }
+  }, [
+    currentQuery.data,
+    currentQuery.isFetching,
+    didResolvePeriod,
+    listQuery.data,
+    month,
+    year,
+  ])
+
   const invalidate = async () => {
     await queryClient.invalidateQueries({ queryKey: QUERY_KEY })
   }
@@ -35,6 +92,7 @@ export function useMonthlySchedule(initialYear = 2026, initialMonth = 7) {
     onSuccess: async (schedule) => {
       setYear(schedule.year)
       setMonth(schedule.month)
+      setDidResolvePeriod(true)
       await invalidate()
     },
   })

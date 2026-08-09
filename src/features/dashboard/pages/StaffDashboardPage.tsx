@@ -29,21 +29,25 @@ export function StaffDashboardPage() {
         }
       />
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid min-w-0 gap-4 [&>*]:min-w-0 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Minha produção</CardTitle>
             <CardDescription>{formatAppReferenceDateBr()}</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="min-w-0">
             {myProduction ? (
-              <div className="space-y-3">
+              <div className="min-w-0 space-y-3">
                 <ProgressBar value={myProduction.progress} label="Progresso" />
                 <ul className="space-y-2">
                   {myProduction.items.map((item) => (
-                    <li key={item.id} className="flex items-center justify-between gap-2 text-sm">
-                      <span>{item.name}</span>
-                      <ProductionStatusBadge status={item.status} />
+                    <li key={item.id} className="flex min-w-0 items-center justify-between gap-2 text-sm">
+                      <span className="min-w-0 flex-1 break-words [overflow-wrap:anywhere]">
+                        {item.name}
+                      </span>
+                      <span className="shrink-0">
+                        <ProductionStatusBadge status={item.status} />
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -55,15 +59,15 @@ export function StaffDashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="flex-row items-center justify-between">
-            <CardTitle>Minha escala</CardTitle>
-            <Link to={APP_ROUTES.schedule}>
+          <CardHeader className="flex-row flex-wrap items-center justify-between gap-2">
+            <CardTitle className="min-w-0">Minha escala</CardTitle>
+            <Link to={APP_ROUTES.schedule} className="shrink-0">
               <Button variant="outline" size="sm">
                 Ver escala completa
               </Button>
             </Link>
           </CardHeader>
-          <CardContent>
+          <CardContent className="min-w-0">
             {mySchedule ? (
               <div className="space-y-3 text-sm">
                 <p>
@@ -76,8 +80,8 @@ export function StaffDashboardPage() {
                   {mySchedule.status}
                 </Badge>
                 {monthlySchedule && myDaysOff.length > 0 ? (
-                  <div className="rounded-xl border border-border bg-muted/20 p-3">
-                    <p className="mb-2 text-xs font-medium text-muted-foreground">
+                  <div className="min-w-0 rounded-xl border border-border bg-muted/20 p-3">
+                    <p className="mb-2 break-words text-xs font-medium text-muted-foreground [overflow-wrap:anywhere]">
                       Minhas folgas em {monthlySchedule.label}
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -105,8 +109,8 @@ export function StaffDashboardPage() {
               <p className="text-sm text-muted-foreground">Sem comentários.</p>
             ) : (
               recentComments.map((comment) => (
-                <div key={comment.id} className="rounded-lg border border-border p-3 text-sm">
-                  <p>{comment.message}</p>
+                <div key={comment.id} className="min-w-0 rounded-lg border border-border p-3 text-sm">
+                  <p className="break-words [overflow-wrap:anywhere]">{comment.message}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     <time dateTime={comment.createdAt}>{formatDateTimeBr(comment.createdAt)}</time>
                   </p>
@@ -122,9 +126,9 @@ export function StaffDashboardPage() {
           </CardHeader>
           <CardContent className="space-y-2">
             {todayCleaning.map((assignment) => (
-              <div key={assignment.shift}>
+              <div key={assignment.shift} className="min-w-0">
                 <p className="text-sm font-medium">{assignment.shift}</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="break-words text-sm text-muted-foreground [overflow-wrap:anywhere]">
                   {assignment.employeeNames.join(', ') || '—'}
                 </p>
               </div>
@@ -133,28 +137,30 @@ export function StaffDashboardPage() {
         </Card>
 
         <Card className="lg:col-span-2">
-          <CardHeader className="flex-row items-center justify-between">
-            <CardTitle>POP</CardTitle>
-            <Link to={APP_ROUTES.pop}>
+          <CardHeader className="flex-row flex-wrap items-center justify-between gap-2">
+            <CardTitle className="min-w-0">POP</CardTitle>
+            <Link to={APP_ROUTES.pop} className="shrink-0">
               <Button variant="outline" size="sm">
                 Ver todos
               </Button>
             </Link>
           </CardHeader>
-          <CardContent className="grid gap-3 md:grid-cols-2">
+          <CardContent className="grid min-w-0 gap-3 md:grid-cols-2">
             {popDocuments.slice(0, 4).map((doc) => (
-              <div key={doc.id} className="rounded-xl border border-border p-3">
-                <p className="font-medium">{doc.title}</p>
-                <p className="text-sm text-muted-foreground">{doc.summary}</p>
+              <div key={doc.id} className="min-w-0 rounded-xl border border-border p-3">
+                <p className="break-words font-medium [overflow-wrap:anywhere]">{doc.title}</p>
+                <p className="break-words text-sm text-muted-foreground [overflow-wrap:anywhere]">
+                  {doc.summary}
+                </p>
               </div>
             ))}
           </CardContent>
         </Card>
 
         <Card className="lg:col-span-2">
-          <CardHeader className="flex-row items-center justify-between">
-            <CardTitle>Receitas</CardTitle>
-            <Link to={APP_ROUTES.recipes}>
+          <CardHeader className="flex-row flex-wrap items-center justify-between gap-2">
+            <CardTitle className="min-w-0">Receitas</CardTitle>
+            <Link to={APP_ROUTES.recipes} className="shrink-0">
               <Button variant="outline" size="sm">
                 Consultar receitas
               </Button>
