@@ -78,7 +78,7 @@ export function CommentsPage() {
           <CardContent className="space-y-3 pt-6">
             <div>
               <p className="text-sm font-medium">Comentar no seu turno de hoje</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="break-words text-sm text-muted-foreground [overflow-wrap:anywhere]">
                 {activeProduction.employeeName} · {formatDateBr(activeProduction.date)} ·{' '}
                 {activeProduction.shift} · {activeProduction.sector}
               </p>

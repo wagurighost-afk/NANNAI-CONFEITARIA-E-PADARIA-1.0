@@ -1,5 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
-import { getAppReferenceWeekday, getAppTodayIso } from '@/core/constants/appDate'
+import {
+  getAppCurrentYearMonth,
+  getAppReferenceWeekday,
+  getAppTodayIso,
+} from '@/core/constants/appDate'
 import { resolveEmployeeForUser } from '@/core/auth/employeeResolver'
 import { cleaningScheduleService } from '@/features/cleaning-schedule/services/cleaningSchedule.service'
 import { productionService } from '@/features/production/services/production.service'
@@ -14,6 +18,7 @@ export function useStaffDashboard() {
   const employee = resolveEmployeeForUser(user)
   const today = getAppTodayIso()
   const todayWeekDay = getAppReferenceWeekday()
+  const currentPeriod = getAppCurrentYearMonth()
 
   const productionQuery = useQuery({
     queryKey: ['dashboard', 'staff-production', employee?.id, today],
@@ -40,8 +45,9 @@ export function useStaffDashboard() {
   })
 
   const monthlyScheduleQuery = useQuery({
-    queryKey: ['monthly-schedule', 2026, 7],
-    queryFn: () => monthlyScheduleService.getByYearMonth(2026, 7),
+    queryKey: ['monthly-schedule', currentPeriod.year, currentPeriod.month],
+    queryFn: () =>
+      monthlyScheduleService.getByYearMonth(currentPeriod.year, currentPeriod.month),
   })
 
   const popQuery = useQuery({

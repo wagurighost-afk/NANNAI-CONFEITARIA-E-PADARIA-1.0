@@ -4,6 +4,7 @@ import { Badge, Button, Drawer, Tabs, TabsContent, TabsList, TabsTrigger } from 
 import { SystemBadges } from '@/components/auth/SystemBadges'
 import { UserRoleBadge } from '@/components/auth/UserRoleBadge'
 import { resolveEmployeeAuthProfile } from '@/core/auth/employeeAuthProfile'
+import { getAppCurrentYearMonth } from '@/core/constants/appDate'
 import { EmployeeAvatar } from '@/features/employees/components/EmployeeAvatar'
 import { EmployeeStatusBadge } from '@/features/employees/components/EmployeeStatusBadge'
 import { EmployeeDaysOffPanel } from '@/features/schedule/components/EmployeeDaysOffPanel'
@@ -43,10 +44,12 @@ export function EmployeeProfileDrawer({
   const canManagePasswords = hasFullSystemAccess(user)
   const photoInputRef = useRef<HTMLInputElement>(null)
   const [photoError, setPhotoError] = useState<string | null>(null)
+  const currentPeriod = getAppCurrentYearMonth()
 
   const monthlyScheduleQuery = useQuery({
-    queryKey: ['monthly-schedule', 2026, 7],
-    queryFn: () => monthlyScheduleService.getByYearMonth(2026, 7),
+    queryKey: ['monthly-schedule', currentPeriod.year, currentPeriod.month],
+    queryFn: () =>
+      monthlyScheduleService.getByYearMonth(currentPeriod.year, currentPeriod.month),
     enabled: open && Boolean(employee),
   })
 

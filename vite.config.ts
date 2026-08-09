@@ -43,9 +43,9 @@ export default defineConfig({
               description:
                 'Sistema de Gestão Operacional para Alimentos & Bebidas — Confeitaria e Padaria',
               lang: 'pt-BR',
-              start_url: '/?v=1.8.0',
+              start_url: '/?v=1.8.2',
               scope: '/',
-              id: '/?v=1.8.0',
+              id: '/?v=1.8.2',
               display: 'standalone',
               orientation: 'portrait-primary',
               theme_color: BRAND_THEME_COLOR,
@@ -70,6 +70,7 @@ export default defineConfig({
             workbox: {
               skipWaiting: true,
               clientsClaim: true,
+              cleanupOutdatedCaches: true,
               globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2,docx,xlsx}'],
               navigateFallback: '/index.html',
               navigateFallbackDenylist: [/^\/api\//],

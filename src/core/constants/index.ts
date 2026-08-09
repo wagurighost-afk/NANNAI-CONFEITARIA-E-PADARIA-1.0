@@ -9,8 +9,10 @@ export {
   APP_REFERENCE_WEEKDAY,
   appDateTimeAt,
   formatAppReferenceDateBr,
+  getAppCurrentYearMonth,
   getAppDayStartIso,
   getAppNowIso,
   getAppReferenceWeekday,
   getAppTodayIso,
 } from '@/core/constants/appDate'
+export type { AppYearMonth } from '@/core/constants/appDate'
