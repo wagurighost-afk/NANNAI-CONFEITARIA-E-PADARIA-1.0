@@ -1,3 +1,8 @@
+/**
+ * Legado documental dos 14 IDs fixos do modelo antigo.
+ * NÃO usar para rollover/materialização — cada ProductionDay deve ter ID novo.
+ * Mantido para referência de migração e mocks de frontend.
+ */
 export const ACTIVE_PRODUCTION_IDS: Record<string, { id: string; code: string }> = {
   'emp-mauro': { id: 'prd-mauro', code: 'PRD-000001' },
   'emp-larissa': { id: 'prd-larissa', code: 'PRD-000002' },

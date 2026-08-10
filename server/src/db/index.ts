@@ -93,6 +93,10 @@ export async function loadProductionRecord(id: string) {
   return getStore().loadProductionRecord(id)
 }
 
+export async function findProductionByEmployeeAndDate(employeeId: string, date: string) {
+  return getStore().findProductionByEmployeeAndDate(employeeId, date)
+}
+
 export async function loadAllProductionRecords() {
   return getStore().loadAllProductionRecords()
 }

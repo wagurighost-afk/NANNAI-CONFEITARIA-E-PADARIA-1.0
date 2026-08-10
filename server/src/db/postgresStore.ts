@@ -1,6 +1,7 @@
 import pg from 'pg'
 import { config } from '../config.js'
 import { readJsonDatabaseFile } from './jsonStore.js'
+import { ProductionDayUniqueConflictError } from './productionDayConflict.js'
 import type { DatabaseFile, DatabaseStore } from './types.js'
 import type {
   BreadControlDay,
@@ -103,6 +104,14 @@ CREATE INDEX IF NOT EXISTS idx_intelligence_snapshots_category ON intelligence_s
 CREATE INDEX IF NOT EXISTS idx_intelligence_snapshots_period_category ON intelligence_snapshots (period_year, period_month, category);
 CREATE INDEX IF NOT EXISTS idx_productions_date ON productions ((payload->>'date'));
 
+-- Um ProductionDay por colaborador + data operacional (idempotência / concorrência).
+CREATE UNIQUE INDEX IF NOT EXISTS idx_productions_employee_operational_date
+  ON productions ((payload->>'employeeId'), (payload->>'date'))
+  WHERE (payload ? 'employeeId')
+    AND (payload ? 'date')
+    AND NULLIF(payload->>'employeeId', '') IS NOT NULL
+    AND NULLIF(payload->>'date', '') IS NOT NULL;
+
 CREATE INDEX IF NOT EXISTS idx_recipes_status ON recipes ((payload->>'status'));
 CREATE INDEX IF NOT EXISTS idx_recipes_category ON recipes ((payload->>'category'));
 CREATE INDEX IF NOT EXISTS idx_recipes_name ON recipes ((payload->>'name'));
@@ -129,6 +138,20 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs (created_at D
 CREATE INDEX IF NOT EXISTS idx_audit_logs_entity ON audit_logs (entity_type, entity_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_actor ON audit_logs (actor_id);
 `
+
+function isPostgresUniqueViolation(error: unknown, indexName: string): boolean {
+  if (!error || typeof error !== 'object') {
+    return false
+  }
+  const pgError = error as { code?: string; constraint?: string; message?: string }
+  if (pgError.code !== '23505') {
+    return false
+  }
+  return (
+    pgError.constraint === indexName ||
+    (typeof pgError.message === 'string' && pgError.message.includes(indexName))
+  )
+}
 
 async function importJsonIfEmpty(pool: pg.Pool): Promise<void> {
   const { rows } = await pool.query<{ count: string }>('SELECT COUNT(*)::text AS count FROM users')
@@ -361,17 +384,34 @@ export function createPostgresStore(): DatabaseStore {
     },
 
     async saveProductionRecord(production) {
-      await pool.query(
-        `INSERT INTO productions (id, payload) VALUES ($1, $2::jsonb)
-         ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload`,
-        [production.id, JSON.stringify(production)],
-      )
+      try {
+        await pool.query(
+          `INSERT INTO productions (id, payload) VALUES ($1, $2::jsonb)
+           ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload`,
+          [production.id, JSON.stringify(production)],
+        )
+      } catch (error) {
+        if (isPostgresUniqueViolation(error, 'idx_productions_employee_operational_date')) {
+          throw new ProductionDayUniqueConflictError(production.employeeId, production.date)
+        }
+        throw error
+      }
     },
 
     async loadProductionRecord(id) {
       const { rows } = await pool.query<{ payload: ProductionDay }>(
         'SELECT payload FROM productions WHERE id = $1',
         [id],
+      )
+      return rows[0]?.payload ?? null
+    },
+
+    async findProductionByEmployeeAndDate(employeeId, date) {
+      const { rows } = await pool.query<{ payload: ProductionDay }>(
+        `SELECT payload FROM productions
+         WHERE payload->>'employeeId' = $1 AND payload->>'date' = $2
+         LIMIT 1`,
+        [employeeId, date],
       )
       return rows[0]?.payload ?? null
     },

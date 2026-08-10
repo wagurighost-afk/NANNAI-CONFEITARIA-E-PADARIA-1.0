@@ -8,6 +8,7 @@ import {
   countUsers,
   deleteProductionRecord,
   deleteRefreshToken,
+  findProductionByEmployeeAndDate,
   findRefreshToken,
   getMeta,
   insertRefreshToken,
@@ -35,12 +36,16 @@ import {
   importMasterPart4,
 } from './products.service.js'
 import { SEED_ADMIN, SEED_EMPLOYEES } from './data/employees.js'
+import { listProductionTemplates } from './data/productionTemplate.js'
 import {
-  ACTIVE_PRODUCTION_IDS,
-  SKIPPED_PRODUCTION_EMPLOYEE_IDS,
-} from './data/activeProduction.js'
-import { PRODUCTION_DIVISION } from './data/productionDivision.js'
-import { buildDailyProduction, buildSeedProductions, getTodayIso } from './data/productionSeed.js'
+  buildFreshProductionDay,
+  buildSeedProductions,
+  getNextProductionCode,
+  getTodayIso,
+} from './data/productionSeed.js'
+import {
+  isProductionDayUniqueConflict,
+} from './db/productionDayConflict.js'
 import type { UserRow } from './db/types.js'
 import type { ProductionDay } from './types.js'
 
@@ -116,36 +121,63 @@ export async function seedDatabase(): Promise<void> {
   )
 }
 
+/**
+ * Na virada operacional (America/Recife): materializa ProductionDay NOVOS.
+ * Nunca reutiliza IDs fixos nem move o registro do dia anterior.
+ */
 export async function rolloverProductionsIfNeeded(): Promise<boolean> {
   const today = getTodayIso()
   const lastRollover = await getMeta(ROLLOVER_META_KEY)
+  const materialized = await ensureProductionDaysForDate(today)
 
-  if (lastRollover === today) {
-    return false
+  if (lastRollover !== today) {
+    await setMeta(ROLLOVER_META_KEY, today)
+    return true
+  }
+
+  return materialized > 0
+}
+
+/**
+ * Garante um ProductionDay por template válido na data operacional.
+ * Idempotente sob concorrência (UNIQUE employeeId+date).
+ * @returns quantidade de registros criados nesta chamada
+ */
+export async function ensureProductionDaysForDate(date: string): Promise<number> {
+  const templates = listProductionTemplates()
+  if (templates.length === 0) {
+    return 0
   }
 
   const all = await loadAllProductions()
-  const byId = new Map(all.map((production) => [production.id, production]))
-  let changed = false
+  const codes = all.map((item) => item.productionCode)
+  let created = 0
 
-  for (const entry of PRODUCTION_DIVISION) {
-    if (SKIPPED_PRODUCTION_EMPLOYEE_IDS.has(entry.employeeId)) {
+  for (const template of templates) {
+    const existing = await findProductionByEmployeeAndDate(template.employeeId, date)
+    if (existing) {
       continue
     }
 
-    const meta = ACTIVE_PRODUCTION_IDS[entry.employeeId]
-    if (!meta) {
-      continue
-    }
+    const code = getNextProductionCode(codes)
+    codes.push(code)
+    const fresh = buildFreshProductionDay(template, date, code)
 
-    const existing = byId.get(meta.id)
-    const refreshed = buildDailyProduction(entry, meta.id, meta.code, today, existing)
-    await saveProduction(refreshed)
-    changed = true
+    try {
+      await saveProduction(fresh)
+      created += 1
+    } catch (error) {
+      if (!isProductionDayUniqueConflict(error)) {
+        throw error
+      }
+      const recovered = await findProductionByEmployeeAndDate(template.employeeId, date)
+      if (!recovered) {
+        throw error
+      }
+    }
   }
 
-  await setMeta(ROLLOVER_META_KEY, today)
-  return changed
+  return created
 }
 
 export async function saveProduction(production: ProductionDay): Promise<ProductionDay> {

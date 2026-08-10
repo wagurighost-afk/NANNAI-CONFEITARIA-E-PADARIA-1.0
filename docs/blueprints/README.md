@@ -6,6 +6,7 @@ Use estes arquivos como fonte de verdade para implementação, revisão e onboar
 | Blueprint | Descrição |
 |-----------|-----------|
 | [NIIMBOT / Etiquetas](./niimbot/README.md) | Conexão Bluetooth, registry multi-impressora, teste, impressão na Produção e histórico |
+| [Production Day](./production-day/README.md) | Template vs ProductionDay, materialização diária, unicidade e migração de histórico |
 
 ## Como usar
 

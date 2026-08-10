@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { config } from '../config.js'
+import { ProductionDayUniqueConflictError } from './productionDayConflict.js'
 import type { DatabaseFile, DatabaseStore, RefreshTokenRow, UserRow } from './types.js'
 import type {
   BreadControlDay,
@@ -178,6 +179,16 @@ export function createJsonStore(): DatabaseStore {
 
     async saveProductionRecord(production) {
       const db = readDb()
+      const duplicate = db.productions.find(
+        (item) =>
+          item.id !== production.id &&
+          item.employeeId === production.employeeId &&
+          item.date === production.date,
+      )
+      if (duplicate) {
+        throw new ProductionDayUniqueConflictError(production.employeeId, production.date)
+      }
+
       const index = db.productions.findIndex((item) => item.id === production.id)
       if (index >= 0) {
         db.productions[index] = production
@@ -189,6 +200,14 @@ export function createJsonStore(): DatabaseStore {
 
     async loadProductionRecord(id) {
       return readDb().productions.find((item) => item.id === id) ?? null
+    },
+
+    async findProductionByEmployeeAndDate(employeeId, date) {
+      return (
+        readDb().productions.find(
+          (item) => item.employeeId === employeeId && item.date === date,
+        ) ?? null
+      )
     },
 
     async loadAllProductionRecords() {

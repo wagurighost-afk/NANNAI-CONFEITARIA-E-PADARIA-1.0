@@ -2,6 +2,10 @@ import { randomUUID } from 'node:crypto'
 import { safeAudit } from './audit/safeAudit.js'
 import type { AuditActor } from './audit/types.js'
 import { SEED_EMPLOYEES } from './data/employees.js'
+import { findProductionByEmployeeAndDate } from './db/index.js'
+import {
+  isProductionDayUniqueConflict,
+} from './db/productionDayConflict.js'
 import { emitRealtime } from './events.js'
 import { incrementRecipesUsage } from './recipes.service.js'
 import {
@@ -150,16 +154,40 @@ export async function getProductionById(id: string): Promise<ProductionDay | nul
   return production ? withProgress(production) : null
 }
 
+async function saveNewProductionDayOrRecover(
+  production: ProductionDay,
+): Promise<{ production: ProductionDay; created: boolean }> {
+  try {
+    await saveProduction(production)
+    return { production, created: true }
+  } catch (error) {
+    if (!isProductionDayUniqueConflict(error)) {
+      throw error
+    }
+    const existing = await findProductionByEmployeeAndDate(
+      production.employeeId,
+      production.date,
+    )
+    if (!existing) {
+      throw error
+    }
+    return { production: withProgress(existing), created: false }
+  }
+}
+
 export async function createProduction(input: ProductionDay, actor?: AuditActor): Promise<ProductionDay> {
   const now = new Date().toISOString()
-  const production = withProgress({
+  const candidate = withProgress({
     ...input,
     id: input.id || `prd-${randomUUID()}`,
     createdAt: now,
     updatedAt: now,
     comments: input.comments ?? [],
   })
-  await saveProduction(production)
+  const { production, created } = await saveNewProductionDayOrRecover(candidate)
+  if (!created) {
+    return production
+  }
   notifyProduction('created', production.id)
   await safeAudit(actor, {
     entityType: 'production',
@@ -177,7 +205,7 @@ export async function createProductionFromInput(
 ): Promise<ProductionDay> {
   const now = new Date().toISOString()
   const all = await loadAllProductions()
-  const production = withProgress({
+  const candidate = withProgress({
     id: `prd-${randomUUID()}`,
     productionCode: getNextProductionCode(all.map((item) => item.productionCode)),
     date: input.date,
@@ -192,7 +220,10 @@ export async function createProductionFromInput(
     createdAt: now,
     updatedAt: now,
   })
-  await saveProduction(production)
+  const { production, created } = await saveNewProductionDayOrRecover(candidate)
+  if (!created) {
+    return production
+  }
   notifyProduction('created', production.id)
   await trackRecipeUsage(production.items)
   await safeAudit(actor, {
@@ -215,9 +246,12 @@ export async function updateProduction(
     throw new Error('Produção não encontrada.')
   }
 
+  // employeeId + date são imutáveis: histórico diário não pode "andar" de dia.
   const production = withProgress({
     ...input,
     id,
+    employeeId: existing.employeeId,
+    date: existing.date,
     comments: existing.comments,
     createdAt: existing.createdAt,
     updatedAt: new Date().toISOString(),
@@ -247,11 +281,11 @@ export async function updateProductionFromInput(
 
   const production = withProgress({
     ...existing,
-    date: input.date,
+    date: existing.date,
     shift: input.shift,
     sector: input.sector,
-    employeeId: input.employeeId,
-    employeeName: resolveEmployeeName(input.employeeId),
+    employeeId: existing.employeeId,
+    employeeName: existing.employeeName,
     items: buildItemsFromInput(input.items, existing.items),
     notes: input.notes?.trim() ?? '',
     updatedAt: new Date().toISOString(),

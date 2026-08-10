@@ -60,6 +60,7 @@ export interface DatabaseStore {
   countProductions(): Promise<number>
   saveProductionRecord(production: ProductionDay): Promise<void>
   loadProductionRecord(id: string): Promise<ProductionDay | null>
+  findProductionByEmployeeAndDate(employeeId: string, date: string): Promise<ProductionDay | null>
   loadAllProductionRecords(): Promise<ProductionDay[]>
   loadProductionRecordsInMonth(year: number, month: number): Promise<ProductionDay[]>
   deleteProductionRecord(id: string): Promise<void>
