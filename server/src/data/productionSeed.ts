@@ -4,15 +4,10 @@ import {
   SKIPPED_PRODUCTION_EMPLOYEE_IDS,
 } from './activeProduction.js'
 import { PRODUCTION_DIVISION, type ProductionDivisionEntry } from './productionDivision.js'
+import { getOperationalDate, getTodayIso } from '../time/operationalDate.js'
 import type { ProductionDay, ProductionItem } from '../types.js'
 
-export function getTodayIso(): string {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
+export { getOperationalDate, getTodayIso }
 
 function computeProgress(items: ProductionItem[]): number {
   if (items.length === 0) {
@@ -22,19 +17,31 @@ function computeProgress(items: ProductionItem[]): number {
   return Math.round((completed / items.length) * 100)
 }
 
-function buildItems(entry: ProductionDivisionEntry, existingItems?: ProductionItem[]): ProductionItem[] {
+function buildItems(
+  entry: ProductionDivisionEntry,
+  existingItems: ProductionItem[] | undefined,
+  preserveProgress: boolean,
+): ProductionItem[] {
   return entry.products.map((name, index) => {
     const existingItem = existingItems?.[index]
     return {
       id: existingItem?.id ?? `pi-${randomUUID()}`,
       name,
-      status: 'Pendente',
+      status: preserveProgress && existingItem ? existingItem.status : 'Pendente',
       order: index + 1,
       ...(existingItem?.recipeId ? { recipeId: existingItem.recipeId } : {}),
+      ...(preserveProgress && existingItem?.conference
+        ? { conference: existingItem.conference }
+        : {}),
     }
   })
 }
 
+/**
+ * Atualiza o ProductionDay do colaborador para a data operacional.
+ * - Mesmo dia ou correção para trás (TZ): preserva itens/status/comentários.
+ * - Virada real para frente: reinicia progresso do dia (comportamento diário).
+ */
 export function buildDailyProduction(
   entry: ProductionDivisionEntry,
   productionId: string,
@@ -44,7 +51,9 @@ export function buildDailyProduction(
 ): ProductionDay {
   const now = new Date().toISOString()
   const dayStart = `${date}T06:00:00-03:00`
-  const items = buildItems(entry, existing?.items)
+  const isForwardNewDay = Boolean(existing && existing.date < date)
+  const preserveProgress = !isForwardNewDay
+  const items = buildItems(entry, existing?.items, preserveProgress)
 
   return {
     id: productionId,
@@ -56,9 +65,9 @@ export function buildDailyProduction(
     employeeName: entry.employeeName,
     items,
     progress: computeProgress(items),
-    comments: [],
+    comments: preserveProgress ? (existing?.comments ?? []) : [],
     notes: entry.notes ?? 'Trabalhar com antecedência. Sinalizar requisição de produtos.',
-    createdAt: existing?.date === date ? existing.createdAt : dayStart,
+    createdAt: existing?.date === date ? existing.createdAt : existing && !isForwardNewDay ? existing.createdAt : dayStart,
     updatedAt: now,
   }
 }
