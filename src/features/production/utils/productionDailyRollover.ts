@@ -25,6 +25,42 @@ function setLastRolloverDate(date: string): void {
 }
 
 /**
+ * Inclui produções de colaboradores novos na divisão ativa sem reiniciar o dia.
+ * Necessário quando o catálogo base ganha alguém depois do rollover do dia.
+ */
+function ensureMissingActiveProductions(
+  productions: ProductionDay[],
+  today: string,
+): ProductionRolloverResult {
+  const store = [...productions]
+  let changed = false
+
+  for (const entry of PRODUCTION_DIVISION) {
+    if (SKIPPED_PRODUCTION_EMPLOYEE_IDS.has(entry.employeeId)) {
+      continue
+    }
+
+    const meta = ACTIVE_PRODUCTION_IDS[entry.employeeId]
+    if (!meta) {
+      continue
+    }
+
+    if (store.some((production) => production.id === meta.id)) {
+      continue
+    }
+
+    store.push(buildDailyProduction(entry, meta.id, meta.code, today))
+    changed = true
+  }
+
+  if (changed) {
+    logger.info('Produções de novos colaboradores adicionadas ao dia operacional.', { date: today })
+  }
+
+  return { store, changed }
+}
+
+/**
  * A cada novo dia operacional, reinicia as produções ativas para "Pendente",
  * limpa comentários do turno anterior e exige nova verificação da equipe.
  */
@@ -35,12 +71,12 @@ export function rolloverProductionsIfNeeded(
   const lastRollover = getLastRolloverDate()
 
   if (lastRollover === today) {
-    return { store: productions, changed: false }
+    return ensureMissingActiveProductions(productions, today)
   }
 
   if (!lastRollover && productions.some((production) => production.date === today)) {
     setLastRolloverDate(today)
-    return { store: productions, changed: false }
+    return ensureMissingActiveProductions(productions, today)
   }
 
   const store = [...productions]

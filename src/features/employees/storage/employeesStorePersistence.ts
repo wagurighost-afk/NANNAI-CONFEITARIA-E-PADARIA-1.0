@@ -8,18 +8,43 @@ function defaultStore(): Employee[] {
   return structuredClone(EMPLOYEES_MOCK)
 }
 
+function productionNames(items: Employee['productions']): string {
+  return items.map((item) => item.name).join('\u0000')
+}
+
 /**
  * Acrescenta ao armazenamento local qualquer colaborador novo do catálogo
  * base (ex.: adicionado em uma atualização) que ainda não exista lá,
  * preservando edições já feitas nos colaboradores existentes.
+ * Também sincroniza a lista de produções da divisão quando o catálogo base muda.
  */
 function mergeWithBaseline(persisted: Employee[]): Employee[] {
-  const knownIds = new Set(persisted.map((employee) => employee.id))
+  const baselineById = new Map(EMPLOYEES_MOCK.map((employee) => [employee.id, employee]))
+  let changed = false
+
+  const synced = persisted.map((employee) => {
+    const baseline = baselineById.get(employee.id)
+    if (!baseline) {
+      return employee
+    }
+
+    if (productionNames(employee.productions) === productionNames(baseline.productions)) {
+      return employee
+    }
+
+    changed = true
+    return {
+      ...employee,
+      productions: structuredClone(baseline.productions),
+    }
+  })
+
+  const knownIds = new Set(synced.map((employee) => employee.id))
   const missing = EMPLOYEES_MOCK.filter((employee) => !knownIds.has(employee.id))
-  if (missing.length === 0) {
+  if (missing.length === 0 && !changed) {
     return persisted
   }
-  return [...persisted, ...structuredClone(missing)]
+  return [...synced, ...structuredClone(missing)]
 }
 
 export function persistEmployees(employees: Employee[]): void {
