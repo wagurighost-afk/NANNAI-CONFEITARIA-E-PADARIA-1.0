@@ -39,21 +39,41 @@ export function MonthlyScheduleSection({
     isSwapping,
   } = useMonthlySchedule()
 
-  const monthOptions =
-    availableMonths.length > 0
-      ? availableMonths.map((item) => ({
-          value: `${item.year}-${item.month}`,
-          label: item.label || formatMonthYear(item.year, item.month),
-        }))
-      : [{ value: `${year}-${month}`, label: formatMonthYear(year, month) }]
+  const monthNames = [
+    'Janeiro',
+    'Fevereiro',
+    'Março',
+    'Abril',
+    'Maio',
+    'Junho',
+    'Julho',
+    'Agosto',
+    'Setembro',
+    'Outubro',
+    'Novembro',
+    'Dezembro',
+  ]
 
-  const handleMonthChange = (value: string) => {
-    const [nextYear, nextMonth] = value.split('-').map(Number)
-    if (nextYear && nextMonth) {
-      setYear(nextYear)
-      setMonth(nextMonth)
-    }
-  }
+  const monthOptions = monthNames.map((label, index) => ({
+    value: String(index + 1),
+    label,
+  }))
+
+  const existingYears = availableMonths.map((item) => item.year)
+  const minYear = Math.min(year - 2, ...existingYears)
+  const maxYear = Math.max(year + 2, ...existingYears)
+
+  const yearOptions = Array.from(
+    { length: maxYear - minYear + 1 },
+    (_, index) => {
+      const optionYear = minYear + index
+
+      return {
+        value: String(optionYear),
+        label: String(optionYear),
+      }
+    },
+  )
 
   const openAttachment = async () => {
     if (!schedule?.attachment) {
@@ -70,12 +90,19 @@ export function MonthlyScheduleSection({
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+      <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end">
         <Select
-          label="Escala do mês"
+          label="Mês"
           options={monthOptions}
-          value={`${year}-${month}`}
-          onChange={(event) => handleMonthChange(event.target.value)}
+          value={String(month)}
+          onChange={(event) => setMonth(Number(event.target.value))}
+        />
+
+        <Select
+          label="Ano"
+          options={yearOptions}
+          value={String(year)}
+          onChange={(event) => setYear(Number(event.target.value))}
         />
         {schedule?.attachment ? (
           <Button type="button" variant="outline" onClick={() => void openAttachment()}>
@@ -103,7 +130,7 @@ export function MonthlyScheduleSection({
       {isLoading ? (
         <Skeleton variant="rectangular" height={360} />
       ) : !schedule ? (
-        <EmptyState title="Nenhuma escala para este mês" />
+        <EmptyState title={`Nenhuma escala cadastrada para ${formatMonthYear(year, month)}.`} />
       ) : (
         <>
           {highlightEmployeeId ? (
