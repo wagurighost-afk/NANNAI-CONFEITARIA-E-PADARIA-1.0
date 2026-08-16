@@ -38,6 +38,11 @@ export interface MonthlySchedule {
   updatedAt: string
 }
 
+export interface CreateMonthlyScheduleInput {
+  year: number
+  month: number
+  copyPrevious?: boolean
+}
 export interface UpdateMonthlyDayInput {
   scheduleId: string
   rowId: string

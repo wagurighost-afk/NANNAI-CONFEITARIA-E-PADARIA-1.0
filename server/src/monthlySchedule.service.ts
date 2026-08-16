@@ -12,6 +12,7 @@ import {
 } from './db/index.js'
 import { emitRealtime } from './events.js'
 import type {
+  CreateMonthlyScheduleInput,
   ImportMonthlyScheduleInput,
   MonthlyDayStatus,
   MonthlySchedule,
@@ -91,6 +92,175 @@ async function saveSchedule(schedule: MonthlySchedule): Promise<MonthlySchedule>
   return schedule
 }
 
+const MONTH_NAMES = [
+  'JANEIRO',
+  'FEVEREIRO',
+  'MARÇO',
+  'ABRIL',
+  'MAIO',
+  'JUNHO',
+  'JULHO',
+  'AGOSTO',
+  'SETEMBRO',
+  'OUTUBRO',
+  'NOVEMBRO',
+  'DEZEMBRO',
+] as const
+
+const WEEKDAY_LABELS = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'] as const
+
+export class MonthlyScheduleConflictError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'MonthlyScheduleConflictError'
+  }
+}
+
+export class MonthlyScheduleSourceNotFoundError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'MonthlyScheduleSourceNotFoundError'
+  }
+}
+
+function validateYearMonth(year: number, month: number): void {
+  if (!Number.isInteger(year) || year < 2000 || year > 2100) {
+    throw new Error('Ano inválido.')
+  }
+
+  if (!Number.isInteger(month) || month < 1 || month > 12) {
+    throw new Error('Mês inválido.')
+  }
+}
+
+function getDaysInMonth(year: number, month: number): number {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate()
+}
+
+function buildWeekdayLabels(year: number, month: number): string[] {
+  const daysInMonth = getDaysInMonth(year, month)
+
+  return Array.from({ length: daysInMonth }, (_, index) => {
+    const day = index + 1
+    const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay()
+    return WEEKDAY_LABELS[weekday] ?? ''
+  })
+}
+
+function buildMonthLabel(year: number, month: number): string {
+  return `MÊS: ${MONTH_NAMES[month - 1] ?? month} ${year}`
+}
+
+function getPreviousYearMonth(year: number, month: number): { year: number; month: number } {
+  if (month === 1) {
+    return {
+      year: year - 1,
+      month: 12,
+    }
+  }
+
+  return {
+    year,
+    month: month - 1,
+  }
+}
+
+function copyRowsAsBase(
+  source: MonthlySchedule,
+  targetDaysInMonth: number,
+): MonthlyScheduleRow[] {
+  return source.rows.map((row) => {
+    const days = Array.from({ length: targetDaysInMonth }, (_, index) => {
+      const day = index + 1
+      const sourceDay = row.days.find((item) => item.day === day)
+
+      if (sourceDay?.status === 'off') {
+        return {
+          day,
+          status: 'off' as const,
+          note: 'X',
+        }
+      }
+
+      return {
+        day,
+        status: 'work' as const,
+      }
+    })
+
+    return {
+      id: `msr-${randomUUID()}`,
+      employeeId: row.employeeId,
+      employeeName: row.employeeName,
+      position: row.position,
+      shift: row.shift,
+      shiftCode: row.shiftCode,
+      days,
+    }
+  })
+}
+
+export async function createMonthlySchedule(
+  input: CreateMonthlyScheduleInput,
+  actor?: AuditActor,
+): Promise<MonthlySchedule> {
+  validateYearMonth(input.year, input.month)
+
+  const id = scheduleKey(input.year, input.month)
+  const existing = await loadMonthlyScheduleRecord(id)
+
+  if (existing) {
+    throw new MonthlyScheduleConflictError(
+      `Já existe uma escala cadastrada para ${input.month}/${input.year}.`,
+    )
+  }
+
+  const daysInMonth = getDaysInMonth(input.year, input.month)
+
+  let rows: MonthlyScheduleRow[] = []
+  let source: MonthlySchedule | null = null
+
+  if (input.copyPrevious) {
+    const previous = getPreviousYearMonth(input.year, input.month)
+
+    source = await getMonthlyScheduleByYearMonth(previous.year, previous.month)
+
+    if (!source) {
+      throw new MonthlyScheduleSourceNotFoundError(
+        `Não existe escala do mês anterior (${previous.month}/${previous.year}) para copiar.`,
+      )
+    }
+
+    rows = copyRowsAsBase(source, daysInMonth)
+  }
+
+  const schedule: MonthlySchedule = {
+    id,
+    year: input.year,
+    month: input.month,
+    label: buildMonthLabel(input.year, input.month),
+    daysInMonth,
+    weekdayLabels: buildWeekdayLabels(input.year, input.month),
+    rows,
+    attachment: null,
+    updatedAt: new Date().toISOString(),
+  }
+
+  const saved = await saveSchedule(schedule)
+
+  await safeAudit(actor, {
+    entityType: 'monthly_schedule',
+    entityId: saved.id,
+    action: 'create',
+    summary: input.copyPrevious
+      ? `Escala mensal ${saved.label} criada a partir do mês anterior`
+      : `Escala mensal ${saved.label} criada`,
+    before: null,
+    after: saved,
+  })
+
+  return saved
+}
 export async function listMonthlySchedules(): Promise<MonthlySchedule[]> {
   const schedules = await loadAllMonthlySchedules()
   return schedules.sort((a, b) => b.year - a.year || b.month - a.month)

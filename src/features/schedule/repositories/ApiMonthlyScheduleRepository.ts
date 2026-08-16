@@ -1,6 +1,7 @@
 import { apiClient } from '@/core/api/apiClient'
 import type { MonthlyScheduleRepository } from '@/features/schedule/repositories/MonthlyScheduleRepository'
 import type {
+  CreateMonthlyScheduleInput,
   ImportMonthlyScheduleInput,
   MonthlySchedule,
   MonthlyScheduleAttachment,
@@ -54,6 +55,10 @@ export class ApiMonthlyScheduleRepository implements MonthlyScheduleRepository {
     }
   }
 
+  async createSchedule(input: CreateMonthlyScheduleInput): Promise<MonthlySchedule> {
+    const { data } = await apiClient.post<MonthlySchedule>('/monthly-schedules/create', input)
+    return mapSchedule(data)
+  }
   async importSchedule(input: ImportMonthlyScheduleInput, file?: File): Promise<MonthlySchedule> {
     const formData = new FormData()
     formData.append('data', JSON.stringify(input))

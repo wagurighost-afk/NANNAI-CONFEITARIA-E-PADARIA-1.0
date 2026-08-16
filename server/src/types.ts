@@ -490,6 +490,11 @@ export interface ImportMonthlyScheduleInput {
   attachment?: MonthlyScheduleAttachment | null
 }
 
+export interface CreateMonthlyScheduleInput {
+  year: number
+  month: number
+  copyPrevious?: boolean
+}
 export interface BreadControlProduct {
   id: string
   section: string

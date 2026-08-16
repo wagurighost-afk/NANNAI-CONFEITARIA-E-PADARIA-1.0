@@ -3,6 +3,7 @@ import { MockMonthlyScheduleRepository } from '@/features/schedule/repositories/
 import type { MonthlyScheduleRepository } from '@/features/schedule/repositories/MonthlyScheduleRepository'
 import { usesCloudPersistence } from '@/core/persistence/cloudPersistence'
 import type {
+  CreateMonthlyScheduleInput,
   ImportMonthlyScheduleInput,
   MonthlySchedule,
   SwapMonthlyDaysInput,
@@ -29,6 +30,9 @@ export const monthlyScheduleService = {
     return repository.getById(id)
   },
 
+  createSchedule(input: CreateMonthlyScheduleInput): Promise<MonthlySchedule> {
+    return repository.createSchedule(input)
+  },
   async importFromFile(file: File): Promise<MonthlySchedule> {
     let parsed = null
 

@@ -33,6 +33,19 @@ export function requireAuth(req: AuthedRequest, res: Response, next: NextFunctio
   }
 }
 
+export function requireAdmin(req: AuthedRequest, res: Response, next: NextFunction): void {
+  if (!req.user) {
+    res.status(401).json({ message: 'Não autenticado.' })
+    return
+  }
+
+  if (!isMasterAdmin(req.user)) {
+    res.status(403).json({ message: 'Apenas administradores podem realizar esta operação.' })
+    return
+  }
+
+  next()
+}
 export function requireManager(req: AuthedRequest, res: Response, next: NextFunction): void {
   if (!req.user) {
     res.status(401).json({ message: 'Não autenticado.' })
