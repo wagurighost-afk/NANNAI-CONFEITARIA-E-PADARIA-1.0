@@ -67,10 +67,10 @@ export function RecipeExcelPreview({ data, className }: RecipeExcelPreviewProps)
   }
 
   return (
-    <div className={cn('flex h-full min-h-0 flex-col bg-[#f6f1ea]', className)}>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface-elevated px-4 py-2">
-        <div>
-          <p className="text-sm font-medium text-foreground">{sheet.name}</p>
+    <div className={cn('flex h-full min-h-0 min-w-0 max-w-full flex-col overflow-hidden bg-[#f6f1ea]', className)}>
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-border bg-surface-elevated px-4 py-2">
+        <div className="min-w-0">
+          <p className="break-words text-sm font-medium text-foreground [overflow-wrap:anywhere]">{sheet.name}</p>
           <p className="text-xs text-muted-foreground">
             {sheet.totalRows} linhas · {sheet.totalCols} colunas
           </p>
@@ -105,9 +105,9 @@ export function RecipeExcelPreview({ data, className }: RecipeExcelPreviewProps)
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto p-3">
+      <div className="min-h-0 min-w-0 flex-1 overflow-auto overscroll-contain p-3">
         <div
-          className="inline-block min-w-full rounded-xl border border-border bg-surface-elevated shadow-sm"
+          className="inline-block min-w-full max-w-none rounded-xl border border-border bg-surface-elevated shadow-sm"
           style={{ fontSize: `${0.875 * zoom}rem` }}
         >
           <table className="w-max min-w-full border-collapse text-sm">
@@ -196,14 +196,14 @@ export function RecipeExcelPreview({ data, className }: RecipeExcelPreviewProps)
       </div>
 
       {data.sheets.length > 1 ? (
-        <div className="flex flex-wrap gap-1 border-t border-border bg-muted/40 px-3 py-2">
+        <div className="flex min-w-0 max-w-full flex-wrap gap-1 border-t border-border bg-muted/40 px-3 py-2">
           {data.sheets.map((item, index) => (
             <button
               key={item.name}
               type="button"
               onClick={() => setActiveSheetIndex(index)}
               className={cn(
-                'rounded-t-lg border border-b-0 px-4 py-2 text-xs font-medium transition-colors',
+                'max-w-full truncate rounded-t-lg border border-b-0 px-4 py-2 text-xs font-medium transition-colors',
                 index === activeSheetIndex
                   ? 'border-border bg-surface-elevated text-foreground shadow-sm'
                   : 'border-transparent bg-transparent text-muted-foreground hover:bg-surface/80 hover:text-foreground',

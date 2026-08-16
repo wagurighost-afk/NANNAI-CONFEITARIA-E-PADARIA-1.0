@@ -6,9 +6,10 @@ import {
   type ProductionFormSchema,
 } from '@/features/production/schemas/production.schema'
 import type { ProductionDay } from '@/features/production/types/production.types'
+import { getAppTodayIso } from '@/core/constants/appDate'
 
 const EMPTY_VALUES: ProductionFormSchema = {
-  date: new Date().toISOString().slice(0, 10),
+  date: getAppTodayIso(),
   shift: 'Manhã',
   sector: 'Confeitaria',
   employeeId: '',

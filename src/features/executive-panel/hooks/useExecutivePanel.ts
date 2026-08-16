@@ -6,15 +6,7 @@ import type {
   ExecutivePanelQuery,
   ExecutivePeriodPreset,
 } from '@/features/executive-panel/types/executivePanel.types'
-
-function getOperationalTodayIso(): string {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'America/Sao_Paulo',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(new Date())
-}
+import { getAppTodayIso } from '@/core/constants/appDate'
 
 function addDaysIso(isoDate: string, delta: number): string {
   const parts = isoDate.split('-').map(Number)
@@ -27,7 +19,7 @@ function addDaysIso(isoDate: string, delta: number): string {
 }
 
 export function useExecutivePanel() {
-  const today = getOperationalTodayIso()
+  const today = getAppTodayIso()
   const [preset, setPreset] = useState<ExecutivePeriodPreset>('today')
   const [customFrom, setCustomFrom] = useState(addDaysIso(today, -6))
   const [customTo, setCustomTo] = useState(today)

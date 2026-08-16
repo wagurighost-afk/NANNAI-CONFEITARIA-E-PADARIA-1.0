@@ -29,7 +29,7 @@ export function StaffDashboardPage() {
         }
       />
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid min-w-0 gap-4 [&>*]:min-w-0 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Minha produção</CardTitle>
@@ -41,9 +41,9 @@ export function StaffDashboardPage() {
                 <ProgressBar value={myProduction.progress} label="Progresso" />
                 <ul className="space-y-2">
                   {myProduction.items.map((item) => (
-                    <li key={item.id} className="flex items-center justify-between gap-2 text-sm">
-                      <span>{item.name}</span>
-                      <ProductionStatusBadge status={item.status} />
+                    <li key={item.id} className="flex min-w-0 items-center justify-between gap-2 text-sm">
+                      <span className="min-w-0 flex-1 break-words [overflow-wrap:anywhere]">{item.name}</span>
+                      <span className="shrink-0"><ProductionStatusBadge status={item.status} /></span>
                     </li>
                   ))}
                 </ul>
@@ -55,7 +55,7 @@ export function StaffDashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="flex-row items-center justify-between">
+          <CardHeader className="flex-row flex-wrap items-center justify-between gap-2">
             <CardTitle>Minha escala</CardTitle>
             <Link to={APP_ROUTES.schedule}>
               <Button variant="outline" size="sm">
@@ -133,7 +133,7 @@ export function StaffDashboardPage() {
         </Card>
 
         <Card className="lg:col-span-2">
-          <CardHeader className="flex-row items-center justify-between">
+          <CardHeader className="flex-row flex-wrap items-center justify-between gap-2">
             <CardTitle>POP</CardTitle>
             <Link to={APP_ROUTES.pop}>
               <Button variant="outline" size="sm">
@@ -141,7 +141,7 @@ export function StaffDashboardPage() {
               </Button>
             </Link>
           </CardHeader>
-          <CardContent className="grid gap-3 md:grid-cols-2">
+          <CardContent className="grid min-w-0 gap-3 [&>*]:min-w-0 md:grid-cols-2">
             {popDocuments.slice(0, 4).map((doc) => (
               <div key={doc.id} className="rounded-xl border border-border p-3">
                 <p className="font-medium">{doc.title}</p>
@@ -152,7 +152,7 @@ export function StaffDashboardPage() {
         </Card>
 
         <Card className="lg:col-span-2">
-          <CardHeader className="flex-row items-center justify-between">
+          <CardHeader className="flex-row flex-wrap items-center justify-between gap-2">
             <CardTitle>Receitas</CardTitle>
             <Link to={APP_ROUTES.recipes}>
               <Button variant="outline" size="sm">

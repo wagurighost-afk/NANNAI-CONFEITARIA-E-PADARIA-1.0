@@ -38,14 +38,14 @@ export function ChefDashboardPage() {
         }
       />
 
-      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mb-6 grid grid-cols-1 gap-3 [&>*]:min-w-0 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label="Produções hoje" value={productions.length} icon={<ClipboardList className="size-5" />} />
         <KpiCard label="Equipe ativa" value={activeSchedule.length} icon={<Users className="size-5" />} />
         <KpiCard label="Receitas ativas" value={recipeKpis.active} icon={<ChefHat className="size-5" />} />
         <KpiCard label="Comentários" value={recentComments.length} icon={<MessageSquare className="size-5" />} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid min-w-0 gap-4 [&>*]:min-w-0 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Produção do dia</CardTitle>
@@ -54,9 +54,9 @@ export function ChefDashboardPage() {
           <CardContent className="space-y-3">
             {productions.map((production) => (
               <div key={production.id} className="rounded-xl border border-border p-3">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <p className="font-medium">{production.employeeName}</p>
-                  <Badge variant="muted">{production.shift}</Badge>
+                <div className="mb-2 flex min-w-0 items-center justify-between gap-2">
+                  <p className="min-w-0 flex-1 truncate font-medium">{production.employeeName}</p>
+                  <Badge variant="muted" className="shrink-0">{production.shift}</Badge>
                 </div>
                 <ProgressBar value={production.progress} label="Progresso" />
                 <p className="mt-2 text-xs text-muted-foreground">
@@ -110,9 +110,9 @@ export function ChefDashboardPage() {
           </CardHeader>
           <CardContent className="space-y-2">
             {activeSchedule.slice(0, 8).map((entry) => (
-              <div key={entry.id} className="flex items-center justify-between text-sm">
-                <span>{entry.employeeName}</span>
-                <Badge variant="muted">{entry.shift}</Badge>
+              <div key={entry.id} className="flex min-w-0 items-center justify-between gap-2 text-sm">
+                <span className="min-w-0 flex-1 truncate">{entry.employeeName}</span>
+                <Badge variant="muted" className="shrink-0">{entry.shift}</Badge>
               </div>
             ))}
           </CardContent>
@@ -124,7 +124,7 @@ export function ChefDashboardPage() {
           <CardHeader>
             <CardTitle>Escala de limpeza — {todayWeekDay}</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-2">
+          <CardContent className="grid min-w-0 gap-3 [&>*]:min-w-0 sm:grid-cols-2">
             {todayCleaning.map((assignment) => (
               <div key={assignment.shift} className="rounded-xl border border-border p-3">
                 <p className="mb-2 font-medium">{assignment.shift}</p>

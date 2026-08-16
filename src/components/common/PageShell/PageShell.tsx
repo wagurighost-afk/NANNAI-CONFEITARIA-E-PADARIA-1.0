@@ -7,5 +7,5 @@ export interface PageShellProps {
 }
 
 export function PageShell({ children, className }: PageShellProps) {
-  return <div className={cn(className)}>{children}</div>
+  return <div className={cn('w-full min-w-0 max-w-full', className)}>{children}</div>
 }

@@ -3,29 +3,28 @@ import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Skeleton } fro
 import { useBreadControlSummary } from '@/features/bread-control/hooks/useBreadControl'
 import { formatBreadMoney } from '@/features/bread-control/utils/breadControlFormat'
 import { APP_ROUTES } from '@/core/constants'
+import { getAppCurrentYearMonth } from '@/core/constants/appDate'
 
 export function ChefBreadMonthlySummaryCard() {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = now.getMonth() + 1
+  const { year, month } = getAppCurrentYearMonth()
   const { data, isLoading } = useBreadControlSummary(year, month)
 
   return (
-    <Card className="lg:col-span-2">
-      <CardHeader className="flex flex-row items-center justify-between gap-3">
-        <div>
+    <Card className="min-w-0 max-w-full lg:col-span-2">
+      <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
           <CardTitle>Controle de pães — resumo do mês</CardTitle>
           <p className="text-sm text-muted-foreground">
             Custo acumulado da padaria no mês atual
           </p>
         </div>
-        <Link to={APP_ROUTES.breadControl}>
+        <Link to={APP_ROUTES.breadControl} className="shrink-0">
           <Button variant="outline" size="sm">
             Ver detalhes
           </Button>
         </Link>
       </CardHeader>
-      <CardContent>
+      <CardContent className="min-w-0 max-w-full">
         {isLoading ? (
           <Skeleton variant="rectangular" height={120} />
         ) : !data?.days.length ? (
@@ -33,12 +32,12 @@ export function ChefBreadMonthlySummaryCard() {
             Nenhum dia registrado pelos padeiros neste mês.
           </p>
         ) : (
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-3">
+          <div className="min-w-0 max-w-full space-y-4">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
               <Badge variant="accent">Total do mês: {formatBreadMoney(data.monthTotal)}</Badge>
               <Badge variant="muted">{data.days.length} dia(s) registrado(s)</Badge>
             </div>
-            <div className="overflow-x-auto">
+            <div className="min-w-0 max-w-full overflow-x-auto overscroll-x-contain">
               <table className="w-full min-w-[480px] text-sm">
                 <thead>
                   <tr className="border-b border-border text-left text-muted-foreground">

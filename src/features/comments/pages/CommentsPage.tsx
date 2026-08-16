@@ -58,7 +58,7 @@ export function CommentsPage() {
         }
       />
 
-      <div className="mb-6 grid gap-3 sm:grid-cols-2">
+      <div className="mb-6 grid min-w-0 gap-3 [&>*]:min-w-0 sm:grid-cols-2">
         <Input
           label="Data"
           type="date"
@@ -78,7 +78,7 @@ export function CommentsPage() {
           <CardContent className="space-y-3 pt-6">
             <div>
               <p className="text-sm font-medium">Comentar no seu turno de hoje</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="break-words text-sm text-muted-foreground [overflow-wrap:anywhere]">
                 {activeProduction.employeeName} · {formatDateBr(activeProduction.date)} ·{' '}
                 {activeProduction.shift} · {activeProduction.sector}
               </p>

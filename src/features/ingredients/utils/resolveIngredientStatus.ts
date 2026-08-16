@@ -1,5 +1,6 @@
 import { NEAR_EXPIRATION_DAYS } from '@/features/ingredients/constants/ingredientOptions'
 import type { IngredientStatus } from '@/features/ingredients/types/ingredient.types'
+import { getAppTodayIso } from '@/core/constants/appDate'
 
 export interface IngredientStockSnapshot {
   currentStock: number
@@ -29,7 +30,7 @@ export function resolveIngredientStatus(snapshot: IngredientStockSnapshot): Ingr
     return 'SEM_ESTOQUE'
   }
 
-  const today = snapshot.referenceDate ?? new Date().toISOString().slice(0, 10)
+  const today = snapshot.referenceDate ?? getAppTodayIso()
   const remainingDays = daysUntil(snapshot.expirationDate, today)
 
   if (remainingDays !== null && remainingDays >= 0 && remainingDays <= NEAR_EXPIRATION_DAYS) {

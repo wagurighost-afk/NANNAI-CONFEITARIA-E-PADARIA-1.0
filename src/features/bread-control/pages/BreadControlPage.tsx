@@ -10,9 +10,10 @@ import {
   useSaveBreadControlDay,
 } from '@/features/bread-control/hooks/useBreadControl'
 import type { BreadControlProduct } from '@/features/bread-control/types/breadControl.types'
-import { formatBreadMoney, roundBreadMoney, toIsoDate } from '@/features/bread-control/utils/breadControlFormat'
+import { formatBreadMoney, roundBreadMoney } from '@/features/bread-control/utils/breadControlFormat'
 import { buildUnitsMapFromPax } from '@/features/bread-control/utils/breadPaxCalculator'
 import { APP_ROUTES } from '@/core/constants'
+import { getAppCurrentYearMonth, getAppTodayIso } from '@/core/constants/appDate'
 import { useToast } from '@/hooks'
 import { usePermission } from '@/hooks/usePermission'
 import { formatDateBr } from '@/utils/formatDate'
@@ -62,7 +63,7 @@ function BreadDailyTable({
                 <h3 className="font-display text-lg font-semibold text-foreground">{section}</h3>
                 <Badge variant="accent">Total: {formatBreadMoney(sectionTotal)}</Badge>
               </div>
-              <div className="overflow-x-auto">
+              <div className="min-w-0 max-w-full overflow-x-auto overscroll-x-contain">
                 <table className="w-full min-w-[640px] text-sm">
                   <thead>
                     <tr className="border-b border-border text-left text-muted-foreground">
@@ -141,7 +142,7 @@ function BreadMonthlySummary({
             <h3 className="font-display text-lg font-semibold">Resumo mensal</h3>
             <Badge variant="accent">Custo total: {formatBreadMoney(data.monthTotal)}</Badge>
           </div>
-          <div className="overflow-x-auto">
+          <div className="min-w-0 max-w-full overflow-x-auto overscroll-x-contain">
             <table className="w-full min-w-[720px] text-sm">
               <thead>
                 <tr className="border-b border-border text-left text-muted-foreground">
@@ -189,7 +190,7 @@ function BreadMonthlySummary({
 }
 
 export function BreadControlPage() {
-  const today = toIsoDate(new Date())
+  const today = getAppTodayIso()
   const [selectedDate, setSelectedDate] = useState(today)
   const [pax, setPax] = useState(0)
   const [unitsMap, setUnitsMap] = useState<Record<string, number>>({})
@@ -232,7 +233,8 @@ export function BreadControlPage() {
     [products, unitsMap],
   )
 
-  const [year = new Date().getFullYear(), month = new Date().getMonth() + 1] = selectedDate.split('-').map(Number)
+  const currentPeriod = getAppCurrentYearMonth()
+  const [year = currentPeriod.year, month = currentPeriod.month] = selectedDate.split('-').map(Number)
 
   function handleCalculateFromPax() {
     if (!products.length || pax <= 0) {
@@ -268,7 +270,7 @@ export function BreadControlPage() {
   }
 
   return (
-    <PageShell>
+  <PageShell className="overflow-x-hidden">
       <Breadcrumb
         items={[
           { label: 'Início', href: APP_ROUTES.dashboard },

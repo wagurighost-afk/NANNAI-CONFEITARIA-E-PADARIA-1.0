@@ -10,15 +10,15 @@ export function ProgressBar({ value, className, label }: ProgressBarProps) {
   const safeValue = Math.min(100, Math.max(0, value))
 
   return (
-    <div className={cn('space-y-1', className)}>
+    <div className={cn('w-full min-w-0 max-w-full space-y-1', className)}>
       {label ? (
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>{label}</span>
-          <span className="tabular-nums font-medium text-foreground">{safeValue}%</span>
+        <div className="flex min-w-0 items-center justify-between gap-2 text-xs text-muted-foreground">
+          <span className="min-w-0 flex-1 break-words [overflow-wrap:anywhere]">{label}</span>
+          <span className="shrink-0 tabular-nums font-medium text-foreground">{safeValue}%</span>
         </div>
       ) : null}
       <div
-        className="h-2 w-full overflow-hidden rounded-full bg-muted"
+        className="h-2 w-full max-w-full overflow-hidden rounded-full bg-muted"
         role="progressbar"
         aria-valuenow={safeValue}
         aria-valuemin={0}

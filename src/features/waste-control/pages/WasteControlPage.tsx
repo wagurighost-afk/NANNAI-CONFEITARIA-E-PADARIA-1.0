@@ -43,9 +43,9 @@ import type {
 import {
   formatWasteKg,
   formatWasteMoney,
-  toIsoDate,
 } from '@/features/waste-control/utils/wasteControlFormat'
 import { APP_ROUTES } from '@/core/constants'
+import { getAppTodayIso } from '@/core/constants/appDate'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks'
 import { usePermission } from '@/hooks/usePermission'
@@ -112,7 +112,7 @@ function draftToPayload(draft: WastePhaseDraft) {
 }
 
 export function WasteControlPage() {
-  const today = toIsoDate(new Date())
+  const today = getAppTodayIso()
   const [selectedDate, setSelectedDate] = useState(today)
   const [buffet, setBuffet] = useState<WasteBuffetType>('cafe')
   const [search, setSearch] = useState('')

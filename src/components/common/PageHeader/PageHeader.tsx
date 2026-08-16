@@ -16,13 +16,13 @@ export function PageHeader({ title, description, actions, className }: PageHeade
         className,
       )}
     >
-      <div>
-        <h1 className="font-display text-2xl text-foreground sm:text-3xl">{title}</h1>
+      <div className="min-w-0 max-w-full">
+        <h1 className="min-w-0 break-words font-display text-2xl text-foreground [overflow-wrap:anywhere] sm:text-3xl">{title}</h1>
         {description ? (
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{description}</p>
+          <p className="mt-1 max-w-2xl break-words text-sm text-muted-foreground [overflow-wrap:anywhere]">{description}</p>
         ) : null}
       </div>
-      {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
+      {actions ? <div className="flex max-w-full flex-wrap items-center gap-2">{actions}</div> : null}
     </div>
   )
 }

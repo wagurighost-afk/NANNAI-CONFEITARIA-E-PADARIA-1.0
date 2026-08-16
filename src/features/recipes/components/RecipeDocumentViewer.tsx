@@ -186,7 +186,7 @@ export function RecipeDocumentViewer({ attachment, compact = false }: RecipeDocu
   }
 
   return (
-    <div className="space-y-3">
+    <div className="min-w-0 max-w-full space-y-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="flex min-w-0 items-center gap-3">
           <div className="rounded-lg bg-muted p-2 text-muted-foreground">
@@ -216,7 +216,7 @@ export function RecipeDocumentViewer({ attachment, compact = false }: RecipeDocu
       </div>
 
       {!compact ? (
-        <div className="overflow-hidden rounded-xl border border-border bg-muted/20">
+        <div className="min-w-0 max-w-full overflow-hidden rounded-xl border border-border bg-muted/20">
           <RecipeAttachmentPreview attachment={attachment} />
         </div>
       ) : null}
@@ -228,7 +228,7 @@ export function RecipeDocumentViewer({ attachment, compact = false }: RecipeDocu
         description="Visualização da ficha técnica"
         size="lg"
       >
-        <div className="overflow-hidden rounded-xl border border-border">
+        <div className="min-w-0 max-w-full overflow-hidden rounded-xl border border-border">
           <RecipeAttachmentPreview attachment={attachment} className={FULLSCREEN_HEIGHT} />
         </div>
       </Modal>

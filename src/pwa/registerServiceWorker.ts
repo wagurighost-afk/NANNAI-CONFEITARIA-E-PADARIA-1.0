@@ -14,7 +14,19 @@ export async function registerPwaServiceWorker(): Promise<void> {
       void updateSW(true)
     },
     onRegisteredSW(_url, registration) {
-      void registration?.update()
+      if (!registration) {
+        return
+      }
+      const requestUpdate = () => {
+        void registration.update().catch(() => undefined)
+      }
+      requestUpdate()
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          requestUpdate()
+        }
+      })
+      window.addEventListener('focus', requestUpdate)
     },
   })
 }

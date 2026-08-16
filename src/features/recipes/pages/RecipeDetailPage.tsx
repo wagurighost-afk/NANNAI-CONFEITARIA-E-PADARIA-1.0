@@ -110,7 +110,7 @@ export function RecipeDetailPage() {
   const formMode = isRecipeDocumentPrimary(recipe) ? 'document' : 'manual'
 
   return (
-    <PageShell className="mx-auto w-full max-w-5xl space-y-5 overflow-x-hidden pb-10">
+    <PageShell className="mx-auto w-full max-w-5xl space-y-5 pb-10">
       <Breadcrumb
         items={[
           { label: 'Início', href: APP_ROUTES.dashboard },
@@ -150,7 +150,7 @@ export function RecipeDetailPage() {
         </div>
       ) : null}
 
-      <div id="recipe-print-content" className="space-y-4">
+      <div id="recipe-print-content" className="min-w-0 max-w-full space-y-4">
         {mode === 'production' ? (
           <>
             <RecipeProductionView recipe={recipe} kitchenMode={isCompact} />
