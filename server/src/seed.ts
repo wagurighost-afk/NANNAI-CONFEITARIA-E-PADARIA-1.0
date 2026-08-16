@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs'
-import { randomUUID } from 'node:crypto'
+import { randomBytes, randomUUID } from 'node:crypto'
 import { config } from './config.js'
 import {
   countMonthlySchedules,
@@ -24,7 +24,6 @@ import {
   setMeta,
   updateUserEmployeeId,
   updateUserIdentity,
-  updateUserPassword,
   updateUserRole,
 } from './db/index.js'
 import { MONTHLY_SCHEDULE_SEED } from './data/monthlyScheduleSeed.js'
@@ -51,15 +50,21 @@ import type { ProductionDay } from './types.js'
 
 const ROLLOVER_META_KEY = 'production_rollover_date'
 
+/**
+ * Credencial aleatória não divulgada para identidades criadas pelo seed.
+ * A conta só se torna utilizável após redefinição explícita pelo fluxo oficial.
+ */
+function createLockedCredentialHash(): string {
+  const credential = randomBytes(48).toString('base64url')
+  return bcrypt.hashSync(credential, 12)
+}
+
 export async function seedDatabase(): Promise<void> {
   if ((await countUsers()) === 0) {
-    const passwordHash = bcrypt.hashSync(config.defaultPassword, 12)
-
     await insertUser({
       id: SEED_ADMIN.id,
       email: SEED_ADMIN.email.toLowerCase(),
-      password_hash: passwordHash,
-      password_plain: config.defaultPassword,
+      password_hash: bcrypt.hashSync(config.defaultPassword, 12),
       role: SEED_ADMIN.role,
       employee_id: null,
       name: SEED_ADMIN.name,
@@ -69,8 +74,7 @@ export async function seedDatabase(): Promise<void> {
       await insertUser({
         id: `usr-${employee.id}`,
         email: employee.email.toLowerCase(),
-        password_hash: passwordHash,
-        password_plain: config.defaultPassword,
+        password_hash: createLockedCredentialHash(),
         role: employee.role,
         employee_id: employee.id,
         name: employee.name,
@@ -188,9 +192,15 @@ export async function saveProduction(production: ProductionDay): Promise<Product
 async function syncSeedEmployeeIdentities(): Promise<void> {
   await restoreSeedAdminIdentity()
 
+  let createdMissing = 0
+
   for (const employee of SEED_EMPLOYEES) {
     const row = await resolveSeedEmployeeUser(employee.id)
     if (!row) {
+      const created = await ensureMissingSeedEmployeeUser(employee)
+      if (created) {
+        createdMissing += 1
+      }
       continue
     }
 
@@ -210,6 +220,50 @@ async function syncSeedEmployeeIdentities(): Promise<void> {
       await updateUserRole(row.id, employee.role)
     }
   }
+
+  if (createdMissing > 0) {
+    console.log(`[seed] Contas de acesso criadas para colaboradores ausentes: ${createdMissing}`)
+  }
+}
+
+/**
+ * Cria somente contas ausentes do seed (ex.: colaborador adicionado depois do 1º bootstrap).
+ * Nunca sobrescreve usuário existente nem reutiliza e-mail já ocupado.
+ */
+async function ensureMissingSeedEmployeeUser(
+  employee: (typeof SEED_EMPLOYEES)[number],
+): Promise<boolean> {
+  const userId = `usr-${employee.id}`
+  const existingById = await findUserById(userId)
+  if (existingById) {
+    return false
+  }
+
+  const existingByEmployee = await findUserByEmployeeId(employee.id)
+  if (existingByEmployee) {
+    return false
+  }
+
+  const email = employee.email.toLowerCase()
+  const emailOwner = await findUserByEmail(email)
+  if (emailOwner) {
+    console.warn(
+      `[seed] Colaborador ${employee.id} sem conta, mas e-mail ${email} já pertence a ${emailOwner.id}; conta não criada.`,
+    )
+    return false
+  }
+
+  await insertUser({
+    id: userId,
+    email,
+    password_hash: createLockedCredentialHash(),
+    role: employee.role,
+    employee_id: employee.id,
+    name: employee.name,
+  })
+
+  console.log(`[seed] Conta de acesso criada: ${employee.name} <${email}> (${employee.id})`)
+  return true
 }
 
 /**
@@ -244,14 +298,6 @@ async function restoreSeedAdminIdentity(): Promise<void> {
     await updateUserRole(SEED_ADMIN.id, SEED_ADMIN.role)
   }
 
-  // Conta técnica: garante senha padrão após recuperações de identidade.
-  if (!bcrypt.compareSync(config.defaultPassword, admin.password_hash)) {
-    await updateUserPassword(
-      SEED_ADMIN.id,
-      bcrypt.hashSync(config.defaultPassword, 12),
-      config.defaultPassword,
-    )
-  }
 }
 
 async function resolveSeedEmployeeUser(employeeId: string): Promise<UserRow | undefined> {
