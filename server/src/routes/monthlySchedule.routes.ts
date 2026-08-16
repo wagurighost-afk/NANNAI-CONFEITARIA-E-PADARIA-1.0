@@ -3,7 +3,7 @@ import multer from 'multer'
 import { toAuditActor } from '../audit/actor.js'
 import { config } from '../config.js'
 import type { AuthedRequest } from '../middleware.js'
-import { requireAuth, requireManager } from '../middleware.js'
+import { requireAdmin, requireAuth } from '../middleware.js'
 import {
   getMonthlyScheduleById,
   getMonthlyScheduleByYearMonth,
@@ -48,7 +48,7 @@ monthlyScheduleRouter.get('/:id', async (req, res) => {
   res.json(schedule)
 })
 
-monthlyScheduleRouter.post('/import', requireManager, upload.single('file'), async (req: AuthedRequest, res) => {
+monthlyScheduleRouter.post('/import', requireAdmin, upload.single('file'), async (req: AuthedRequest, res) => {
   try {
     const input = JSON.parse(String(req.body.data ?? '{}')) as ImportMonthlyScheduleInput
     const schedule = await importMonthlySchedule(input, req.file, toAuditActor(req.user!))
@@ -58,7 +58,7 @@ monthlyScheduleRouter.post('/import', requireManager, upload.single('file'), asy
   }
 })
 
-monthlyScheduleRouter.patch('/:id/day', requireManager, async (req: AuthedRequest, res) => {
+monthlyScheduleRouter.patch('/:id/day', requireAdmin, async (req: AuthedRequest, res) => {
   try {
     const input = req.body as UpdateMonthlyDayInput
     const schedule = await updateMonthlyDay({
@@ -73,7 +73,7 @@ monthlyScheduleRouter.patch('/:id/day', requireManager, async (req: AuthedReques
   }
 })
 
-monthlyScheduleRouter.patch('/:id/swap', requireManager, async (req: AuthedRequest, res) => {
+monthlyScheduleRouter.patch('/:id/swap', requireAdmin, async (req: AuthedRequest, res) => {
   try {
     const input = req.body as SwapMonthlyDaysInput
     const schedule = await swapMonthlyDays({
@@ -89,7 +89,7 @@ monthlyScheduleRouter.patch('/:id/swap', requireManager, async (req: AuthedReque
   }
 })
 
-monthlyScheduleRouter.patch('/:id/toggle', requireManager, async (req: AuthedRequest, res) => {
+monthlyScheduleRouter.patch('/:id/toggle', requireAdmin, async (req: AuthedRequest, res) => {
   try {
     const schedule = await toggleMonthlyDay(
       req.params.id,
