@@ -5,6 +5,7 @@ import {
   persistMonthlySchedules,
 } from '@/features/schedule/storage/monthlySchedulePersistence'
 import type {
+  CreateMonthlyScheduleInput,
   ImportMonthlyScheduleInput,
   MonthlyDayStatus,
   MonthlySchedule,
@@ -42,6 +43,85 @@ function scheduleKey(year: number, month: number): string {
   return `ms-${year}-${String(month).padStart(2, '0')}`
 }
 
+const MONTH_NAMES = [
+  'JANEIRO',
+  'FEVEREIRO',
+  'MARÇO',
+  'ABRIL',
+  'MAIO',
+  'JUNHO',
+  'JULHO',
+  'AGOSTO',
+  'SETEMBRO',
+  'OUTUBRO',
+  'NOVEMBRO',
+  'DEZEMBRO',
+] as const
+
+const WEEKDAY_LABELS = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'] as const
+
+function getDaysInMonth(year: number, month: number): number {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate()
+}
+
+function buildWeekdayLabels(year: number, month: number): string[] {
+  const daysInMonth = getDaysInMonth(year, month)
+
+  return Array.from({ length: daysInMonth }, (_, index) => {
+    const day = index + 1
+    const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay()
+    return WEEKDAY_LABELS[weekday] ?? ''
+  })
+}
+
+function buildMonthLabel(year: number, month: number): string {
+  return `MÊS: ${MONTH_NAMES[month - 1] ?? month} ${year}`
+}
+
+function getPreviousYearMonth(year: number, month: number): { year: number; month: number } {
+  if (month === 1) {
+    return {
+      year: year - 1,
+      month: 12,
+    }
+  }
+
+  return {
+    year,
+    month: month - 1,
+  }
+}
+
+function copyRowsAsBase(
+  source: MonthlySchedule,
+  targetDaysInMonth: number,
+): MonthlyScheduleRow[] {
+  return source.rows.map((row) => ({
+    id: `msr-${crypto.randomUUID()}`,
+    employeeId: row.employeeId,
+    employeeName: row.employeeName,
+    position: row.position,
+    shift: row.shift,
+    shiftCode: row.shiftCode,
+    days: Array.from({ length: targetDaysInMonth }, (_, index) => {
+      const day = index + 1
+      const sourceDay = row.days.find((item) => item.day === day)
+
+      if (sourceDay?.status === 'off') {
+        return {
+          day,
+          status: 'off' as const,
+          note: 'X',
+        }
+      }
+
+      return {
+        day,
+        status: 'work' as const,
+      }
+    }),
+  }))
+}
 function nextDayStatus(current: MonthlyDayStatus): MonthlyDayStatus {
   const order: MonthlyDayStatus[] = ['work', 'off', 'vacation', 'leave', 'other']
   const index = order.indexOf(current)
@@ -79,6 +159,63 @@ export class MockMonthlyScheduleRepository implements MonthlyScheduleRepository 
     return store.find((schedule) => schedule.id === id) ?? null
   }
 
+  async createSchedule(input: CreateMonthlyScheduleInput): Promise<MonthlySchedule> {
+    await ensureStore()
+    await delay()
+
+    if (!Number.isInteger(input.year) || input.year < 2000 || input.year > 2100) {
+      throw new Error('Ano inválido.')
+    }
+
+    if (!Number.isInteger(input.month) || input.month < 1 || input.month > 12) {
+      throw new Error('Mês inválido.')
+    }
+
+    const id = scheduleKey(input.year, input.month)
+
+    if (store.some((schedule) => schedule.id === id)) {
+      throw new Error(`Já existe uma escala cadastrada para ${input.month}/${input.year}.`)
+    }
+
+    const daysInMonth = getDaysInMonth(input.year, input.month)
+    let rows: MonthlyScheduleRow[] = []
+
+    if (input.copyPrevious) {
+      const previous = getPreviousYearMonth(input.year, input.month)
+
+      const source =
+        store.find(
+          (schedule) =>
+            schedule.year === previous.year &&
+            schedule.month === previous.month,
+        ) ?? null
+
+      if (!source) {
+        throw new Error(
+          `Não existe escala do mês anterior (${previous.month}/${previous.year}) para copiar.`,
+        )
+      }
+
+      rows = copyRowsAsBase(source, daysInMonth)
+    }
+
+    const schedule: MonthlySchedule = {
+      id,
+      year: input.year,
+      month: input.month,
+      label: buildMonthLabel(input.year, input.month),
+      daysInMonth,
+      weekdayLabels: buildWeekdayLabels(input.year, input.month),
+      rows,
+      attachment: null,
+      updatedAt: new Date().toISOString(),
+    }
+
+    store = [schedule, ...store]
+    saveStore()
+
+    return schedule
+  }
   async importSchedule(input: ImportMonthlyScheduleInput, _file?: File): Promise<MonthlySchedule> {
     await ensureStore()
     await delay()
