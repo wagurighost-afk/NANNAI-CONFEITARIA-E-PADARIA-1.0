@@ -1,42 +1,56 @@
 import { safeAudit } from './audit/safeAudit.js'
 import type { AuditActor } from './audit/types.js'
-import { loadWasteControlDay, loadWasteControlDaysInMonth, saveWasteControlDay } from './db/index.js'
+import {
+  loadWasteControlDay,
+  loadWasteControlDayByDateAndSector,
+  loadWasteControlDaysInMonth,
+  saveWasteControlDay,
+} from './db/index.js'
 import { emitRealtime } from './events.js'
 import { isLeadershipUser } from './auth/leadershipAccess.js'
 import { listLinkedWasteProducts, resolveWasteProduct } from './wasteControl/catalogLink.js'
+import {
+  emptyMeal,
+  flattenPhasesForAnalytics,
+  resolveOperationalDate,
+  resolveWasteDayStatus,
+  roundKg,
+  roundMoney,
+  sumMealTotals,
+  viewWasteControlDay,
+} from './wasteControl/normalizeDay.js'
+import { wasteControlDayId, type WasteControlSector } from './wasteControl/sectors.js'
 import type {
   AppUser,
   AssignWasteResponsibleInput,
   ConferenceWasteDayInput,
+  ReopenWasteDayInput,
   SaveWasteControlDayInput,
+  WasteActorSnapshot,
   WasteBuffetType,
   WasteConferenceInfo,
   WasteControlDay,
+  WasteControlDayOverview,
   WasteControlMonthlySummary,
   WasteControlProduct,
   WasteLineItem,
+  WasteMealRecord,
   WastePhase,
   WastePhaseRecord,
   WasteSector,
 } from './types.js'
 
 const PHASES: WastePhase[] = ['entrada', 'reposicao', 'finalizacao']
+const BUFFETS: WasteBuffetType[] = ['cafe', 'cha', 'jantar']
 
-function dayId(date: string, buffet: WasteBuffetType): string {
-  return `waste-${buffet}-${date}`
-}
-
-function roundMoney(value: number): number {
-  return Math.round(value * 10000) / 10000
-}
-
-function roundKg(value: number): number {
-  return Math.round(value * 1000) / 1000
+function productSectorForControl(sector: WasteControlSector): WasteSector {
+  return sector === 'PADARIA' ? 'Padaria' : 'Confeitaria'
 }
 
 function buildPhaseItems(
   products: WasteControlProduct[],
   items: Array<{ productId: string; units: number; wasteKg: number }>,
+  controlSector: WasteControlSector,
 ): WastePhaseRecord {
   const lineItems: WasteLineItem[] = []
   for (const item of items) {
@@ -51,7 +65,7 @@ function buildPhaseItems(
     lineItems.push({
       productId: product.id,
       productName: product.name,
-      sector: product.sector,
+      sector: productSectorForControl(controlSector),
       units,
       wasteKg: roundKg(wasteKg),
       unitPrice,
@@ -66,13 +80,37 @@ function buildPhaseItems(
   return { items: lineItems, wasteKgTotal, phaseTotal }
 }
 
-function emptyPhase(): WastePhaseRecord {
-  return { items: [], wasteKgTotal: 0, phaseTotal: 0 }
+function mealFromPhases(
+  pax: number,
+  dessertsQty: number,
+  phases: Record<WastePhase, WastePhaseRecord>,
+): WasteMealRecord {
+  return {
+    pax: Math.max(0, pax),
+    dessertsQty: Math.max(0, dessertsQty),
+    phases,
+    wasteKgTotal: roundKg(PHASES.reduce((sum, phase) => sum + phases[phase].wasteKgTotal, 0)),
+    dayTotal: roundMoney(PHASES.reduce((sum, phase) => sum + phases[phase].phaseTotal, 0)),
+  }
 }
 
-/** Produtos do dia vinculados ao Cadastro de Produtos (custo por porção). */
-export async function listWasteProducts(buffet?: WasteBuffetType): Promise<WasteControlProduct[]> {
-  return listLinkedWasteProducts(buffet)
+function emptyMeals(): Record<WasteBuffetType, WasteMealRecord> {
+  return {
+    cafe: emptyMeal(),
+    cha: emptyMeal(),
+    jantar: emptyMeal(),
+  }
+}
+
+function auditContext(sector: WasteControlSector, operationalDate: string): string {
+  return `setor=${sector} operationalDate=${operationalDate}`
+}
+
+function snapshotActor(actor?: AuditActor): WasteActorSnapshot {
+  return {
+    id: actor?.userId ?? 'system',
+    name: actor?.userName ?? 'Sistema',
+  }
 }
 
 /** Migra registros antigos que salvavam a meta mensal em kg (campo renomeado para reais). */
@@ -84,58 +122,143 @@ function migrateLegacyMonthlyGoal(record: WasteControlDay | null): WasteControlD
   return { ...record, monthlyGoalReais: typeof legacyKg === 'number' ? legacyKg : 0 }
 }
 
+export async function listWasteProducts(
+  sector: WasteControlSector,
+  buffet?: WasteBuffetType,
+): Promise<WasteControlProduct[]> {
+  return listLinkedWasteProducts({ sector, ...(buffet ? { buffet } : {}) })
+}
+
 export async function getWasteControlDay(
   date: string,
-  buffet: WasteBuffetType,
+  sector: WasteControlSector,
+  buffet: WasteBuffetType = 'cafe',
 ): Promise<WasteControlDay | null> {
-  const record = await loadWasteControlDay(dayId(date, buffet))
-  return migrateLegacyMonthlyGoal(record)
+  const record =
+    (await loadWasteControlDayByDateAndSector(date, sector)) ??
+    (await loadWasteControlDay(wasteControlDayId(date, sector)))
+  const migrated = migrateLegacyMonthlyGoal(record)
+  return migrated ? viewWasteControlDay(migrated, buffet) : null
+}
+
+function assertEditable(day: WasteControlDay): void {
+  if (resolveWasteDayStatus(day) === 'FINALIZED') {
+    throw new Error('Controle finalizado. Somente a liderança pode reabrir para editar.')
+  }
+}
+
+export function createEmptyWasteDay(
+  date: string,
+  sector: WasteControlSector,
+  buffet: WasteBuffetType = 'cafe',
+): WasteControlDay {
+  const meals = emptyMeals()
+  const now = new Date().toISOString()
+  return viewWasteControlDay(
+    {
+      id: wasteControlDayId(date, sector),
+      date,
+      operationalDate: date,
+      sector,
+      status: 'OPEN',
+      buffet,
+      pax: 0,
+      monthlyGoalReais: 0,
+      dessertsQty: 0,
+      phases: meals[buffet].phases,
+      meals,
+      wasteKgTotal: 0,
+      dayTotal: 0,
+      responsibleEmployeeId: null,
+      responsibleEmployeeName: null,
+      openedAt: now,
+      openedBy: null,
+      finalizedAt: null,
+      finalizedBy: null,
+      createdAt: now,
+      updatedAt: now,
+      assignment: null,
+      closing: null,
+      conference: null,
+      reopenHistory: [],
+    },
+    buffet,
+  )
 }
 
 export async function saveWasteControlDayRecord(
   input: SaveWasteControlDayInput,
   actor?: AuditActor,
 ): Promise<WasteControlDay> {
-  const existing = await loadWasteControlDay(dayId(input.date, input.buffet))
-  const products = await listLinkedWasteProducts(input.buffet)
+  const existing = await getWasteControlDay(input.date, input.sector, input.buffet)
+  if (existing) {
+    assertEditable(existing)
+  }
+
+  const products = await listLinkedWasteProducts({ sector: input.sector, buffet: input.buffet })
   const phases = PHASES.reduce(
     (acc, phase) => {
-      acc[phase] = buildPhaseItems(products, input.phases[phase] ?? [])
+      acc[phase] = buildPhaseItems(products, input.phases[phase] ?? [], input.sector)
       return acc
     },
     {} as Record<WastePhase, WastePhaseRecord>,
   )
 
-  const wasteKgTotal = roundKg(PHASES.reduce((sum, phase) => sum + phases[phase].wasteKgTotal, 0))
-  const dayTotal = roundMoney(PHASES.reduce((sum, phase) => sum + phases[phase].phaseTotal, 0))
   const now = new Date().toISOString()
+  const viewed = existing ?? createEmptyWasteDay(input.date, input.sector, input.buffet)
+  const meals = {
+    cafe: viewed.meals?.cafe ?? emptyMeal(),
+    cha: viewed.meals?.cha ?? emptyMeal(),
+    jantar: viewed.meals?.jantar ?? emptyMeal(),
+  }
+  meals[input.buffet] = mealFromPhases(input.pax, input.dessertsQty ?? 0, phases)
+  const totals = sumMealTotals(meals)
+  const openedBy = viewed.openedBy ?? (existing ? viewed.openedBy : snapshotActor(actor))
 
   const record: WasteControlDay = {
-    id: dayId(input.date, input.buffet),
+    ...viewed,
+    id: wasteControlDayId(input.date, input.sector),
     date: input.date,
+    operationalDate: input.date,
+    sector: input.sector,
+    status: 'OPEN',
     buffet: input.buffet,
-    pax: Math.max(0, input.pax),
+    pax: meals[input.buffet].pax,
     monthlyGoalReais: Math.max(0, input.monthlyGoalReais),
-    dessertsQty: Math.max(0, input.dessertsQty ?? 0),
-    phases,
-    wasteKgTotal,
-    dayTotal,
+    dessertsQty: meals[input.buffet].dessertsQty,
+    phases: meals[input.buffet].phases,
+    meals,
+    wasteKgTotal: totals.wasteKgTotal,
+    dayTotal: totals.dayTotal,
+    responsibleEmployeeId: viewed.assignment?.responsibleEmployeeId ?? viewed.responsibleEmployeeId ?? null,
+    responsibleEmployeeName:
+      viewed.assignment?.responsibleEmployeeName ?? viewed.responsibleEmployeeName ?? null,
+    openedAt: viewed.openedAt ?? viewed.createdAt ?? now,
+    openedBy,
+    createdAt: viewed.createdAt ?? now,
     updatedAt: now,
-    assignment: existing?.assignment ?? null,
-    closing: existing?.closing ?? null,
-    conference: existing?.conference ?? null,
+    assignment: viewed.assignment ?? null,
+    closing: viewed.closing ?? null,
+    conference: viewed.conference ?? null,
+    reopenHistory: viewed.reopenHistory ?? [],
+    finalizedAt: viewed.finalizedAt ?? null,
+    finalizedBy: viewed.finalizedBy ?? null,
   }
 
   if (input.finalize) {
     if (!record.assignment) {
       throw new Error('Selecione o responsável antes de finalizar a contagem.')
     }
-    // Quando há um responsável indicado, é ele quem leva o crédito do fechamento
-    // (útil quando várias pessoas compartilham o mesmo login/tablet).
+    record.status = 'FINALIZED'
     record.closing = {
       closedAt: now,
       closedById: record.assignment.responsibleEmployeeId ?? actor?.userId ?? 'system',
       closedByName: record.assignment.responsibleEmployeeName ?? actor?.userName ?? 'Sistema',
+    }
+    record.finalizedAt = now
+    record.finalizedBy = {
+      id: record.closing.closedById,
+      name: record.closing.closedByName,
     }
     record.conference = {
       status: 'aguardando_conferencia',
@@ -151,27 +274,41 @@ export async function saveWasteControlDayRecord(
   await safeAudit(actor, {
     entityType: 'waste_control',
     entityId: record.id,
-    action: existing ? 'update' : 'create',
+    action: existing ? (input.finalize ? 'status_change' : 'update') : 'create',
     summary: input.finalize
-      ? `Contagem de desperdício (${input.buffet}) finalizada e enviada para conferência`
-      : `Controle de desperdício (${input.buffet}) do dia ${input.date} salvo`,
+      ? `Setor finalizado (${auditContext(input.sector, input.date)})`
+      : existing
+        ? `Lançamento salvo (${auditContext(input.sector, input.date)})`
+        : `Controle aberto (${auditContext(input.sector, input.date)})`,
     before: existing,
     after: record,
   })
-  return record
+  return viewWasteControlDay(record, input.buffet)
 }
 
 export async function assignWasteResponsible(
   input: AssignWasteResponsibleInput,
   actor: AuditActor,
 ): Promise<WasteControlDay> {
+  const buffet = input.buffet ?? 'cafe'
   const existing =
-    (await loadWasteControlDay(dayId(input.date, input.buffet))) ??
-    createEmptyWasteDay(input.date, input.buffet)
+    (await getWasteControlDay(input.date, input.sector, buffet)) ??
+    createEmptyWasteDay(input.date, input.sector, buffet)
+  assertEditable(existing)
 
   const now = new Date().toISOString()
   const record: WasteControlDay = {
     ...existing,
+    id: wasteControlDayId(input.date, input.sector),
+    date: input.date,
+    operationalDate: input.date,
+    sector: input.sector,
+    status: 'OPEN',
+    responsibleEmployeeId: input.responsibleEmployeeId,
+    responsibleEmployeeName: input.responsibleEmployeeName,
+    openedAt: existing.openedAt ?? existing.createdAt ?? now,
+    openedBy: existing.openedBy ?? snapshotActor(actor),
+    createdAt: existing.createdAt ?? now,
     assignment: {
       responsibleEmployeeId: input.responsibleEmployeeId,
       responsibleEmployeeName: input.responsibleEmployeeName,
@@ -190,12 +327,12 @@ export async function assignWasteResponsible(
   await safeAudit(actor, {
     entityType: 'waste_control',
     entityId: record.id,
-    action: 'update',
-    summary: `Responsável ${input.responsibleEmployeeName} atribuído ao desperdício (${input.buffet})`,
+    action: existing.assignment ? 'update' : 'create',
+    summary: `Responsável ${input.responsibleEmployeeName} (${auditContext(input.sector, input.date)})`,
     before: existing,
     after: record,
   })
-  return record
+  return viewWasteControlDay(record, buffet)
 }
 
 export async function conferenceWasteDay(
@@ -206,11 +343,12 @@ export async function conferenceWasteDay(
     throw new Error('Somente a liderança pode conferir a contagem.')
   }
 
-  const existing = await loadWasteControlDay(dayId(input.date, input.buffet))
+  const buffet = input.buffet ?? 'cafe'
+  const existing = await getWasteControlDay(input.date, input.sector, buffet)
   if (!existing) {
     throw new Error('Contagem não encontrada.')
   }
-  if (!existing.closing) {
+  if (resolveWasteDayStatus(existing) !== 'FINALIZED' && !existing.closing) {
     throw new Error('Finalize a contagem antes de conferir.')
   }
 
@@ -242,31 +380,108 @@ export async function conferenceWasteDay(
       entityType: 'waste_control',
       entityId: record.id,
       action: 'update',
-      summary: `Conferência de desperdício (${input.buffet}): ${input.status}`,
+      summary: `Conferência (${input.status}) (${auditContext(input.sector, input.date)})`,
       before: existing,
       after: record,
     },
   )
-  return record
+  return viewWasteControlDay(record, buffet)
+}
+
+export async function reopenWasteControlDay(
+  input: ReopenWasteDayInput,
+  user: AppUser,
+): Promise<WasteControlDay> {
+  if (!isLeadershipUser(user)) {
+    throw new Error('Somente Chef/Admin pode reabrir o controle.')
+  }
+
+  const reason = input.reason.trim()
+  if (reason.length < 3) {
+    throw new Error('Informe o motivo da reabertura.')
+  }
+
+  const existing = await getWasteControlDay(input.date, input.sector)
+  if (!existing) {
+    throw new Error('Contagem não encontrada.')
+  }
+  if (resolveWasteDayStatus(existing) !== 'FINALIZED') {
+    throw new Error('O controle já está em aberto.')
+  }
+
+  const now = new Date().toISOString()
+  const previousFinalizedAt = existing.finalizedAt ?? existing.closing?.closedAt ?? null
+  const previousFinalizedBy = existing.finalizedBy ??
+    (existing.closing
+      ? { id: existing.closing.closedById, name: existing.closing.closedByName }
+      : null)
+
+  const record: WasteControlDay = {
+    ...existing,
+    status: 'OPEN',
+    updatedAt: now,
+    reopenHistory: [
+      ...(existing.reopenHistory ?? []),
+      {
+        reopenedAt: now,
+        reopenedById: user.id,
+        reopenedByName: user.name,
+        reason,
+        previousFinalizedAt,
+        previousFinalizedById: previousFinalizedBy?.id ?? null,
+        previousFinalizedByName: previousFinalizedBy?.name ?? null,
+      },
+    ],
+  }
+
+  await saveWasteControlDay(record)
+  emitRealtime({ scope: 'waste-control', action: 'reopened', dayId: record.id })
+  await safeAudit(
+    {
+      userId: user.id,
+      userName: user.name,
+      userEmail: user.email,
+      ...(user.employeeId ? { employeeId: user.employeeId } : {}),
+    },
+    {
+      entityType: 'waste_control',
+      entityId: record.id,
+      action: 'status_change',
+      summary: `Setor reaberto (${auditContext(input.sector, input.date)}): ${reason}`,
+      before: existing,
+      after: record,
+    },
+  )
+  return viewWasteControlDay(record)
 }
 
 export async function getWasteControlMonthlySummary(
   year: number,
   month: number,
 ): Promise<WasteControlMonthlySummary> {
-  const days = (await loadWasteControlDaysInMonth(year, month))
-    .sort((a, b) => a.date.localeCompare(b.date) || a.buffet.localeCompare(b.buffet))
-    .map((day) => ({
-      date: day.date,
-      dayNumber: Number(day.date.slice(8, 10)),
-      buffet: day.buffet,
-      wasteKgTotal: day.wasteKgTotal,
-      dayTotal: day.dayTotal,
-      pax: day.pax,
-    }))
+  const stored = await loadWasteControlDaysInMonth(year, month)
+  const days = stored
+    .sort(
+      (a, b) =>
+        resolveOperationalDate(a).localeCompare(resolveOperationalDate(b)) ||
+        (a.sector ?? a.buffet).localeCompare(b.sector ?? b.buffet),
+    )
+    .map((day) => {
+      const viewed = viewWasteControlDay(day)
+      return {
+        date: resolveOperationalDate(viewed),
+        dayNumber: Number(resolveOperationalDate(viewed).slice(8, 10)),
+        buffet: viewed.buffet,
+        sector: viewed.sector ?? null,
+        wasteKgTotal: viewed.wasteKgTotal,
+        dayTotal: viewed.dayTotal,
+        pax: viewed.pax,
+      }
+    })
 
   const buffetTotals: Record<WasteBuffetType, number> = { cafe: 0, cha: 0, jantar: 0 }
   const sectorTotals: Record<WasteSector, number> = { Confeitaria: 0, Padaria: 0 }
+  const controlSectorTotals = { CONFEITARIA: 0, PADARIA: 0, LEGACY: 0 }
   const phaseTotals: Record<WastePhase, number> = {
     entrada: 0,
     reposicao: 0,
@@ -275,14 +490,31 @@ export async function getWasteControlMonthlySummary(
   let monthTotal = 0
   let monthWasteKg = 0
 
-  for (const day of await loadWasteControlDaysInMonth(year, month)) {
-    monthTotal = roundMoney(monthTotal + day.dayTotal)
-    monthWasteKg = roundKg(monthWasteKg + day.wasteKgTotal)
-    buffetTotals[day.buffet] = roundMoney(buffetTotals[day.buffet] + day.dayTotal)
+  for (const day of stored) {
+    const viewed = viewWasteControlDay(day)
+    monthTotal = roundMoney(monthTotal + viewed.dayTotal)
+    monthWasteKg = roundKg(monthWasteKg + viewed.wasteKgTotal)
 
+    if (viewed.sector === 'CONFEITARIA' || viewed.sector === 'PADARIA') {
+      controlSectorTotals[viewed.sector] = roundMoney(
+        controlSectorTotals[viewed.sector] + viewed.dayTotal,
+      )
+      if (viewed.meals) {
+        for (const buffet of BUFFETS) {
+          buffetTotals[buffet] = roundMoney(buffetTotals[buffet] + (viewed.meals[buffet]?.dayTotal ?? 0))
+        }
+      } else {
+        buffetTotals[viewed.buffet] = roundMoney(buffetTotals[viewed.buffet] + viewed.dayTotal)
+      }
+    } else {
+      controlSectorTotals.LEGACY = roundMoney(controlSectorTotals.LEGACY + viewed.dayTotal)
+      buffetTotals[viewed.buffet] = roundMoney(buffetTotals[viewed.buffet] + viewed.dayTotal)
+    }
+
+    const phases = flattenPhasesForAnalytics(viewed)
     for (const phase of PHASES) {
-      phaseTotals[phase] = roundMoney(phaseTotals[phase] + day.phases[phase].phaseTotal)
-      for (const item of day.phases[phase].items) {
+      phaseTotals[phase] = roundMoney(phaseTotals[phase] + phases[phase].phaseTotal)
+      for (const item of phases[phase].items) {
         sectorTotals[item.sector] = roundMoney(sectorTotals[item.sector] + item.total)
       }
     }
@@ -294,30 +526,51 @@ export async function getWasteControlMonthlySummary(
     days,
     buffetTotals,
     sectorTotals,
+    controlSectorTotals,
     phaseTotals,
     monthTotal: roundMoney(monthTotal),
     monthWasteKg: roundKg(monthWasteKg),
   }
 }
 
-export function createEmptyWasteDay(date: string, buffet: WasteBuffetType): WasteControlDay {
+export async function getWasteControlOverview(operationalDate: string): Promise<WasteControlDayOverview> {
+  const [year, month] = operationalDate.split('-').map(Number)
+  const days = await loadWasteControlDaysInMonth(year ?? 2026, month ?? 1)
+  const ofDate = days.filter((day) => resolveOperationalDate(day) === operationalDate)
+
+  const confeitariaDay = ofDate.find((day) => day.sector === 'CONFEITARIA')
+  const padariaDay = ofDate.find((day) => day.sector === 'PADARIA')
+  const confeitaria = confeitariaDay ? viewWasteControlDay(confeitariaDay) : null
+  const padaria = padariaDay ? viewWasteControlDay(padariaDay) : null
+
+  const legacyTotal = roundMoney(
+    ofDate
+      .filter((day) => day.sector !== 'CONFEITARIA' && day.sector !== 'PADARIA')
+      .reduce((sum, day) => sum + viewWasteControlDay(day).dayTotal, 0),
+  )
+
+  const confeitariaTotal = confeitaria?.dayTotal ?? 0
+  const padariaTotal = padaria?.dayTotal ?? 0
+
   return {
-    id: dayId(date, buffet),
-    date,
-    buffet,
-    pax: 0,
-    monthlyGoalReais: 0,
-    dessertsQty: 0,
-    phases: {
-      entrada: emptyPhase(),
-      reposicao: emptyPhase(),
-      finalizacao: emptyPhase(),
-    },
-    wasteKgTotal: 0,
-    dayTotal: 0,
-    updatedAt: new Date().toISOString(),
-    assignment: null,
-    closing: null,
-    conference: null,
+    operationalDate,
+    confeitaria: confeitaria
+      ? {
+          id: confeitaria.id,
+          status: resolveWasteDayStatus(confeitaria),
+          dayTotal: confeitariaTotal,
+          wasteKgTotal: confeitaria.wasteKgTotal,
+        }
+      : null,
+    padaria: padaria
+      ? {
+          id: padaria.id,
+          status: resolveWasteDayStatus(padaria),
+          dayTotal: padariaTotal,
+          wasteKgTotal: padaria.wasteKgTotal,
+        }
+      : null,
+    consolidatedTotal: roundMoney(confeitariaTotal + padariaTotal),
+    legacyTotal,
   }
 }

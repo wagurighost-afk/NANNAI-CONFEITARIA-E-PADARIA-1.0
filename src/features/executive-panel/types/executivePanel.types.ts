@@ -73,6 +73,11 @@ export interface ExecutiveWasteChartPoint {
 export interface ExecutiveWaste {
   kg: number
   cost: number
+  bySector?: {
+    CONFEITARIA: { kg: number; cost: number }
+    PADARIA: { kg: number; cost: number }
+    consolidated: { kg: number; cost: number }
+  }
   topProduct: { productId: string; productName: string; kg: number; cost: number } | null
   topBuffet: { buffet: string; label: string; kg: number; cost: number } | null
   charts: {
@@ -88,6 +93,11 @@ export interface ExecutiveCosts {
   cmvCurrentPercent: number | null
   cmvDifferencePercent: number | null
   dayWasteCost: number
+  dayWasteBySector?: {
+    CONFEITARIA: number
+    PADARIA: number
+    consolidated: number
+  }
   periodWasteCost: number
   monthWasteCost: number
   note: string

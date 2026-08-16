@@ -3,34 +3,45 @@ import { wasteControlService } from '@/features/waste-control/services/wasteCont
 import type {
   AssignWasteResponsibleInput,
   ConferenceWasteDayInput,
+  ReopenWasteDayInput,
   SaveWasteControlDayInput,
   WasteBuffetType,
+  WasteControlSector,
 } from '@/features/waste-control/types/wasteControl.types'
 
 function invalidateDay(
   queryClient: ReturnType<typeof useQueryClient>,
   date: string,
-  buffet: WasteBuffetType,
+  sector: WasteControlSector,
 ) {
   const [year, month] = date.split('-').map(Number)
-  void queryClient.invalidateQueries({ queryKey: ['waste-control', 'day', date, buffet] })
+  void queryClient.invalidateQueries({ queryKey: ['waste-control', 'day', date, sector] })
+  void queryClient.invalidateQueries({ queryKey: ['waste-control', 'overview', date] })
   void queryClient.invalidateQueries({ queryKey: ['waste-control', 'summary', year, month] })
 }
 
-export function useWasteProducts(buffet: WasteBuffetType) {
+export function useWasteProducts(sector: WasteControlSector, buffet: WasteBuffetType) {
   return useQuery({
-    queryKey: ['waste-control', 'products', buffet],
-    queryFn: () => wasteControlService.getProducts(buffet),
-    // Custos vêm do Cadastro de Produtos — refrescam com frequência.
+    queryKey: ['waste-control', 'products', sector, buffet],
+    queryFn: () => wasteControlService.getProducts(sector, buffet),
+    enabled: Boolean(sector),
     staleTime: 1000 * 30,
   })
 }
 
-export function useWasteControlDay(date: string, buffet: WasteBuffetType) {
+export function useWasteControlDay(date: string, sector: WasteControlSector, _buffet: WasteBuffetType) {
   return useQuery({
-    queryKey: ['waste-control', 'day', date, buffet],
-    queryFn: () => wasteControlService.getDay(date, buffet),
-    enabled: Boolean(date && buffet),
+    queryKey: ['waste-control', 'day', date, sector],
+    queryFn: () => wasteControlService.getDay(date, sector),
+    enabled: Boolean(date && sector),
+  })
+}
+
+export function useWasteControlOverview(date: string) {
+  return useQuery({
+    queryKey: ['waste-control', 'overview', date],
+    queryFn: () => wasteControlService.getOverview(date),
+    enabled: Boolean(date),
   })
 }
 
@@ -47,7 +58,9 @@ export function useSaveWasteControlDay() {
   return useMutation({
     mutationFn: (input: SaveWasteControlDayInput) => wasteControlService.saveDay(input),
     onSuccess: (day) => {
-      invalidateDay(queryClient, day.date, day.buffet)
+      if (day.sector === 'CONFEITARIA' || day.sector === 'PADARIA') {
+        invalidateDay(queryClient, day.operationalDate || day.date, day.sector)
+      }
     },
   })
 }
@@ -58,7 +71,9 @@ export function useAssignWasteResponsible() {
   return useMutation({
     mutationFn: (input: AssignWasteResponsibleInput) => wasteControlService.assignResponsible(input),
     onSuccess: (day) => {
-      invalidateDay(queryClient, day.date, day.buffet)
+      if (day.sector === 'CONFEITARIA' || day.sector === 'PADARIA') {
+        invalidateDay(queryClient, day.operationalDate || day.date, day.sector)
+      }
     },
   })
 }
@@ -69,7 +84,22 @@ export function useConferenceWasteDay() {
   return useMutation({
     mutationFn: (input: ConferenceWasteDayInput) => wasteControlService.conferenceDay(input),
     onSuccess: (day) => {
-      invalidateDay(queryClient, day.date, day.buffet)
+      if (day.sector === 'CONFEITARIA' || day.sector === 'PADARIA') {
+        invalidateDay(queryClient, day.operationalDate || day.date, day.sector)
+      }
+    },
+  })
+}
+
+export function useReopenWasteDay() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: ReopenWasteDayInput) => wasteControlService.reopenDay(input),
+    onSuccess: (day) => {
+      if (day.sector === 'CONFEITARIA' || day.sector === 'PADARIA') {
+        invalidateDay(queryClient, day.operationalDate || day.date, day.sector)
+      }
     },
   })
 }

@@ -2,6 +2,7 @@ import pg from 'pg'
 import { config } from '../config.js'
 import { readJsonDatabaseFile } from './jsonStore.js'
 import { ProductionDayUniqueConflictError } from './productionDayConflict.js'
+import { WasteControlUniqueConflictError } from './wasteControlConflict.js'
 import type { DatabaseFile, DatabaseStore } from './types.js'
 import type {
   BreadControlDay,
@@ -78,6 +79,13 @@ CREATE TABLE IF NOT EXISTS waste_control_days (
 
 CREATE INDEX IF NOT EXISTS idx_waste_control_days_record_date ON waste_control_days(record_date);
 CREATE INDEX IF NOT EXISTS idx_waste_control_days_buffet ON waste_control_days(buffet);
+
+ALTER TABLE waste_control_days ADD COLUMN IF NOT EXISTS sector TEXT;
+
+-- Um controle novo por dia operacional + setor. Legado (sector NULL) não entra no índice.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_waste_control_days_date_sector
+  ON waste_control_days (record_date, sector)
+  WHERE sector IN ('CONFEITARIA', 'PADARIA');
 
 CREATE TABLE IF NOT EXISTS label_records (
   id TEXT PRIMARY KEY,
@@ -235,9 +243,10 @@ async function importJsonIfEmpty(pool: pg.Pool): Promise<void> {
 
     for (const day of snapshot.waste_control_days ?? []) {
       await client.query(
-        `INSERT INTO waste_control_days (id, record_date, buffet, payload) VALUES ($1, $2::date, $3, $4::jsonb)
+        `INSERT INTO waste_control_days (id, record_date, buffet, sector, payload)
+         VALUES ($1, $2::date, $3, $4, $5::jsonb)
          ON CONFLICT (id) DO NOTHING`,
-        [day.id, day.date, day.buffet, JSON.stringify(day)],
+        [day.id, day.date, day.buffet, day.sector ?? null, JSON.stringify(day)],
       )
     }
 
@@ -702,6 +711,16 @@ export function createPostgresStore(): DatabaseStore {
       return rows[0]?.payload ?? null
     },
 
+    async loadWasteControlDayByDateAndSector(operationalDate, sector) {
+      const { rows } = await pool.query<{ payload: WasteControlDay }>(
+        `SELECT payload FROM waste_control_days
+         WHERE record_date = $1::date AND sector = $2
+         LIMIT 1`,
+        [operationalDate, sector],
+      )
+      return rows[0]?.payload ?? null
+    },
+
     async loadWasteControlDaysInMonth(year, month) {
       const start = `${year}-${String(month).padStart(2, '0')}-01`
       const endMonth = month === 12 ? 1 : month + 1
@@ -717,11 +736,27 @@ export function createPostgresStore(): DatabaseStore {
     },
 
     async saveWasteControlDay(day) {
-      await pool.query(
-        `INSERT INTO waste_control_days (id, record_date, buffet, payload) VALUES ($1, $2::date, $3, $4::jsonb)
-         ON CONFLICT (id) DO UPDATE SET record_date = EXCLUDED.record_date, buffet = EXCLUDED.buffet, payload = EXCLUDED.payload`,
-        [day.id, day.date, day.buffet, JSON.stringify(day)],
-      )
+      const operationalDate = day.operationalDate || day.date
+      try {
+        await pool.query(
+          `INSERT INTO waste_control_days (id, record_date, buffet, sector, payload)
+           VALUES ($1, $2::date, $3, $4, $5::jsonb)
+           ON CONFLICT (id) DO UPDATE SET
+             record_date = EXCLUDED.record_date,
+             buffet = EXCLUDED.buffet,
+             sector = EXCLUDED.sector,
+             payload = EXCLUDED.payload`,
+          [day.id, operationalDate, day.buffet, day.sector ?? null, JSON.stringify(day)],
+        )
+      } catch (error) {
+        if (
+          isPostgresUniqueViolation(error, 'idx_waste_control_days_date_sector') &&
+          (day.sector === 'CONFEITARIA' || day.sector === 'PADARIA')
+        ) {
+          throw new WasteControlUniqueConflictError(operationalDate, day.sector)
+        }
+        throw error
+      }
     },
 
     async loadLabelRecord(id) {

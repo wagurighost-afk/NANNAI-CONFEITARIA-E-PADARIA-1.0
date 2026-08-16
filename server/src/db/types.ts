@@ -8,6 +8,7 @@ import type {
   Recipe,
   WasteControlDay,
 } from '../types.js'
+import type { WasteControlSector } from '../wasteControl/sectors.js'
 import type { AuditLogRecord } from '../audit/types.js'
 import type { IntelligenceSnapshot } from '../intelligence/types.js'
 import type { PaginatedRecipes, RecipeListQuery, RecipeStats } from '../types.js'
@@ -86,6 +87,10 @@ export interface DatabaseStore {
   loadBreadControlDaysInMonth(year: number, month: number): Promise<BreadControlDay[]>
   saveBreadControlDay(day: BreadControlDay): Promise<void>
   loadWasteControlDay(id: string): Promise<WasteControlDay | null>
+  loadWasteControlDayByDateAndSector(
+    operationalDate: string,
+    sector: WasteControlSector,
+  ): Promise<WasteControlDay | null>
   loadWasteControlDaysInMonth(year: number, month: number): Promise<WasteControlDay[]>
   saveWasteControlDay(day: WasteControlDay): Promise<void>
   loadLabelRecord(id: string): Promise<LabelRecord | null>

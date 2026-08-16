@@ -27,7 +27,7 @@ export interface AssignableEmployee {
   sectorLabel: string
   presence: AssignmentPresenceStatus
   selectable: boolean
-  source: 'monthly' | 'daily' | 'both'
+  source: 'monthly' | 'daily' | 'both' | 'catalog'
 }
 
 export interface ListAssignableInput {

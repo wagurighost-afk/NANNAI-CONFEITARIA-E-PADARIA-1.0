@@ -6,6 +6,7 @@
 import type { ProductionDay, Recipe, WasteControlDay, WastePhase } from '../../../types.js'
 import type { RecipeKpis, RecipeProductionRank, RecipeWasteRank } from '../../types/kpis.types.js'
 import { normalizeText, round } from '../../utils/kpiMath.js'
+import { flattenPhasesForAnalytics, viewWasteControlDay } from '../../../wasteControl/normalizeDay.js'
 
 const WASTE_PHASES: WastePhase[] = ['entrada', 'reposicao', 'finalizacao']
 
@@ -74,8 +75,9 @@ function buildHighestWasteRank(
   const productWaste = new Map<string, { productName: string; kg: number; cost: number }>()
 
   for (const day of wasteDays) {
+    const phases = flattenPhasesForAnalytics(viewWasteControlDay(day))
     for (const phase of WASTE_PHASES) {
-      for (const item of day.phases[phase].items) {
+      for (const item of phases[phase].items) {
         if (item.wasteKg <= 0 && item.total <= 0) {
           continue
         }

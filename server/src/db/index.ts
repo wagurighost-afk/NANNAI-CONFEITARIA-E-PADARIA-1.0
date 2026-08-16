@@ -200,6 +200,13 @@ export async function loadWasteControlDay(id: string) {
   return getStore().loadWasteControlDay(id)
 }
 
+export async function loadWasteControlDayByDateAndSector(
+  operationalDate: string,
+  sector: Parameters<DatabaseStore['loadWasteControlDayByDateAndSector']>[1],
+) {
+  return getStore().loadWasteControlDayByDateAndSector(operationalDate, sector)
+}
+
 export async function loadWasteControlDaysInMonth(year: number, month: number) {
   return getStore().loadWasteControlDaysInMonth(year, month)
 }

@@ -100,10 +100,11 @@ export function ExecutiveDashboard() {
         key: 'waste',
         label: 'Desperdício',
         value: formatExecutiveKg(kpis.waste.totalKg),
-        description:
-          kpis.waste.totalPax > 0
-            ? `${formatExecutiveKg(kpis.waste.kgPerPax)} por PAX`
-            : 'Sem PAX registrado no período',
+        description: (() => {
+          const confeitaria = kpis.waste.bySector?.find((item) => item.sector === 'CONFEITARIA')
+          const padaria = kpis.waste.bySector?.find((item) => item.sector === 'PADARIA')
+          return `Confeitaria ${formatExecutiveCurrency(confeitaria?.cost ?? 0)} · Padaria ${formatExecutiveCurrency(padaria?.cost ?? 0)}`
+        })(),
         priority: getWastePriority(kpis.waste),
         icon: <Trash2 className="size-5" />,
       },
@@ -135,7 +136,7 @@ export function ExecutiveDashboard() {
         value: formatExecutiveCurrency(kpis.waste.totalCost),
         description:
           kpis.waste.totalKg > 0
-            ? `Custo de desperdício sobre ${formatExecutiveKg(kpis.waste.totalKg)}`
+            ? `Total consolidado sobre ${formatExecutiveKg(kpis.waste.totalKg)}`
             : 'Sem custo de desperdício registrado',
         priority: getCostPriority(kpis.waste),
         icon: <DollarSign className="size-5" />,

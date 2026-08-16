@@ -5,37 +5,66 @@
 import { WASTE_PRODUCTS } from '../data/wasteProductsSeed.js'
 import { loadAllProducts } from '../db/index.js'
 import { normalizeProductNameKey } from '../products/normalizeProductName.js'
+import type { WasteControlSector } from './sectors.js'
 import type {
   CatalogProduct,
   WasteBuffetType,
   WasteControlProduct,
+  WasteProductApplicability,
   WasteSector,
 } from '../types.js'
 
 const ALL_BUFFETS: WasteBuffetType[] = ['cafe', 'cha', 'jantar']
 
-function inferSector(name: string): WasteSector {
-  const key = normalizeProductNameKey(name)
-  const padariaHints = [
-    'pao',
-    'baguete',
-    'focaccia',
-    'croissant',
-    'brioche',
-    'bisnagu',
-    'tiger',
-    'roseta',
-    'sanduiche',
-    'croque',
-    'quiche',
-    'empada',
-    'folhado',
-    'broa',
-  ]
-  if (padariaHints.some((hint) => key.includes(hint))) {
-    return 'Padaria'
+const PADARIA_NAME_HINTS = [
+  'pao',
+  'baguete',
+  'focaccia',
+  'croissant',
+  'brioche',
+  'bisnagu',
+  'tiger',
+  'roseta',
+  'sanduiche',
+  'croque',
+  'quiche',
+  'empada',
+  'folhado',
+  'broa',
+]
+
+/**
+ * Aplicabilidade para filtro do controle.
+ * Só classifica Padaria/Confeitaria com evidência (seed ou nome). Sem evidência → Ambos.
+ * Não regrava produtos históricos.
+ */
+function resolveApplicability(
+  name: string,
+  seedSector: WasteSector | undefined,
+): { sector: WasteSector; applicability: WasteProductApplicability } {
+  if (seedSector === 'Padaria' || seedSector === 'Confeitaria') {
+    return { sector: seedSector, applicability: seedSector }
   }
-  return 'Confeitaria'
+
+  const key = normalizeProductNameKey(name)
+  if (PADARIA_NAME_HINTS.some((hint) => key.includes(hint))) {
+    return { sector: 'Padaria', applicability: 'Padaria' }
+  }
+
+  return { sector: 'Confeitaria', applicability: 'Ambos' }
+}
+
+function matchesControlSector(
+  applicability: WasteProductApplicability,
+  sector: WasteControlSector,
+): boolean {
+  if (applicability === 'Ambos') {
+    return true
+  }
+  if (sector === 'CONFEITARIA') {
+    return applicability === 'Confeitaria'
+  }
+  return applicability === 'Padaria'
 }
 
 function safeCost(value: unknown): number {
@@ -52,6 +81,7 @@ function catalogToWasteProduct(
 ): WasteControlProduct {
   const key = product.nameKey || normalizeProductNameKey(product.name)
   const seed = seedByKey.get(key)
+  const classified = resolveApplicability(product.name, seed?.sector)
 
   return {
     // ID estável = Cadastro de Produtos (bloco único).
@@ -61,7 +91,8 @@ function catalogToWasteProduct(
     unitPrice: safeCost(product.costPerPortion),
     // Produtos manuais e do mestre ficam disponíveis em todos os buffets.
     buffets: ALL_BUFFETS,
-    sector: seed?.sector ?? inferSector(product.name),
+    sector: classified.sector,
+    applicability: classified.applicability,
     catalogProductId: product.id,
     costFromCatalog: true,
     origin: product.origin,
@@ -71,9 +102,10 @@ function catalogToWasteProduct(
 /**
  * Lista do desperdício = somente produtos Ativos do Cadastro de Produtos.
  */
-export async function listLinkedWasteProducts(
-  buffet?: WasteBuffetType,
-): Promise<WasteControlProduct[]> {
+export async function listLinkedWasteProducts(options?: {
+  buffet?: WasteBuffetType
+  sector?: WasteControlSector
+}): Promise<WasteControlProduct[]> {
   const catalog = await loadAllProducts()
   const seedByKey = new Map(
     WASTE_PRODUCTS.map((product) => [normalizeProductNameKey(product.name), product]),
@@ -84,11 +116,15 @@ export async function listLinkedWasteProducts(
     .map((product) => catalogToWasteProduct(product, seedByKey))
     .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
 
-  if (!buffet) {
-    return products
-  }
-
-  return products.filter((product) => product.buffets.includes(buffet))
+  return products.filter((product) => {
+    if (options?.buffet && !product.buffets.includes(options.buffet)) {
+      return false
+    }
+    if (options?.sector && !matchesControlSector(product.applicability ?? 'Ambos', options.sector)) {
+      return false
+    }
+    return true
+  })
 }
 
 /**

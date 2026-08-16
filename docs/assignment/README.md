@@ -36,7 +36,7 @@ Intervalo é detectado quando a nota da escala diária contém “intervalo”.
 
 `confeitaria` · `padaria` · `cafe` · `cha` · `jantar`
 
-No desperdício, o buffet (`cafe`/`cha`/`jantar`) é o contexto de atribuição.
+No desperdício, o setor operacional (`confeitaria`/`padaria`) é o contexto de atribuição.
 
 ## API do serviço (frontend)
 

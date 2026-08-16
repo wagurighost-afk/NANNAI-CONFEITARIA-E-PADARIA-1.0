@@ -2,34 +2,47 @@ import { apiClient } from '@/core/api/apiClient'
 import type {
   AssignWasteResponsibleInput,
   ConferenceWasteDayInput,
+  ReopenWasteDayInput,
   SaveWasteControlDayInput,
   WasteBuffetType,
   WasteControlDay,
+  WasteControlDayOverview,
   WasteControlMonthlySummary,
   WasteControlProduct,
+  WasteControlSector,
 } from '@/features/waste-control/types/wasteControl.types'
 
 export const wasteControlService = {
-  async getProducts(buffet: WasteBuffetType): Promise<WasteControlProduct[]> {
+  async getProducts(
+    sector: WasteControlSector,
+    buffet?: WasteBuffetType,
+  ): Promise<WasteControlProduct[]> {
     const { data } = await apiClient.get<{ products: WasteControlProduct[] }>('/waste-control/products', {
-      params: { buffet },
+      params: { sector, ...(buffet ? { buffet } : {}) },
     })
     return data.products
   },
 
-  async getDay(date: string, buffet: WasteBuffetType): Promise<WasteControlDay> {
+  async getDay(
+    date: string,
+    sector: WasteControlSector,
+    buffet: WasteBuffetType = 'cafe',
+  ): Promise<WasteControlDay> {
     const { data } = await apiClient.get<WasteControlDay>(`/waste-control/days/${date}`, {
-      params: { buffet },
+      params: { sector, buffet },
     })
     return data
   },
 
+  async getOverview(date: string): Promise<WasteControlDayOverview> {
+    const { data } = await apiClient.get<WasteControlDayOverview>(`/waste-control/overview/${date}`)
+    return data
+  },
+
   async saveDay(input: SaveWasteControlDayInput): Promise<WasteControlDay> {
-    const { data } = await apiClient.put<WasteControlDay>(
-      `/waste-control/days/${input.date}`,
-      input,
-      { params: { buffet: input.buffet } },
-    )
+    const { data } = await apiClient.put<WasteControlDay>(`/waste-control/days/${input.date}`, input, {
+      params: { sector: input.sector, buffet: input.buffet },
+    })
     return data
   },
 
@@ -37,7 +50,7 @@ export const wasteControlService = {
     const { data } = await apiClient.patch<WasteControlDay>(
       `/waste-control/days/${input.date}/responsible`,
       input,
-      { params: { buffet: input.buffet } },
+      { params: { sector: input.sector, ...(input.buffet ? { buffet: input.buffet } : {}) } },
     )
     return data
   },
@@ -46,7 +59,16 @@ export const wasteControlService = {
     const { data } = await apiClient.patch<WasteControlDay>(
       `/waste-control/days/${input.date}/conference`,
       input,
-      { params: { buffet: input.buffet } },
+      { params: { sector: input.sector, ...(input.buffet ? { buffet: input.buffet } : {}) } },
+    )
+    return data
+  },
+
+  async reopenDay(input: ReopenWasteDayInput): Promise<WasteControlDay> {
+    const { data } = await apiClient.patch<WasteControlDay>(
+      `/waste-control/days/${input.date}/reopen`,
+      input,
+      { params: { sector: input.sector } },
     )
     return data
   },

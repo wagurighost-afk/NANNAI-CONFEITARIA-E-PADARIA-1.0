@@ -7,27 +7,28 @@ import {
   WASTE_CONFERENCE_STATUS_STYLES,
   useAssignableEmployees,
 } from '@/features/assignment'
-import type { AssignableEmployee, AssignmentSector } from '@/features/assignment'
+import type { AssignableEmployee } from '@/features/assignment'
+import { WASTE_CONTROL_SECTOR_ASSIGNMENT } from '@/features/waste-control/constants/wasteSectors'
 import type {
-  WasteBuffetType,
   WasteConferenceStatus,
   WasteControlDay,
+  WasteControlSector,
 } from '@/features/waste-control/types/wasteControl.types'
 import { formatDateTimeBr } from '@/utils/formatDate'
 import { cn } from '@/utils/cn'
 
 export interface WasteAssignmentPanelProps {
   date: string
-  buffet: WasteBuffetType
+  sector: WasteControlSector
   day: WasteControlDay | undefined
   canConference: boolean
   onAssign: (employee: AssignableEmployee) => Promise<void>
   onConference: (status: WasteConferenceStatus, notes: string) => Promise<void>
   isAssigning?: boolean
   isConferencing?: boolean
-  /** Controlado pelo pai para permitir abertura automática do seletor. */
   pickerOpen: boolean
   onPickerOpenChange: (open: boolean) => void
+  readOnly?: boolean
 }
 
 const CONFERENCE_OPTIONS: WasteConferenceStatus[] = [
@@ -38,7 +39,7 @@ const CONFERENCE_OPTIONS: WasteConferenceStatus[] = [
 
 export function WasteAssignmentPanel({
   date,
-  buffet,
+  sector,
   day,
   canConference,
   onAssign,
@@ -47,31 +48,34 @@ export function WasteAssignmentPanel({
   isConferencing = false,
   pickerOpen,
   onPickerOpenChange,
+  readOnly = false,
 }: WasteAssignmentPanelProps) {
-  const sector = buffet as AssignmentSector
+  const assignmentSector = WASTE_CONTROL_SECTOR_ASSIGNMENT[sector]
   const [notes, setNotes] = useState(day?.conference?.notes ?? '')
-  const { candidates, isLoading } = useAssignableEmployees(date, sector)
+  const { candidates, isLoading } = useAssignableEmployees(date, assignmentSector)
   const assignment = day?.assignment
   const conference = day?.conference
   const closing = day?.closing
+  const finalized = day?.status === 'FINALIZED' || Boolean(closing)
 
   return (
-    <section className="space-y-3 rounded-2xl border border-border bg-card/80 p-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+    <section className="min-w-0 max-w-full space-y-3 rounded-2xl border border-border bg-card/80 p-4">
+      <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 max-w-full flex-1">
           <h3 className="flex items-center gap-2 font-medium text-foreground">
-            <UserRound className="size-4" />
+            <UserRound className="size-4 shrink-0" />
             Responsável pela contagem (opcional)
           </h3>
           <p className="mt-1 text-xs text-muted-foreground">
-            Indique quem está fazendo a contagem completa (entrada, reposição e finalização) — essa
-            pessoa também pode finalizar o registro. Baseado na Escala Mensal e Diária.
+            Somente colaboradores ativos deste setor. Folga, férias e afastamento não entram quando a
+            escala estiver disponível.
           </p>
         </div>
         <Button
           type="button"
           variant="secondary"
-          disabled={isAssigning || Boolean(closing)}
+          className="shrink-0"
+          disabled={isAssigning || readOnly || finalized}
           onClick={() => onPickerOpenChange(true)}
         >
           {assignment ? 'Trocar responsável' : 'Selecionar responsável'}
@@ -79,8 +83,10 @@ export function WasteAssignmentPanel({
       </div>
 
       {assignment ? (
-        <div className="rounded-xl border border-border bg-background/70 p-3 text-sm">
-          <p className="font-medium text-foreground">{assignment.responsibleEmployeeName}</p>
+        <div className="min-w-0 rounded-xl border border-border bg-background/70 p-3 text-sm">
+          <p className="min-w-0 break-words font-medium text-foreground">
+            {assignment.responsibleEmployeeName}
+          </p>
           <p className="text-muted-foreground">
             {assignment.responsiblePosition} · {assignment.responsibleShift}
           </p>
@@ -127,7 +133,7 @@ export function WasteAssignmentPanel({
             <p className="text-xs text-muted-foreground">Obs.: {conference.notes}</p>
           ) : null}
 
-          {canConference && closing ? (
+          {canConference && finalized ? (
             <div className="space-y-2 border-t border-border pt-3">
               <TextArea
                 label="Observações da conferência"
@@ -156,7 +162,7 @@ export function WasteAssignmentPanel({
 
       <ResponsiblePickerDialog
         open={pickerOpen}
-        sector={sector}
+        sector={assignmentSector}
         candidates={candidates}
         isLoading={isLoading}
         onClose={() => onPickerOpenChange(false)}

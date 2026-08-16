@@ -31,12 +31,19 @@ export interface WasteProductBreakdown {
   cost: number
 }
 
+export interface WasteSectorBreakdown {
+  sector: 'CONFEITARIA' | 'PADARIA'
+  kg: number
+  cost: number
+}
+
 export interface WasteKpis {
   totalKg: number
   totalCost: number
   totalPax: number
   kgPerPax: number
   byBuffet: WasteBuffetBreakdown[]
+  bySector?: WasteSectorBreakdown[]
   byProduct: WasteProductBreakdown[]
 }
 

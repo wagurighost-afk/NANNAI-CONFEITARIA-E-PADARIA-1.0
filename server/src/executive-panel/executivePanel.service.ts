@@ -29,6 +29,7 @@ import {
   resolveExecutiveDateRange,
   type ExecutiveDateRange,
 } from './period.js'
+import { flattenPhasesForAnalytics, resolveOperationalDate, viewWasteControlDay } from '../wasteControl/normalizeDay.js'
 import type {
   ExecutiveAlert,
   ExecutiveAuditItem,
@@ -91,7 +92,7 @@ async function loadBreadInRange(range: ExecutiveDateRange): Promise<BreadControl
 function computePax(wasteDays: WasteControlDay[], breadDays: BreadControlDay[]): number {
   const byDate = new Map<string, number>()
   for (const day of wasteDays) {
-    byDate.set(day.date, Math.max(byDate.get(day.date) ?? 0, day.pax))
+    byDate.set(day.operationalDate || day.date, Math.max(byDate.get(day.operationalDate || day.date) ?? 0, day.pax))
   }
   for (const day of breadDays) {
     byDate.set(day.date, Math.max(byDate.get(day.date) ?? 0, day.pax))
@@ -169,23 +170,54 @@ function buildBreadSection(breadDays: BreadControlDay[]) {
 }
 
 function buildWasteSection(wasteDays: WasteControlDay[], range: ExecutiveDateRange) {
+  const viewed = wasteDays.map((day) => viewWasteControlDay(day))
   const kg = round(
-    wasteDays.reduce((sum, day) => sum + day.wasteKgTotal, 0),
+    viewed.reduce((sum, day) => sum + day.wasteKgTotal, 0),
     3,
   )
-  const cost = round(wasteDays.reduce((sum, day) => sum + day.dayTotal, 0))
+  const cost = round(viewed.reduce((sum, day) => sum + day.dayTotal, 0))
+
+  const confeitariaDays = viewed.filter((day) => day.sector === 'CONFEITARIA')
+  const padariaDays = viewed.filter((day) => day.sector === 'PADARIA')
+  const bySector = {
+    CONFEITARIA: {
+      kg: round(confeitariaDays.reduce((sum, day) => sum + day.wasteKgTotal, 0), 3),
+      cost: round(confeitariaDays.reduce((sum, day) => sum + day.dayTotal, 0)),
+    },
+    PADARIA: {
+      kg: round(padariaDays.reduce((sum, day) => sum + day.wasteKgTotal, 0), 3),
+      cost: round(padariaDays.reduce((sum, day) => sum + day.dayTotal, 0)),
+    },
+    consolidated: { kg: 0, cost: 0 },
+  }
+  bySector.consolidated = {
+    kg: round(bySector.CONFEITARIA.kg + bySector.PADARIA.kg, 3),
+    cost: round(bySector.CONFEITARIA.cost + bySector.PADARIA.cost),
+  }
 
   const productMap = new Map<string, { productId: string; productName: string; kg: number; cost: number }>()
   const buffetMap = new Map<WasteBuffetType, { kg: number; cost: number }>()
 
-  for (const day of wasteDays) {
-    const buffet = buffetMap.get(day.buffet) ?? { kg: 0, cost: 0 }
-    buffet.kg = round(buffet.kg + day.wasteKgTotal, 3)
-    buffet.cost = round(buffet.cost + day.dayTotal)
-    buffetMap.set(day.buffet, buffet)
+  for (const day of viewed) {
+    if (day.meals) {
+      for (const [buffet, meal] of Object.entries(day.meals) as Array<
+        [WasteBuffetType, { kg?: number; wasteKgTotal: number; dayTotal: number }]
+      >) {
+        const current = buffetMap.get(buffet) ?? { kg: 0, cost: 0 }
+        current.kg = round(current.kg + meal.wasteKgTotal, 3)
+        current.cost = round(current.cost + meal.dayTotal)
+        buffetMap.set(buffet, current)
+      }
+    } else {
+      const buffet = buffetMap.get(day.buffet) ?? { kg: 0, cost: 0 }
+      buffet.kg = round(buffet.kg + day.wasteKgTotal, 3)
+      buffet.cost = round(buffet.cost + day.dayTotal)
+      buffetMap.set(day.buffet, buffet)
+    }
 
+    const phases = flattenPhasesForAnalytics(day)
     for (const phase of WASTE_PHASES) {
-      for (const item of day.phases[phase].items) {
+      for (const item of phases[phase].items) {
         if (item.wasteKg <= 0 && item.total <= 0) {
           continue
         }
@@ -216,7 +248,7 @@ function buildWasteSection(wasteDays: WasteControlDay[], range: ExecutiveDateRan
     : null
 
   const dayChart: ExecutiveWasteChartPoint[] = listDatesInclusive(range.from, range.to).map((date) => {
-    const days = wasteDays.filter((item) => item.date === date)
+    const days = viewed.filter((item) => resolveOperationalDate(item) === date)
     return {
       key: date,
       label: date.slice(8, 10),
@@ -239,8 +271,8 @@ function buildWasteSection(wasteDays: WasteControlDay[], range: ExecutiveDateRan
   }
 
   const monthMap = new Map<string, ExecutiveWasteChartPoint>()
-  for (const day of wasteDays) {
-    const key = day.date.slice(0, 7)
+  for (const day of viewed) {
+    const key = resolveOperationalDate(day).slice(0, 7)
     const current = monthMap.get(key) ?? {
       key,
       label: key,
@@ -255,6 +287,7 @@ function buildWasteSection(wasteDays: WasteControlDay[], range: ExecutiveDateRan
   return {
     kg,
     cost,
+    bySector,
     topProduct,
     topBuffet,
     charts: {
@@ -452,10 +485,25 @@ export async function getExecutivePanelReport(query: {
   const totalPax = computePax(wasteDays, breadDays)
   const team = await buildTeamSection(productions, range.to > today ? today : range.to)
 
-  const dayWasteCost = round(
-    monthWasteDays.filter((day) => day.date === today).reduce((sum, day) => sum + day.dayTotal, 0),
-  )
-  const monthWasteCost = round(monthWasteDays.reduce((sum, day) => sum + day.dayTotal, 0))
+  const todayWasteDays = monthWasteDays
+    .map((day) => viewWasteControlDay(day))
+    .filter((day) => resolveOperationalDate(day) === today)
+  const dayWasteBySector = {
+    CONFEITARIA: round(
+      todayWasteDays
+        .filter((day) => day.sector === 'CONFEITARIA')
+        .reduce((sum, day) => sum + day.dayTotal, 0),
+    ),
+    PADARIA: round(
+      todayWasteDays
+        .filter((day) => day.sector === 'PADARIA')
+        .reduce((sum, day) => sum + day.dayTotal, 0),
+    ),
+    consolidated: 0,
+  }
+  dayWasteBySector.consolidated = round(dayWasteBySector.CONFEITARIA + dayWasteBySector.PADARIA)
+  const dayWasteCost = dayWasteBySector.consolidated
+  const monthWasteCost = round(monthWasteDays.reduce((sum, day) => sum + viewWasteControlDay(day).dayTotal, 0))
 
   const labelsToday = labels.filter((label) => label.printedAt.slice(0, 10) === today)
   const labelsInPeriod = labels.filter((label) => {
@@ -471,6 +519,7 @@ export async function getExecutivePanelReport(query: {
     cmvCurrentPercent: null,
     cmvDifferencePercent: null,
     dayWasteCost,
+    dayWasteBySector,
     periodWasteCost: waste.cost,
     monthWasteCost,
     note: 'CMV atual depende do módulo de custos (ainda não implementado). Valores exibidos de custo vêm do desperdício real lançado.',

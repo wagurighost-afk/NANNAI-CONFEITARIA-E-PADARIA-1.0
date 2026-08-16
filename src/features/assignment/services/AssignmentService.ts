@@ -167,6 +167,30 @@ export const AssignmentService = {
       })
     }
 
+    const scheduleEmpty = input.monthlyRows.length === 0 && input.dailyEntries.length === 0
+    if (scheduleEmpty) {
+      for (const employee of input.employees) {
+        if (seen.has(employee.id) || employee.status !== 'Ativo') {
+          continue
+        }
+        if (!matchesSector(input.sector, employee.sector, employee.position, employee.shift)) {
+          continue
+        }
+        seen.add(employee.id)
+        result.push({
+          employeeId: employee.id,
+          name: employee.name,
+          position: employee.position,
+          shift: employee.shift,
+          ...(employee.photoUrl ? { photoUrl: employee.photoUrl } : {}),
+          sectorLabel: employee.sector,
+          presence: 'present',
+          selectable: true,
+          source: 'catalog',
+        })
+      }
+    }
+
     return result.sort((a, b) => {
       if (a.selectable !== b.selectable) {
         return a.selectable ? -1 : 1

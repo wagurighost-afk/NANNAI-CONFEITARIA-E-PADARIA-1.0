@@ -251,6 +251,22 @@ export function ExecutivePanelPage() {
           <ExecutiveSection title="Desperdício" description="Kg, custo e destaques do período">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
               <ExecutiveMetricCard
+                label="Confeitaria"
+                value={formatExecutiveCurrency(report.waste.bySector?.CONFEITARIA.cost ?? 0)}
+                description={formatExecutiveKg(report.waste.bySector?.CONFEITARIA.kg ?? 0)}
+              />
+              <ExecutiveMetricCard
+                label="Padaria"
+                value={formatExecutiveCurrency(report.waste.bySector?.PADARIA.cost ?? 0)}
+                description={formatExecutiveKg(report.waste.bySector?.PADARIA.kg ?? 0)}
+              />
+              <ExecutiveMetricCard
+                label="Total consolidado"
+                value={formatExecutiveCurrency(report.waste.bySector?.consolidated.cost ?? report.waste.cost)}
+                description="Confeitaria + Padaria"
+                tone={(report.waste.bySector?.consolidated.cost ?? report.waste.cost) > 0 ? 'warning' : 'ok'}
+              />
+              <ExecutiveMetricCard
                 label="Kg desperdiçados"
                 value={formatExecutiveKg(report.waste.kg)}
                 tone={report.waste.kg > 0 ? 'warning' : 'ok'}
@@ -296,6 +312,7 @@ export function ExecutivePanelPage() {
               <ExecutiveMetricCard
                 label="Custo do dia (desperdício)"
                 value={formatExecutiveCurrency(report.costs.dayWasteCost)}
+                description={`Confeitaria ${formatExecutiveCurrency(report.costs.dayWasteBySector?.CONFEITARIA ?? 0)} · Padaria ${formatExecutiveCurrency(report.costs.dayWasteBySector?.PADARIA ?? 0)}`}
               />
               <ExecutiveMetricCard
                 label="Custo do mês (desperdício)"

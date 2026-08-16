@@ -15,6 +15,7 @@ export interface WasteDailyColumnsTableProps {
   phaseDrafts: Record<WastePhase, WastePhaseDraft>
   onChange: (phase: WastePhase, productId: string, field: 'units' | 'wasteKg', value: number) => void
   search: string
+  readOnly?: boolean
 }
 
 const PHASE_HINTS: Record<WastePhase, string> = {
@@ -56,6 +57,7 @@ export function WasteDailyColumnsTable({
   phaseDrafts,
   onChange,
   search,
+  readOnly = false,
 }: WasteDailyColumnsTableProps) {
   const query = search.trim().toLowerCase()
   const filtered = query
@@ -155,8 +157,10 @@ export function WasteDailyColumnsTable({
             {filtered.map((product) => (
               <tr key={product.id} className="border-b border-border/60">
                 <td className="sticky left-0 z-10 bg-surface px-4 py-2.5">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <p className="font-medium leading-snug">{product.name}</p>
+                  <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                    <p className="min-w-0 max-w-full break-words font-medium leading-snug [overflow-wrap:anywhere]">
+                      {product.name}
+                    </p>
                     {product.origin === 'Manual' ? (
                       <Badge variant="accent">Manual</Badge>
                     ) : null}
@@ -173,6 +177,7 @@ export function WasteDailyColumnsTable({
                       min={0}
                       step={phase === 'finalizacao' ? 0.001 : 1}
                       inputMode="decimal"
+                      disabled={readOnly}
                       className="mx-auto h-9 w-20 text-center"
                       value={getPhaseValue(phaseDrafts, phase, product.id) || ''}
                       onChange={(event) => {
@@ -205,10 +210,12 @@ export function WasteDailyColumnsTable({
         </div>
         {filtered.map((product) => (
           <div key={product.id} className="rounded-xl border border-border bg-surface p-3">
-            <div className="mb-2 flex items-start justify-between gap-2">
-              <div>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <p className="text-sm font-medium leading-snug">{product.name}</p>
+            <div className="mb-2 flex min-w-0 items-start justify-between gap-2">
+              <div className="min-w-0 max-w-full flex-1">
+                <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                  <p className="min-w-0 max-w-full break-words text-sm font-medium leading-snug [overflow-wrap:anywhere]">
+                    {product.name}
+                  </p>
                   {product.origin === 'Manual' ? (
                     <Badge variant="accent">Manual</Badge>
                   ) : null}
@@ -228,6 +235,7 @@ export function WasteDailyColumnsTable({
                   min={0}
                   step={phase === 'finalizacao' ? 0.001 : 1}
                   inputMode="decimal"
+                  disabled={readOnly}
                   className="h-9 px-1 text-center text-sm"
                   aria-label={`${product.name} ${WASTE_PHASE_LABELS[phase]}`}
                   value={getPhaseValue(phaseDrafts, phase, product.id) || ''}

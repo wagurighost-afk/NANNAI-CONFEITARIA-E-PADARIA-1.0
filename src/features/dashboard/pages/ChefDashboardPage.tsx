@@ -4,6 +4,7 @@ import { Breadcrumb, PageHeader } from '@/components/common'
 import { ProgressBar } from '@/components/common/ProgressBar/ProgressBar'
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, KpiCard, Skeleton } from '@/components/ui'
 import { ChefBreadMonthlySummaryCard } from '@/features/bread-control/components/ChefBreadMonthlySummaryCard'
+import { ChefWasteTodayCard } from '@/features/waste-control/components/ChefWasteTodayCard'
 import { useChefDashboard } from '@/features/dashboard/hooks/useChefDashboard'
 import { APP_ROUTES, formatAppReferenceDateBr } from '@/core/constants'
 import { formatDateTimeBr } from '@/utils/formatDate'
@@ -119,6 +120,7 @@ export function ChefDashboardPage() {
         </Card>
 
         <ChefBreadMonthlySummaryCard />
+        <ChefWasteTodayCard />
 
         <Card className="lg:col-span-2">
           <CardHeader>

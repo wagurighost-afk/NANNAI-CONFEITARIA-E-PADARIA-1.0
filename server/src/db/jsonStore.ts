@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { config } from '../config.js'
 import { ProductionDayUniqueConflictError } from './productionDayConflict.js'
+import { WasteControlUniqueConflictError } from './wasteControlConflict.js'
 import type { DatabaseFile, DatabaseStore, RefreshTokenRow, UserRow } from './types.js'
 import type {
   BreadControlDay,
@@ -71,6 +72,17 @@ function readDb(): DatabaseFile {
     return emptyDb()
   }
 }
+
+function withJsonLock<T>(queue: { current: Promise<void> }, fn: () => T): Promise<T> {
+  const run = queue.current.then(fn, fn)
+  queue.current = run.then(
+    () => undefined,
+    () => undefined,
+  )
+  return run
+}
+
+const wasteSaveQueue = { current: Promise.resolve() }
 
 function writeDb(data: DatabaseFile): void {
   fs.mkdirSync(path.dirname(dbPath), { recursive: true })
@@ -365,20 +377,48 @@ export function createJsonStore(): DatabaseStore {
       return readDb().waste_control_days.find((day) => day.id === id) ?? null
     },
 
+    async loadWasteControlDayByDateAndSector(operationalDate, sector) {
+      return (
+        readDb().waste_control_days.find(
+          (day) =>
+            (day.operationalDate || day.date) === operationalDate && day.sector === sector,
+        ) ?? null
+      )
+    },
+
     async loadWasteControlDaysInMonth(year, month) {
       const prefix = `${year}-${String(month).padStart(2, '0')}-`
-      return readDb().waste_control_days.filter((day) => day.date.startsWith(prefix))
+      return readDb().waste_control_days.filter((day) =>
+        (day.operationalDate || day.date).startsWith(prefix),
+      )
     },
 
     async saveWasteControlDay(day) {
-      const db = readDb()
-      const index = db.waste_control_days.findIndex((item) => item.id === day.id)
-      if (index >= 0) {
-        db.waste_control_days[index] = day
-      } else {
-        db.waste_control_days.push(day)
-      }
-      writeDb(db)
+      return withJsonLock(wasteSaveQueue, () => {
+        const db = readDb()
+        if (day.sector === 'CONFEITARIA' || day.sector === 'PADARIA') {
+          const duplicate = db.waste_control_days.find(
+            (item) =>
+              item.id !== day.id &&
+              (item.operationalDate || item.date) === (day.operationalDate || day.date) &&
+              item.sector === day.sector,
+          )
+          if (duplicate) {
+            throw new WasteControlUniqueConflictError(
+              day.operationalDate || day.date,
+              day.sector,
+            )
+          }
+        }
+
+        const index = db.waste_control_days.findIndex((item) => item.id === day.id)
+        if (index >= 0) {
+          db.waste_control_days[index] = day
+        } else {
+          db.waste_control_days.push(day)
+        }
+        writeDb(db)
+      })
     },
 
     async loadLabelRecord(id) {

@@ -25,9 +25,10 @@ export interface WasteMonthlyChartsProps {
 
 export function WasteMonthlyCharts({ summary }: WasteMonthlyChartsProps) {
   const sectorData = [
-    { name: 'Confeitaria', total: summary.sectorTotals.Confeitaria },
-    { name: 'Padaria', total: summary.sectorTotals.Padaria },
+    { name: 'Confeitaria', total: summary.controlSectorTotals?.CONFEITARIA ?? summary.sectorTotals.Confeitaria },
+    { name: 'Padaria', total: summary.controlSectorTotals?.PADARIA ?? summary.sectorTotals.Padaria },
   ]
+  const consolidated = (summary.controlSectorTotals?.CONFEITARIA ?? 0) + (summary.controlSectorTotals?.PADARIA ?? 0)
 
   const buffetData = [
     { name: WASTE_BUFFET_LABELS.cafe, total: summary.buffetTotals.cafe },
@@ -41,9 +42,21 @@ export function WasteMonthlyCharts({ summary }: WasteMonthlyChartsProps) {
     { name: WASTE_PHASE_LABELS.finalizacao, total: summary.phaseTotals.finalizacao },
   ]
 
-  const dailyMap = new Map<number, { day: number; cafe: number; cha: number; jantar: number }>()
+  const dailyMap = new Map<number, { day: number; CONFEITARIA: number; PADARIA: number; cafe: number; cha: number; jantar: number }>()
   for (const day of summary.days) {
-    const current = dailyMap.get(day.dayNumber) ?? { day: day.dayNumber, cafe: 0, cha: 0, jantar: 0 }
+    const current = dailyMap.get(day.dayNumber) ?? {
+      day: day.dayNumber,
+      CONFEITARIA: 0,
+      PADARIA: 0,
+      cafe: 0,
+      cha: 0,
+      jantar: 0,
+    }
+    if (day.sector === 'CONFEITARIA') {
+      current.CONFEITARIA += day.dayTotal
+    } else if (day.sector === 'PADARIA') {
+      current.PADARIA += day.dayTotal
+    }
     if (day.buffet === 'cafe') {
       current.cafe += day.dayTotal
     } else if (day.buffet === 'cha') {
@@ -57,7 +70,7 @@ export function WasteMonthlyCharts({ summary }: WasteMonthlyChartsProps) {
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      <ChartCard title="Desperdício por setor" description="Custo total no mês (R$)">
+      <ChartCard title="Desperdício por setor" description={`Consolidado: ${formatWasteMoney(consolidated)} (Confeitaria + Padaria)`}>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={sectorData}>
@@ -111,9 +124,8 @@ export function WasteMonthlyCharts({ summary }: WasteMonthlyChartsProps) {
               <YAxis tickFormatter={(value) => `R$ ${value}`} />
               <Tooltip formatter={(value) => formatWasteMoney(Number(value ?? 0))} />
               <Legend />
-              <Line type="monotone" dataKey="cafe" name={WASTE_BUFFET_LABELS.cafe} stroke={CHART_THEME.series[2]} strokeWidth={2} />
-              <Line type="monotone" dataKey="cha" name={WASTE_BUFFET_LABELS.cha} stroke={CHART_THEME.accent} strokeWidth={2} />
-              <Line type="monotone" dataKey="jantar" name={WASTE_BUFFET_LABELS.jantar} stroke={CHART_THEME.primary} strokeWidth={2} />
+              <Line type="monotone" dataKey="CONFEITARIA" name="Confeitaria" stroke={CHART_THEME.accent} strokeWidth={2} />
+              <Line type="monotone" dataKey="PADARIA" name="Padaria" stroke={CHART_THEME.primary} strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
         </div>
