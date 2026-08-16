@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { getAppCurrentYearMonth } from '@/core/constants/appDate'
 import { monthlyScheduleService } from '@/features/schedule/services/monthlySchedule.service'
 import type {
   MonthlyDayStatus,
@@ -9,10 +10,12 @@ import type {
 
 const QUERY_KEY = ['monthly-schedule'] as const
 
-export function useMonthlySchedule(initialYear = 2026, initialMonth = 7) {
+export function useMonthlySchedule(initialYear?: number, initialMonth?: number) {
   const queryClient = useQueryClient()
-  const [year, setYear] = useState(initialYear)
-  const [month, setMonth] = useState(initialMonth)
+  const [operationalMonth] = useState(() => getAppCurrentYearMonth())
+
+  const [year, setYear] = useState(initialYear ?? operationalMonth.year)
+  const [month, setMonth] = useState(initialMonth ?? operationalMonth.month)
   const [swapMode, setSwapMode] = useState(false)
   const [swapSource, setSwapSource] = useState<{ rowId: string; day: number } | null>(null)
 
