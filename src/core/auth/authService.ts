@@ -12,13 +12,9 @@ export interface ChangePasswordInput {
   newPassword: string
 }
 
-export interface EmployeePasswordInfo {
+export interface ResetEmployeePasswordResult {
   email: string
   name: string
-  password: string | null
-}
-
-export interface ResetEmployeePasswordResult extends EmployeePasswordInfo {
   message?: string
 }
 
@@ -29,32 +25,16 @@ export interface ResetEmployeePasswordResult extends EmployeePasswordInfo {
  */
 const USE_MOCK_AUTH = !usesCloudPersistence()
 const MOCK_DEFAULT_PASSWORD = 'Nannai@2026'
-const MOCK_PASSWORDS_KEY = 'nannai_mock_passwords'
+const mockPasswords = new Map<string, string>()
 
 let currentMockUser: User = resolveMockUserByEmail('admin@nannai.com')
 
-function readMockPasswords(): Record<string, string> {
-  try {
-    const raw = storage.get(MOCK_PASSWORDS_KEY)
-    return raw ? (JSON.parse(raw) as Record<string, string>) : {}
-  } catch {
-    return {}
-  }
-}
-
-function writeMockPasswords(passwords: Record<string, string>): void {
-  storage.set(MOCK_PASSWORDS_KEY, JSON.stringify(passwords))
-}
-
 function getMockPassword(email: string): string {
-  const passwords = readMockPasswords()
-  return passwords[email.toLowerCase()] ?? MOCK_DEFAULT_PASSWORD
+  return mockPasswords.get(email.toLowerCase()) ?? MOCK_DEFAULT_PASSWORD
 }
 
 function setMockPassword(email: string, password: string): void {
-  const passwords = readMockPasswords()
-  passwords[email.toLowerCase()] = password
-  writeMockPasswords(passwords)
+  mockPasswords.set(email.toLowerCase(), password)
 }
 
 function persistTokens(accessToken: string, refreshToken: string): void {
@@ -184,29 +164,9 @@ export const authService = {
     await apiClient.post('/auth/change-password', input)
   },
 
-  async getEmployeePassword(employeeId: string): Promise<EmployeePasswordInfo> {
-    if (USE_MOCK_AUTH) {
-      const employee = EMPLOYEES_MOCK.find((item) => item.id === employeeId)
-      if (!employee) {
-        throw new Error('Colaborador não encontrado.')
-      }
-
-      return {
-        email: employee.email,
-        name: employee.name,
-        password: getMockPassword(employee.email),
-      }
-    }
-
-    const { data } = await apiClient.get<EmployeePasswordInfo>(
-      `/auth/users/by-employee/${employeeId}/password`,
-    )
-    return data
-  },
-
   async resetEmployeePassword(
     employeeId: string,
-    newPassword?: string,
+    newPassword: string,
   ): Promise<ResetEmployeePasswordResult> {
     if (USE_MOCK_AUTH) {
       const employee = EMPLOYEES_MOCK.find((item) => item.id === employeeId)
@@ -214,7 +174,7 @@ export const authService = {
         throw new Error('Colaborador não encontrado.')
       }
 
-      const password = newPassword?.trim() || MOCK_DEFAULT_PASSWORD
+      const password = newPassword.trim()
       if (password.length < 6) {
         throw new Error('A senha deve ter pelo menos 6 caracteres.')
       }
@@ -223,14 +183,13 @@ export const authService = {
       return {
         email: employee.email,
         name: employee.name,
-        password,
         message: 'Senha redefinida com sucesso.',
       }
     }
 
     const { data } = await apiClient.post<ResetEmployeePasswordResult>(
       `/auth/users/by-employee/${employeeId}/reset-password`,
-      newPassword ? { newPassword } : {},
+      { newPassword },
     )
     return data
   },

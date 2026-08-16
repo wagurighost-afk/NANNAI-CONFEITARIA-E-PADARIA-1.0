@@ -35,7 +35,14 @@ function emptyDb(): DatabaseFile {
 
 function normalizeDb(parsed: Partial<DatabaseFile>): DatabaseFile {
   return {
-    users: parsed.users ?? [],
+    // Regrava usuários sem o legado `password_plain`; autenticação usa somente hash.
+    users: (parsed.users ?? []).map((user) => {
+      const {
+        password_plain: _legacyPasswordPlain,
+        ...safeUser
+      } = user as typeof user & { password_plain?: unknown }
+      return safeUser
+    }),
     productions: parsed.productions ?? [],
     recipes: parsed.recipes ?? [],
     products: parsed.products ?? [],
@@ -77,7 +84,9 @@ export function readJsonDatabaseFile(): DatabaseFile {
 export function createJsonStore(): DatabaseStore {
   return {
     async init() {
-      readDb()
+      const db = readDb()
+      // Remove definitivamente qualquer senha legada em texto puro do arquivo local.
+      writeDb(db)
     },
 
     async getMeta(key) {
@@ -113,7 +122,7 @@ export function createJsonStore(): DatabaseStore {
       return readDb().users.find((user) => user.employee_id === employeeId)
     },
 
-    async updateUserPassword(id, passwordHash, passwordPlain) {
+    async updateUserPassword(id, passwordHash) {
       const db = readDb()
       const index = db.users.findIndex((user) => user.id === id)
       if (index < 0) {
@@ -122,7 +131,6 @@ export function createJsonStore(): DatabaseStore {
       db.users[index] = {
         ...db.users[index],
         password_hash: passwordHash,
-        password_plain: passwordPlain,
       }
       writeDb(db)
     },

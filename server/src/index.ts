@@ -111,7 +111,6 @@ async function startServer(): Promise<void> {
     if (isProduction && fs.existsSync(distPath)) {
       console.log('App PWA servido a partir de /dist')
     }
-    console.log(`Senha padrão da equipe: ${config.defaultPassword}`)
   })
 }
 

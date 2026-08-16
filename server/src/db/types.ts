@@ -16,7 +16,6 @@ export interface UserRow {
   id: string
   email: string
   password_hash: string
-  password_plain: string | null
   role: AppUser['role']
   employee_id: string | null
   name: string
@@ -52,7 +51,7 @@ export interface DatabaseStore {
   findUserByEmail(email: string): Promise<UserRow | undefined>
   findUserById(id: string): Promise<UserRow | undefined>
   findUserByEmployeeId(employeeId: string): Promise<UserRow | undefined>
-  updateUserPassword(id: string, passwordHash: string, passwordPlain: string): Promise<void>
+  updateUserPassword(id: string, passwordHash: string): Promise<void>
   updateUserIdentity(id: string, input: { name: string; email: string }): Promise<void>
   updateUserEmployeeId(id: string, employeeId: string | null): Promise<void>
   updateUserRole(id: string, role: AppUser['role']): Promise<void>

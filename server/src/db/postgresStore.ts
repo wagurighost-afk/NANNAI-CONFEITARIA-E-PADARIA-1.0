@@ -22,7 +22,6 @@ CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
-  password_plain TEXT,
   role TEXT NOT NULL,
   employee_id TEXT,
   name TEXT NOT NULL
@@ -172,14 +171,13 @@ async function importJsonIfEmpty(pool: pg.Pool): Promise<void> {
 
     for (const user of snapshot.users) {
       await client.query(
-        `INSERT INTO users (id, email, password_hash, password_plain, role, employee_id, name)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `INSERT INTO users (id, email, password_hash, role, employee_id, name)
+         VALUES ($1, $2, $3, $4, $5, $6)
          ON CONFLICT (id) DO NOTHING`,
         [
           user.id,
           user.email,
           user.password_hash,
-          user.password_plain ?? config.defaultPassword,
           user.role,
           user.employee_id,
           user.name,
@@ -271,10 +269,8 @@ export function createPostgresStore(): DatabaseStore {
   return {
     async init() {
       await pool.query(SCHEMA_SQL)
-      await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS password_plain TEXT')
-      await pool.query('UPDATE users SET password_plain = $1 WHERE password_plain IS NULL', [
-        config.defaultPassword,
-      ])
+      // Migração segura: elimina o legado de senha reversível sem tocar nos hashes.
+      await pool.query('ALTER TABLE users DROP COLUMN IF EXISTS password_plain')
       await importJsonIfEmpty(pool)
     },
 
@@ -298,13 +294,12 @@ export function createPostgresStore(): DatabaseStore {
 
     async insertUser(user) {
       await pool.query(
-        `INSERT INTO users (id, email, password_hash, password_plain, role, employee_id, name)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        `INSERT INTO users (id, email, password_hash, role, employee_id, name)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
         [
           user.id,
           user.email,
           user.password_hash,
-          user.password_plain,
           user.role,
           user.employee_id,
           user.name,
@@ -315,7 +310,7 @@ export function createPostgresStore(): DatabaseStore {
     async findUserByEmail(email) {
       const normalized = email.trim().toLowerCase()
       const { rows } = await pool.query(
-        'SELECT id, email, password_hash, password_plain, role, employee_id, name FROM users WHERE LOWER(email) = $1 LIMIT 1',
+        'SELECT id, email, password_hash, role, employee_id, name FROM users WHERE LOWER(email) = $1 LIMIT 1',
         [normalized],
       )
       return rows[0] ?? undefined
@@ -323,7 +318,7 @@ export function createPostgresStore(): DatabaseStore {
 
     async findUserById(id) {
       const { rows } = await pool.query(
-        'SELECT id, email, password_hash, password_plain, role, employee_id, name FROM users WHERE id = $1 LIMIT 1',
+        'SELECT id, email, password_hash, role, employee_id, name FROM users WHERE id = $1 LIMIT 1',
         [id],
       )
       return rows[0] ?? undefined
@@ -331,16 +326,16 @@ export function createPostgresStore(): DatabaseStore {
 
     async findUserByEmployeeId(employeeId) {
       const { rows } = await pool.query(
-        'SELECT id, email, password_hash, password_plain, role, employee_id, name FROM users WHERE employee_id = $1 LIMIT 1',
+        'SELECT id, email, password_hash, role, employee_id, name FROM users WHERE employee_id = $1 LIMIT 1',
         [employeeId],
       )
       return rows[0] ?? undefined
     },
 
-    async updateUserPassword(id, passwordHash, passwordPlain) {
+    async updateUserPassword(id, passwordHash) {
       const { rowCount } = await pool.query(
-        'UPDATE users SET password_hash = $2, password_plain = $3 WHERE id = $1',
-        [id, passwordHash, passwordPlain],
+        'UPDATE users SET password_hash = $2 WHERE id = $1',
+        [id, passwordHash],
       )
       if (!rowCount) {
         throw new Error('Usuário não encontrado.')

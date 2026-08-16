@@ -57,9 +57,8 @@ export async function findUserByEmployeeId(employeeId: string) {
 export async function updateUserPassword(
   id: string,
   passwordHash: string,
-  passwordPlain: string,
 ): Promise<void> {
-  await getStore().updateUserPassword(id, passwordHash, passwordPlain)
+  await getStore().updateUserPassword(id, passwordHash)
 }
 
 export async function updateUserIdentity(

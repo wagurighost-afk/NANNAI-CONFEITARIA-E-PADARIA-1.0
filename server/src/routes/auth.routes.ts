@@ -1,7 +1,6 @@
 import { Router } from 'express'
 import {
   changePassword,
-  getEmployeePassword,
   getUserById,
   login,
   logout,
@@ -70,20 +69,9 @@ authRouter.get('/users/:id', requireAuth, async (req, res) => {
   }
 })
 
-authRouter.get('/users/by-employee/:employeeId/password', requireAuth, async (req: AuthedRequest, res) => {
-  try {
-    const result = await getEmployeePassword(req.user!, req.params.employeeId)
-    res.json(result)
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Não foi possível consultar a senha.'
-    const status = message.includes('permissão') ? 403 : 404
-    res.status(status).json({ message })
-  }
-})
-
 authRouter.post('/users/by-employee/:employeeId/reset-password', requireAuth, async (req: AuthedRequest, res) => {
   try {
-    const newPassword = typeof req.body?.newPassword === 'string' ? req.body.newPassword : undefined
+    const newPassword = typeof req.body?.newPassword === 'string' ? req.body.newPassword : ''
     const result = await resetEmployeePassword(req.user!, req.params.employeeId, newPassword)
     res.json({
       ...result,

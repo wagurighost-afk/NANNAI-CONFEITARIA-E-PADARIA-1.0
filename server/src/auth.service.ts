@@ -2,7 +2,6 @@ import bcrypt from 'bcryptjs'
 import { safeAudit } from './audit/safeAudit.js'
 import { toAuditActor } from './audit/actor.js'
 import { canManageUserPasswords } from './auth/passwordAccess.js'
-import { config } from './config.js'
 import {
   deleteRefreshTokensForUser,
   findUserByEmail,
@@ -124,7 +123,7 @@ export async function changePassword(
     throw new Error('A nova senha deve ser diferente da senha atual.')
   }
 
-  await updateUserPassword(userId, hashPassword(newPassword), newPassword)
+  await updateUserPassword(userId, hashPassword(newPassword))
   await deleteRefreshTokensForUser(userId)
 
   const auditActor = actor ? toAuditActor(actor) : toAuditActor(mapUser(row))
@@ -138,31 +137,11 @@ export async function changePassword(
   })
 }
 
-export async function getEmployeePassword(
-  actor: AppUser,
-  employeeId: string,
-): Promise<{ password: string | null; email: string; name: string }> {
-  if (!canManageUserPasswords(actor)) {
-    throw new Error('Sem permissão para visualizar senhas.')
-  }
-
-  const row = await findUserByEmployeeId(employeeId)
-  if (!row) {
-    throw new Error('Usuário de acesso não encontrado para este colaborador.')
-  }
-
-  return {
-    email: row.email,
-    name: row.name,
-    password: row.password_plain,
-  }
-}
-
 export async function resetEmployeePassword(
   actor: AppUser,
   employeeId: string,
-  newPassword?: string,
-): Promise<{ password: string; email: string; name: string }> {
+  newPassword: string,
+): Promise<{ email: string; name: string }> {
   if (!canManageUserPasswords(actor)) {
     throw new Error('Sem permissão para redefinir senhas.')
   }
@@ -172,10 +151,13 @@ export async function resetEmployeePassword(
     throw new Error('Usuário de acesso não encontrado para este colaborador.')
   }
 
-  const password = (newPassword?.trim() || config.defaultPassword).trim()
+  const password = newPassword.trim()
+  if (!password) {
+    throw new Error('Informe a nova senha.')
+  }
   assertValidPassword(password)
 
-  await updateUserPassword(row.id, hashPassword(password), password)
+  await updateUserPassword(row.id, hashPassword(password))
   await deleteRefreshTokensForUser(row.id)
 
   await safeAudit(toAuditActor(actor), {
@@ -190,6 +172,5 @@ export async function resetEmployeePassword(
   return {
     email: row.email,
     name: row.name,
-    password,
   }
 }
