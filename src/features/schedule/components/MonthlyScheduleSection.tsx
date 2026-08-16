@@ -27,6 +27,8 @@ export function MonthlyScheduleSection({
     setYear,
     setMonth,
     isLoading,
+    createSchedule,
+    isCreating,
     importSchedule,
     isImporting,
     toggleDay,
@@ -75,6 +77,29 @@ export function MonthlyScheduleSection({
     },
   )
 
+  const handleCreateSchedule = async (copyPrevious: boolean) => {
+    try {
+      await createSchedule({
+        year,
+        month,
+        copyPrevious,
+      })
+
+      push({
+        title: copyPrevious ? 'Escala copiada' : 'Escala criada',
+        description: copyPrevious
+          ? `A escala de ${formatMonthYear(year, month)} foi criada usando o mês anterior como base.`
+          : `A escala de ${formatMonthYear(year, month)} foi criada.`,
+        variant: 'success',
+      })
+    } catch (error: unknown) {
+      push({
+        title: 'Erro',
+        description: getErrorMessage(error),
+        variant: 'danger',
+      })
+    }
+  }
   const openAttachment = async () => {
     if (!schedule?.attachment) {
       return
@@ -130,7 +155,30 @@ export function MonthlyScheduleSection({
       {isLoading ? (
         <Skeleton variant="rectangular" height={360} />
       ) : !schedule ? (
-        <EmptyState title={`Nenhuma escala cadastrada para ${formatMonthYear(year, month)}.`} />
+        <div className="space-y-4">
+          <EmptyState title={`Nenhuma escala cadastrada para ${formatMonthYear(year, month)}.`} />
+
+          {canManage ? (
+            <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+              <Button
+                type="button"
+                disabled={isCreating}
+                onClick={() => void handleCreateSchedule(false)}
+              >
+                {isCreating ? 'Criando...' : 'Criar escala'}
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isCreating}
+                onClick={() => void handleCreateSchedule(true)}
+              >
+                Copiar mês anterior como base
+              </Button>
+            </div>
+          ) : null}
+        </div>
       ) : (
         <>
           {highlightEmployeeId ? (
