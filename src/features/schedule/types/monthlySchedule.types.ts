@@ -5,7 +5,6 @@ export interface MonthlyScheduleDay {
   status: MonthlyDayStatus
   note?: string
   origin?: 'schedule' | 'absence'
-  absenceId?: string
   baseStatus?: MonthlyDayStatus
 }
 

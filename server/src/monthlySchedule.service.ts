@@ -269,11 +269,8 @@ async function applyEmployeeAbsenceOverlay(
             ...day,
             baseStatus: day.status,
             status: getAbsenceScheduleStatus(absence),
-            note: absence.notes
-              ? `${label}: ${absence.notes}`
-              : label,
+            note: label,
             origin: 'absence' as const,
-            absenceId: absence.id,
           }
         }),
       }
