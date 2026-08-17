@@ -162,6 +162,13 @@ export const MAIN_NAVIGATION: readonly AppNavItem[] = [
     permission: 'ingredients:view',
   },
   {
+    id: 'requisition',
+    label: 'Requisição',
+    href: APP_ROUTES.requisition,
+    icon: 'Package',
+    permission: 'ingredients:manage',
+  },
+  {
     id: 'products',
     label: 'Cadastro de Produtos',
     href: APP_ROUTES.products,
