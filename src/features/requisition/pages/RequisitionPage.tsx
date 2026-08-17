@@ -7,14 +7,18 @@ import {
   Send,
 } from 'lucide-react'
 import { Button } from '@/components/ui'
+import { isMasterAdmin } from '@/core/auth/roles'
 import { getErrorMessage } from '@/core/errors'
+import { useAuth } from '@/hooks/useAuth'
 import { ingredientsService } from '@/features/ingredients/services/ingredients.service'
 import type { Ingredient } from '@/features/ingredients/types/ingredient.types'
 import { requisitionService } from '@/features/requisition/services/requisition.service'
 import type {
+  RequisitionHistoryEntry,
   RequisitionItem,
   RequisitionRecord,
   RequisitionSector,
+  RequisitionStatus,
 } from '@/features/requisition/types/requisition.types'
 
 function safeNumber(value: string | number): number {
@@ -60,6 +64,8 @@ function buildRows(ingredients: Ingredient[]): RequisitionItem[] {
 }
 
 export function RequisitionPage() {
+  const { user } = useAuth()
+  const canReview = isMasterAdmin(user)
   const [ingredients, setIngredients] = useState<Ingredient[]>([])
   const [rows, setRows] = useState<RequisitionItem[]>([])
   const [history, setHistory] = useState<RequisitionRecord[]>([])
@@ -95,7 +101,11 @@ export function RequisitionPage() {
 
           setHistory(records)
 
-          const draft = records.find((record) => record.status === 'DRAFT')
+          const draft = records.find(
+            (record) =>
+              record.status === 'DRAFT' &&
+              record.responsible?.userId === user?.id,
+          )
 
           if (draft) {
             setDraftId(draft.id)
@@ -218,14 +228,23 @@ export function RequisitionPage() {
     }
   }
 
-  const finalize = async () => {
+  const submit = async () => {
     if (requestedItems.length === 0) {
       setMessage('Informe pelo menos uma quantidade para solicitar.')
       return
     }
 
+    const note = window.prompt(
+      'Observação para o envio (opcional):',
+      '',
+    )
+
+    if (note === null) {
+      return
+    }
+
     const confirmed = window.confirm(
-      `Finalizar requisição com ${requestedItems.length} item(ns)?`,
+      `Enviar requisição com ${requestedItems.length} item(ns)?`,
     )
 
     if (!confirmed) {
@@ -237,19 +256,67 @@ export function RequisitionPage() {
 
     try {
       const draft = draftId
-        ? await requisitionService.update(draftId, { sector, items: rows })
-        : await requisitionService.create({ sector, items: rows })
+        ? await requisitionService.update(draftId, {
+            sector,
+            items: rows,
+          })
+        : await requisitionService.create({
+            sector,
+            items: rows,
+          })
 
-      setDraftId(draft.id)
-
-      await requisitionService.finalize(draft.id)
+      await requisitionService.submit(draft.id, { note })
 
       setDraftId(null)
       setRows(buildRows(ingredients))
 
       await refreshHistory()
 
-      setMessage('Requisição finalizada e salva no servidor.')
+      setMessage('Requisição enviada para revisão.')
+    } catch (error) {
+      setMessage(getErrorMessage(error))
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const transitionRequisition = async (
+    id: string,
+    action: 'review' | 'approve' | 'reject' | 'fulfill',
+  ) => {
+    const actionLabel = {
+      review: 'iniciar a revisão',
+      approve: 'aprovar',
+      reject: 'rejeitar',
+      fulfill: 'marcar como atendida',
+    }[action]
+
+    const note = window.prompt(
+      `Observação para ${actionLabel} (opcional):`,
+      '',
+    )
+
+    if (note === null) {
+      return
+    }
+
+    setIsSaving(true)
+    setMessage(null)
+
+    try {
+      if (action === 'review') {
+        await requisitionService.startReview(id, { note })
+      } else if (action === 'approve') {
+        await requisitionService.approve(id, { note })
+      } else if (action === 'reject') {
+        await requisitionService.reject(id, { note })
+      } else {
+        await requisitionService.fulfill(id, { note })
+      }
+
+      await refreshHistory()
+
+      setMessage('Status da requisição atualizado.')
     } catch (error) {
       setMessage(getErrorMessage(error))
     } finally {
@@ -491,11 +558,11 @@ export function RequisitionPage() {
 
         <Button
           type="button"
-          onClick={() => void finalize()}
+          onClick={() => void submit()}
           disabled={isSaving}
         >
           <Send className="size-4" />
-          Finalizar requisição ({requestedItems.length})
+          Enviar requisição ({requestedItems.length})
         </Button>
       </div>
 
@@ -520,9 +587,7 @@ export function RequisitionPage() {
                 <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="font-medium text-foreground">
-                      {record.status === 'FINALIZED'
-                        ? 'Requisição finalizada'
-                        : 'Rascunho'}
+                      {getStatusLabel(record.status)}
                     </p>
 
                     <p className="text-xs text-muted-foreground">
@@ -552,6 +617,93 @@ export function RequisitionPage() {
                     Nenhum item solicitado neste rascunho.
                   </p>
                 )}
+                {record.history?.length > 0 ? (
+                  <div className="mt-4 border-t border-border pt-3">
+                    <p className="text-xs font-medium text-foreground">
+                      Histórico de movimentações
+                    </p>
+
+                    <div className="mt-2 space-y-2">
+                      {[...record.history]
+                        .reverse()
+                        .slice(0, 6)
+                        .map((entry) => (
+                          <div
+                            key={entry.id}
+                            className="text-xs text-muted-foreground"
+                          >
+                            <p>
+                              {getHistoryActionLabel(entry.action)}
+                              {' • '}
+                              {entry.userName}
+                              {' • '}
+                              {formatDateTime(entry.at)}
+                            </p>
+
+                            {entry.note ? (
+                              <p className="mt-0.5">
+                                Observação: {entry.note}
+                              </p>
+                            ) : null}
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {canReview ? (
+                  <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-3">
+                    {record.status === 'SENT' ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={isSaving}
+                        onClick={() =>
+                          void transitionRequisition(record.id, 'review')
+                        }
+                      >
+                        Iniciar revisão
+                      </Button>
+                    ) : null}
+
+                    {record.status === 'IN_REVIEW' ? (
+                      <>
+                        <Button
+                          type="button"
+                          disabled={isSaving}
+                          onClick={() =>
+                            void transitionRequisition(record.id, 'approve')
+                          }
+                        >
+                          Aprovar
+                        </Button>
+
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={isSaving}
+                          onClick={() =>
+                            void transitionRequisition(record.id, 'reject')
+                          }
+                        >
+                          Rejeitar
+                        </Button>
+                      </>
+                    ) : null}
+
+                    {record.status === 'APPROVED' ? (
+                      <Button
+                        type="button"
+                        disabled={isSaving}
+                        onClick={() =>
+                          void transitionRequisition(record.id, 'fulfill')
+                        }
+                      >
+                        Marcar como atendida
+                      </Button>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
             )
           })
@@ -595,4 +747,36 @@ function formatDateTime(value: string): string {
     dateStyle: 'short',
     timeStyle: 'short',
   }).format(new Date(value))
+}
+function getStatusLabel(status: RequisitionStatus): string {
+  const labels: Record<RequisitionStatus, string> = {
+    DRAFT: 'Rascunho',
+    SENT: 'Enviada',
+    IN_REVIEW: 'Em revisão',
+    APPROVED: 'Aprovada',
+    REJECTED: 'Rejeitada',
+    FULFILLED: 'Atendida',
+    FINALIZED: 'Finalizada (legado)',
+  }
+
+  return labels[status]
+}
+
+function getHistoryActionLabel(
+  action: RequisitionHistoryEntry['action'],
+): string {
+  const labels: Record<
+    RequisitionHistoryEntry['action'],
+    string
+  > = {
+    CREATED: 'Criada',
+    UPDATED: 'Rascunho atualizado',
+    SENT: 'Enviada',
+    REVIEW_STARTED: 'Revisão iniciada',
+    APPROVED: 'Aprovada',
+    REJECTED: 'Rejeitada',
+    FULFILLED: 'Atendida',
+  }
+
+  return labels[action]
 }

@@ -1,12 +1,16 @@
 import { apiClient } from '@/core/api/apiClient'
 import type {
   RequisitionRecord,
+  RequisitionTransitionInput,
   SaveRequisitionInput,
 } from '@/features/requisition/types/requisition.types'
 
 export const requisitionService = {
   async list(): Promise<RequisitionRecord[]> {
-    const { data } = await apiClient.get<RequisitionRecord[]>('/requisitions')
+    const { data } = await apiClient.get<RequisitionRecord[]>(
+      '/requisitions',
+    )
+
     return data
   },
 
@@ -14,14 +18,18 @@ export const requisitionService = {
     const { data } = await apiClient.get<RequisitionRecord>(
       `/requisitions/${encodeURIComponent(id)}`,
     )
+
     return data
   },
 
-  async create(input: SaveRequisitionInput): Promise<RequisitionRecord> {
+  async create(
+    input: SaveRequisitionInput,
+  ): Promise<RequisitionRecord> {
     const { data } = await apiClient.post<RequisitionRecord>(
       '/requisitions',
       input,
     )
+
     return data
   },
 
@@ -33,13 +41,67 @@ export const requisitionService = {
       `/requisitions/${encodeURIComponent(id)}`,
       input,
     )
+
     return data
   },
 
-  async finalize(id: string): Promise<RequisitionRecord> {
+  async submit(
+    id: string,
+    input: RequisitionTransitionInput = {},
+  ): Promise<RequisitionRecord> {
     const { data } = await apiClient.post<RequisitionRecord>(
-      `/requisitions/${encodeURIComponent(id)}/finalize`,
+      `/requisitions/${encodeURIComponent(id)}/submit`,
+      input,
     )
+
+    return data
+  },
+
+  async startReview(
+    id: string,
+    input: RequisitionTransitionInput = {},
+  ): Promise<RequisitionRecord> {
+    const { data } = await apiClient.post<RequisitionRecord>(
+      `/requisitions/${encodeURIComponent(id)}/review`,
+      input,
+    )
+
+    return data
+  },
+
+  async approve(
+    id: string,
+    input: RequisitionTransitionInput = {},
+  ): Promise<RequisitionRecord> {
+    const { data } = await apiClient.post<RequisitionRecord>(
+      `/requisitions/${encodeURIComponent(id)}/approve`,
+      input,
+    )
+
+    return data
+  },
+
+  async reject(
+    id: string,
+    input: RequisitionTransitionInput = {},
+  ): Promise<RequisitionRecord> {
+    const { data } = await apiClient.post<RequisitionRecord>(
+      `/requisitions/${encodeURIComponent(id)}/reject`,
+      input,
+    )
+
+    return data
+  },
+
+  async fulfill(
+    id: string,
+    input: RequisitionTransitionInput = {},
+  ): Promise<RequisitionRecord> {
+    const { data } = await apiClient.post<RequisitionRecord>(
+      `/requisitions/${encodeURIComponent(id)}/fulfill`,
+      input,
+    )
+
     return data
   },
 }
