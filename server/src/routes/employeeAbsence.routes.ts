@@ -37,7 +37,7 @@ function sendKnownError(
   return true
 }
 
-employeeAbsenceRouter.get('/range', async (req, res) => {
+employeeAbsenceRouter.get('/range', requireAdmin, async (req, res) => {
   try {
     const items = await listEmployeeAbsencesByRange(
       String(req.query.startDate ?? ''),
@@ -57,6 +57,7 @@ employeeAbsenceRouter.get('/range', async (req, res) => {
 
 employeeAbsenceRouter.get(
   '/employee/:employeeId',
+  requireAdmin,
   async (req, res) => {
     try {
       const items = await listEmployeeAbsencesByEmployee(
@@ -75,7 +76,7 @@ employeeAbsenceRouter.get(
   },
 )
 
-employeeAbsenceRouter.get('/:id', async (req, res) => {
+employeeAbsenceRouter.get('/:id', requireAdmin, async (req, res) => {
   try {
     res.json(await getEmployeeAbsenceById(req.params.id))
   } catch (error) {
