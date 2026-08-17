@@ -44,8 +44,12 @@ export function MonthlyScheduleGrid({
   onSwapDays,
   isBusy = false,
 }: MonthlyScheduleGridProps) {
-  const handleCellClick = (rowId: string, day: number) => {
-    if (!canManage || isBusy) {
+  const handleCellClick = (
+    rowId: string,
+    day: number,
+    isAbsenceDerived = false,
+  ) => {
+    if (isAbsenceDerived || !canManage || isBusy) {
       return
     }
 
@@ -96,7 +100,7 @@ export function MonthlyScheduleGrid({
             ? swapSource
               ? 'Agora clique no segundo dia para concluir a troca.'
               : 'Clique no primeiro dia que deseja trocar.'
-            : 'Clique em um dia para alternar: trabalho → folga → férias → afastamento.'}
+            : 'Clique em um dia para alternar entre trabalho e folga. Férias e afastamentos vêm dos períodos oficiais.'}
         </p>
       ) : null}
 
@@ -139,17 +143,29 @@ export function MonthlyScheduleGrid({
                 {row.days.map((dayCell) => {
                   const isSelected =
                     swapSource?.rowId === row.id && swapSource.day === dayCell.day
+                  const isAbsenceDerived =
+                    dayCell.origin === 'absence'
+
                   return (
                     <td
                       key={dayCell.day}
                       className={cn(
                         'border border-border px-0.5 py-1 text-center align-middle',
                         MONTHLY_DAY_STATUS_CLASSES[dayCell.status],
-                        canManage && 'cursor-pointer hover:ring-2 hover:ring-accent/40',
+                        canManage &&
+                          !isAbsenceDerived &&
+                          'cursor-pointer hover:ring-2 hover:ring-accent/40',
+                        isAbsenceDerived && 'cursor-not-allowed',
                         isSelected && 'ring-2 ring-accent',
                       )}
-                      onClick={() => handleCellClick(row.id, dayCell.day)}
-                      title={`${MONTHLY_DAY_STATUS_LABELS[dayCell.status]}${dayCell.note ? ` — ${dayCell.note}` : ''}`}
+                      onClick={() =>
+                        handleCellClick(
+                          row.id,
+                          dayCell.day,
+                          isAbsenceDerived,
+                        )
+                      }
+                      title={`${isAbsenceDerived ? 'Período oficial — ' : ''}${MONTHLY_DAY_STATUS_LABELS[dayCell.status]}${dayCell.note ? ` — ${dayCell.note}` : ''}`}
                     >
                       {cellLabel(dayCell.status, dayCell.note)}
                     </td>

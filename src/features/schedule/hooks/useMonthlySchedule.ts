@@ -136,4 +136,4 @@ export function formatMonthYear(year: number, month: number): string {
   return new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(date)
 }
 
-export const DAY_STATUS_CYCLE: MonthlyDayStatus[] = ['work', 'off', 'vacation', 'leave', 'other']
+export const DAY_STATUS_CYCLE: MonthlyDayStatus[] = ['work', 'off']

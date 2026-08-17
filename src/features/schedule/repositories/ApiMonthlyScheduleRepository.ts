@@ -41,8 +41,23 @@ export class ApiMonthlyScheduleRepository implements MonthlyScheduleRepository {
         params: { year, month },
       })
       return mapSchedule(data)
-    } catch {
-      return null
+    } catch (error: unknown) {
+      const status =
+        typeof error === 'object' &&
+        error !== null &&
+        'response' in error
+          ? (
+              error as {
+                response?: { status?: number }
+              }
+            ).response?.status
+          : undefined
+
+      if (status === 404) {
+        return null
+      }
+
+      throw error
     }
   }
 
@@ -50,8 +65,23 @@ export class ApiMonthlyScheduleRepository implements MonthlyScheduleRepository {
     try {
       const { data } = await apiClient.get<MonthlySchedule>(`/monthly-schedules/${id}`)
       return mapSchedule(data)
-    } catch {
-      return null
+    } catch (error: unknown) {
+      const status =
+        typeof error === 'object' &&
+        error !== null &&
+        'response' in error
+          ? (
+              error as {
+                response?: { status?: number }
+              }
+            ).response?.status
+          : undefined
+
+      if (status === 404) {
+        return null
+      }
+
+      throw error
     }
   }
 

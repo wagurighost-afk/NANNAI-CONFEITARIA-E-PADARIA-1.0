@@ -7,12 +7,14 @@ import { config } from './config.js'
 import { matchEmployeeIdByScheduleName } from './data/monthlyScheduleSeed.js'
 import {
   loadAllMonthlySchedules,
+  loadEmployeeAbsencesOverlappingRange,
   loadMonthlyScheduleRecord,
   saveMonthlyScheduleRecord,
 } from './db/index.js'
 import { emitRealtime } from './events.js'
 import type {
   CreateMonthlyScheduleInput,
+  EmployeeAbsencePeriod,
   ImportMonthlyScheduleInput,
   MonthlyDayStatus,
   MonthlySchedule,
@@ -35,9 +37,7 @@ function scheduleKey(year: number, month: number): string {
 }
 
 function nextDayStatus(current: MonthlyDayStatus): MonthlyDayStatus {
-  const order: MonthlyDayStatus[] = ['work', 'off', 'vacation', 'leave', 'other']
-  const index = order.indexOf(current)
-  return order[(index + 1) % order.length] ?? 'work'
+  return current === 'work' ? 'off' : 'work'
 }
 
 function resolveAttachmentKind(fileName: string): MonthlyScheduleAttachment['kind'] {
@@ -137,6 +137,202 @@ function getDaysInMonth(year: number, month: number): number {
   return new Date(Date.UTC(year, month, 0)).getUTCDate()
 }
 
+function formatScheduleDate(
+  year: number,
+  month: number,
+  day: number,
+): string {
+  return [
+    String(year).padStart(4, '0'),
+    String(month).padStart(2, '0'),
+    String(day).padStart(2, '0'),
+  ].join('-')
+}
+
+function getAbsenceScheduleStatus(
+  absence: EmployeeAbsencePeriod,
+): MonthlyDayStatus {
+  switch (absence.type) {
+    case 'VACATION':
+      return 'vacation'
+    case 'LEAVE':
+    case 'SICK_LEAVE':
+      return 'leave'
+    case 'OTHER':
+      return 'other'
+  }
+}
+
+function getAbsenceLabel(
+  absence: EmployeeAbsencePeriod,
+): string {
+  switch (absence.type) {
+    case 'VACATION':
+      return 'Férias'
+    case 'LEAVE':
+      return 'Licença/Afastamento'
+    case 'SICK_LEAVE':
+      return 'Afastamento médico'
+    case 'OTHER':
+      return 'Outro afastamento'
+  }
+}
+
+async function getMonthlyScheduleBaseByYearMonth(
+  year: number,
+  month: number,
+): Promise<MonthlySchedule | null> {
+  const schedules = await loadAllMonthlySchedules()
+
+  return (
+    schedules.find(
+      (schedule) =>
+        schedule.year === year &&
+        schedule.month === month,
+    ) ?? null
+  )
+}
+
+async function applyEmployeeAbsenceOverlay(
+  schedule: MonthlySchedule,
+): Promise<MonthlySchedule> {
+  const startDate = formatScheduleDate(
+    schedule.year,
+    schedule.month,
+    1,
+  )
+
+  const endDate = formatScheduleDate(
+    schedule.year,
+    schedule.month,
+    getDaysInMonth(schedule.year, schedule.month),
+  )
+
+  const absences = (
+    await loadEmployeeAbsencesOverlappingRange(
+      startDate,
+      endDate,
+    )
+  ).filter((absence) => absence.cancelledAt === null)
+
+  if (absences.length === 0) {
+    return schedule
+  }
+
+  const byEmployee = new Map<
+    string,
+    EmployeeAbsencePeriod[]
+  >()
+
+  for (const absence of absences) {
+    const current = byEmployee.get(absence.employeeId) ?? []
+    current.push(absence)
+    byEmployee.set(absence.employeeId, current)
+  }
+
+  return {
+    ...schedule,
+    rows: schedule.rows.map((row) => {
+      if (!row.employeeId) {
+        return row
+      }
+
+      const employeeAbsences =
+        byEmployee.get(row.employeeId) ?? []
+
+      if (employeeAbsences.length === 0) {
+        return row
+      }
+
+      return {
+        ...row,
+        days: row.days.map((day) => {
+          const date = formatScheduleDate(
+            schedule.year,
+            schedule.month,
+            day.day,
+          )
+
+          const absence = employeeAbsences.find(
+            (item) =>
+              item.startDate <= date &&
+              item.endDate >= date,
+          )
+
+          if (!absence) {
+            return day
+          }
+
+          const label = getAbsenceLabel(absence)
+
+          return {
+            ...day,
+            baseStatus: day.status,
+            status: getAbsenceScheduleStatus(absence),
+            note: absence.notes
+              ? `${label}: ${absence.notes}`
+              : label,
+            origin: 'absence' as const,
+            absenceId: absence.id,
+          }
+        }),
+      }
+    }),
+  }
+}
+
+async function getActiveAbsenceForScheduleDay(
+  schedule: MonthlySchedule,
+  row: MonthlyScheduleRow,
+  day: number,
+): Promise<EmployeeAbsencePeriod | null> {
+  if (!row.employeeId) {
+    return null
+  }
+
+  const date = formatScheduleDate(
+    schedule.year,
+    schedule.month,
+    day,
+  )
+
+  const absences =
+    await loadEmployeeAbsencesOverlappingRange(
+      date,
+      date,
+    )
+
+  return (
+    absences.find(
+      (absence) =>
+        absence.employeeId === row.employeeId &&
+        absence.cancelledAt === null &&
+        absence.startDate <= date &&
+        absence.endDate >= date,
+    ) ?? null
+  )
+}
+
+async function assertScheduleDayUnlocked(
+  schedule: MonthlySchedule,
+  row: MonthlyScheduleRow,
+  day: number,
+): Promise<void> {
+  const absence = await getActiveAbsenceForScheduleDay(
+    schedule,
+    row,
+    day,
+  )
+
+  if (!absence) {
+    return
+  }
+
+  throw new Error(
+    'Este dia é controlado por um período oficial de ausência. Edite ou cancele o período de ausência para alterar o status.',
+  )
+}
+
 function buildWeekdayLabels(year: number, month: number): string[] {
   const daysInMonth = getDaysInMonth(year, month)
 
@@ -223,7 +419,10 @@ export async function createMonthlySchedule(
   if (input.copyPrevious) {
     const previous = getPreviousYearMonth(input.year, input.month)
 
-    source = await getMonthlyScheduleByYearMonth(previous.year, previous.month)
+    source = await getMonthlyScheduleBaseByYearMonth(
+      previous.year,
+      previous.month,
+    )
 
     if (!source) {
       throw new MonthlyScheduleSourceNotFoundError(
@@ -266,13 +465,26 @@ export async function listMonthlySchedules(): Promise<MonthlySchedule[]> {
   return schedules.sort((a, b) => b.year - a.year || b.month - a.month)
 }
 
-export async function getMonthlyScheduleById(id: string): Promise<MonthlySchedule | null> {
-  return loadMonthlyScheduleRecord(id)
+export async function getMonthlyScheduleById(
+  id: string,
+): Promise<MonthlySchedule | null> {
+  const schedule = await loadMonthlyScheduleRecord(id)
+
+  return schedule
+    ? applyEmployeeAbsenceOverlay(schedule)
+    : null
 }
 
-export async function getMonthlyScheduleByYearMonth(year: number, month: number): Promise<MonthlySchedule | null> {
-  const schedules = await loadAllMonthlySchedules()
-  return schedules.find((schedule) => schedule.year === year && schedule.month === month) ?? null
+export async function getMonthlyScheduleByYearMonth(
+  year: number,
+  month: number,
+): Promise<MonthlySchedule | null> {
+  const schedule =
+    await getMonthlyScheduleBaseByYearMonth(year, month)
+
+  return schedule
+    ? applyEmployeeAbsenceOverlay(schedule)
+    : null
 }
 
 export async function importMonthlySchedule(
@@ -340,6 +552,21 @@ export async function updateMonthlyDay(
     throw new Error('Dia inválido na escala.')
   }
 
+  if (
+    input.status !== 'work' &&
+    input.status !== 'off'
+  ) {
+    throw new Error(
+      'Férias e afastamentos devem ser cadastrados como períodos oficiais de ausência.',
+    )
+  }
+
+  await assertScheduleDayUnlocked(
+    schedule,
+    row,
+    input.day,
+  )
+
   const beforeDay = { ...currentDay }
 
   row.days[dayIndex] =
@@ -387,6 +614,18 @@ export async function swapMonthlyDays(input: SwapMonthlyDaysInput, actor?: Audit
   if (!sourceDay || !targetDay) {
     throw new Error('Dia inválido na escala.')
   }
+
+  await assertScheduleDayUnlocked(
+    schedule,
+    sourceRow,
+    input.sourceDay,
+  )
+
+  await assertScheduleDayUnlocked(
+    schedule,
+    targetRow,
+    input.targetDay,
+  )
 
   sourceRow.days[sourceDayIndex] = { ...targetDay, day: sourceDay.day }
   targetRow.days[targetDayIndex] = { ...sourceDay, day: targetDay.day }
