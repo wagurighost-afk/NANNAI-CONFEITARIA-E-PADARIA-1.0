@@ -31,9 +31,9 @@ function formatDateTime(value: string): string {
   }).format(new Date(value))
 }
 
-export async function downloadRequisitionPdf(
+async function buildRequisitionPdf(
   record: RequisitionRecord,
-): Promise<void> {
+) {
   const { jsPDF } = await import('jspdf')
 
   const doc = new jsPDF({
@@ -257,5 +257,67 @@ export async function downloadRequisitionPdf(
     )
   }
 
+  return {
+    doc,
+    number,
+  }
+}
+export async function downloadRequisitionPdf(
+  record: RequisitionRecord,
+): Promise<void> {
+  const { doc, number } = await buildRequisitionPdf(record)
+
   doc.save(`${number}.pdf`)
+}
+
+export type RequisitionShareResult =
+  | 'shared'
+  | 'downloaded'
+  | 'cancelled'
+
+export async function shareRequisitionPdf(
+  record: RequisitionRecord,
+): Promise<RequisitionShareResult> {
+  const { doc, number } = await buildRequisitionPdf(record)
+
+  const blob = doc.output('blob')
+
+  const file = new File(
+    [blob],
+    `${number}.pdf`,
+    {
+      type: 'application/pdf',
+    },
+  )
+
+  const supportsFileShare =
+    typeof navigator.share === 'function' &&
+    typeof navigator.canShare === 'function' &&
+    navigator.canShare({
+      files: [file],
+    })
+
+  if (!supportsFileShare) {
+    doc.save(`${number}.pdf`)
+    return 'downloaded'
+  }
+
+  try {
+    await navigator.share({
+      title: `Requisição ${number}`,
+      text: `Requisição ${number} - NANNAI Food Operations`,
+      files: [file],
+    })
+
+    return 'shared'
+  } catch (error) {
+    if (
+      error instanceof DOMException &&
+      error.name === 'AbortError'
+    ) {
+      return 'cancelled'
+    }
+
+    throw error
+  }
 }

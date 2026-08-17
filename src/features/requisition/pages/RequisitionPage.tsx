@@ -3,6 +3,7 @@ import {
   ClipboardList,
   Cloud,
   FileDown,
+  Share2,
   Save,
   Search,
   Send,
@@ -14,7 +15,10 @@ import { useAuth } from '@/hooks/useAuth'
 import { ingredientsService } from '@/features/ingredients/services/ingredients.service'
 import type { Ingredient } from '@/features/ingredients/types/ingredient.types'
 import { requisitionService } from '@/features/requisition/services/requisition.service'
-import { downloadRequisitionPdf } from '@/features/requisition/utils/requisitionPdf'
+import {
+  downloadRequisitionPdf,
+  shareRequisitionPdf,
+} from '@/features/requisition/utils/requisitionPdf'
 import type {
   RequisitionHistoryEntry,
   RequisitionItem,
@@ -337,6 +341,25 @@ export function RequisitionPage() {
       )
     }
   }
+  const sharePdf = async (record: RequisitionRecord) => {
+    setMessage(null)
+
+    try {
+      const result = await shareRequisitionPdf(record)
+
+      if (result === 'shared') {
+        setMessage('Requisição compartilhada.')
+      } else if (result === 'downloaded') {
+        setMessage(
+          'O compartilhamento de arquivos não está disponível neste dispositivo. O PDF foi baixado.',
+        )
+      }
+    } catch (error) {
+      setMessage(
+        `Não foi possível compartilhar o PDF: ${getErrorMessage(error)}`,
+      )
+    }
+  }
   const resetFromIngredients = () => {
     setRows(buildRows(ingredients))
     setMessage(
@@ -644,6 +667,16 @@ export function RequisitionPage() {
                     >
                       <FileDown className="size-4" />
                       Gerar PDF
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={isSaving}
+                      onClick={() => void sharePdf(record)}
+                    >
+                      <Share2 className="size-4" />
+                      Compartilhar
                     </Button>
                   </div>
                 ) : null}
