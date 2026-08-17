@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import type { AuditActor } from './audit/types.js'
 import {
   loadAllRequisitions,
   loadRequisition,
@@ -7,6 +8,7 @@ import {
 import type {
   RequisitionItem,
   RequisitionRecord,
+  RequisitionSector,
   SaveRequisitionInput,
 } from './requisition/types.js'
 
@@ -18,6 +20,14 @@ function numberOrZero(value: unknown): number {
   }
 
   return parsed
+}
+
+function parseSector(value: unknown): RequisitionSector {
+  if (value === 'CONFEITARIA' || value === 'PADARIA') {
+    return value
+  }
+
+  throw new Error('Informe o setor da requisição.')
 }
 
 function normalizeItem(item: RequisitionItem): RequisitionItem {
@@ -81,12 +91,18 @@ export async function getRequisition(
 
 export async function createRequisition(
   input: SaveRequisitionInput,
+  actor: AuditActor,
 ): Promise<RequisitionRecord> {
   const now = new Date().toISOString()
 
   const record: RequisitionRecord = {
     id: `req-${randomUUID()}`,
     status: 'DRAFT',
+    sector: parseSector(input.sector),
+    responsible: {
+      userId: actor.userId,
+      name: actor.userName,
+    },
     items: validateItems(input.items),
     createdAt: now,
     updatedAt: now,
@@ -114,6 +130,7 @@ export async function updateRequisition(
 
   const record: RequisitionRecord = {
     ...existing,
+    sector: parseSector(input.sector),
     items: validateItems(input.items),
     updatedAt: new Date().toISOString(),
   }

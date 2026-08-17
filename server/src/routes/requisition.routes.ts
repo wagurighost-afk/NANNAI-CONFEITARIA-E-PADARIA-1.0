@@ -1,5 +1,7 @@
 import { Router } from 'express'
-import { requireAuth } from '../middleware.js'
+import { toAuditActor } from '../audit/actor.js'
+import type { AuthedRequest } from '../middleware.js'
+import { requireAdmin, requireAuth } from '../middleware.js'
 import {
   createRequisition,
   finalizeRequisition,
@@ -28,7 +30,7 @@ function statusForError(error: unknown): number {
   return 400
 }
 
-function sendError(res: Parameters<typeof requisitionRouter.get>[1] extends never ? never : any, error: unknown) {
+function sendError(res: any, error: unknown) {
   res.status(statusForError(error)).json({
     message:
       error instanceof Error
@@ -60,10 +62,11 @@ requisitionRouter.get('/:id', async (req, res) => {
   }
 })
 
-requisitionRouter.post('/', async (req, res) => {
+requisitionRouter.post('/', async (req: AuthedRequest, res) => {
   try {
     const record = await createRequisition(
       (req.body ?? {}) as SaveRequisitionInput,
+      toAuditActor(req.user!),
     )
 
     res.status(201).json(record)
@@ -85,11 +88,15 @@ requisitionRouter.patch('/:id', async (req, res) => {
   }
 })
 
-requisitionRouter.post('/:id/finalize', async (req, res) => {
-  try {
-    const record = await finalizeRequisition(String(req.params.id))
-    res.json(record)
-  } catch (error) {
-    sendError(res, error)
-  }
-})
+requisitionRouter.post(
+  '/:id/finalize',
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const record = await finalizeRequisition(String(req.params.id))
+      res.json(record)
+    } catch (error) {
+      sendError(res, error)
+    }
+  },
+)

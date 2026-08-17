@@ -14,6 +14,7 @@ import { requisitionService } from '@/features/requisition/services/requisition.
 import type {
   RequisitionItem,
   RequisitionRecord,
+  RequisitionSector,
 } from '@/features/requisition/types/requisition.types'
 
 function safeNumber(value: string | number): number {
@@ -63,6 +64,7 @@ export function RequisitionPage() {
   const [rows, setRows] = useState<RequisitionItem[]>([])
   const [history, setHistory] = useState<RequisitionRecord[]>([])
   const [draftId, setDraftId] = useState<string | null>(null)
+  const [sector, setSector] = useState<RequisitionSector>('CONFEITARIA')
   const [search, setSearch] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -97,6 +99,7 @@ export function RequisitionPage() {
 
           if (draft) {
             setDraftId(draft.id)
+            setSector(draft.sector === 'PADARIA' ? 'PADARIA' : 'CONFEITARIA')
             setRows(draft.items)
           }
         } catch (error) {
@@ -199,8 +202,8 @@ export function RequisitionPage() {
 
     try {
       const record = draftId
-        ? await requisitionService.update(draftId, { items: rows })
-        : await requisitionService.create({ items: rows })
+        ? await requisitionService.update(draftId, { sector, items: rows })
+        : await requisitionService.create({ sector, items: rows })
 
       setDraftId(record.id)
       setRows(record.items)
@@ -234,8 +237,8 @@ export function RequisitionPage() {
 
     try {
       const draft = draftId
-        ? await requisitionService.update(draftId, { items: rows })
-        : await requisitionService.create({ items: rows })
+        ? await requisitionService.update(draftId, { sector, items: rows })
+        : await requisitionService.create({ sector, items: rows })
 
       setDraftId(draft.id)
 
@@ -324,6 +327,51 @@ export function RequisitionPage() {
         </div>
       ) : null}
 
+      <div className="grid gap-3 rounded-xl border border-border bg-surface p-4 sm:grid-cols-3">
+        <div>
+          <p className="text-xs text-muted-foreground">
+            Setor
+          </p>
+
+          <select
+            value={sector}
+            onChange={(event) =>
+              setSector(event.target.value as RequisitionSector)
+            }
+            disabled={isSaving}
+            className="mt-1 h-10 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-accent"
+          >
+            <option value="CONFEITARIA">
+              Confeitaria
+            </option>
+
+            <option value="PADARIA">
+              Padaria
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <p className="text-xs text-muted-foreground">
+            Responsável
+          </p>
+
+          <p className="mt-2 text-sm font-medium text-foreground">
+            {history.find((record) => record.id === draftId)?.responsible?.name ??
+              'Definido ao salvar'}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-xs text-muted-foreground">
+            Status
+          </p>
+
+          <p className="mt-2 text-sm font-medium text-foreground">
+            {draftId ? 'Rascunho' : 'Nova requisição'}
+          </p>
+        </div>
+      </div>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 
