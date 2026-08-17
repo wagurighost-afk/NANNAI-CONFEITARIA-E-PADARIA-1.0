@@ -22,13 +22,13 @@ export function LoginPage() {
   const rememberLoginRegister = register('rememberLogin')
 
   return (
-    <div className="relative flex min-h-dvh items-center justify-center overflow-x-hidden px-4 py-8 sm:py-10">
+    <div className="relative flex h-dvh flex-col overflow-x-hidden overflow-y-auto overscroll-y-contain px-4 py-8 touch-pan-y [-webkit-overflow-scrolling:touch] sm:py-10">
       <div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#b58b4d33,_transparent_55%),radial-gradient(ellipse_at_bottom_right,_#401e1318,_transparent_50%)] dark:bg-[radial-gradient(ellipse_at_top,_#c9a06322,_transparent_55%),radial-gradient(ellipse_at_bottom_right,_#00000088,_transparent_50%)]"
         aria-hidden
       />
 
-      <div className="relative z-10 w-full max-w-md pb-safe">
+      <div className="relative z-10 my-auto w-full max-w-md self-center pb-safe">
         <div className="mb-6">
           <BrandLogo variant="full" priority showSystemName />
           <p className="mt-3 text-center text-xs text-muted-foreground">{BRAND.description}</p>
