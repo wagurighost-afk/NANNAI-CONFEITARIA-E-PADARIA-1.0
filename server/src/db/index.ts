@@ -215,6 +215,19 @@ export async function saveWasteControlDay(day: Parameters<DatabaseStore['saveWas
   await getStore().saveWasteControlDay(day)
 }
 
+export async function loadAllRequisitions() {
+  return getStore().loadAllRequisitions()
+}
+
+export async function loadRequisition(id: string) {
+  return getStore().loadRequisition(id)
+}
+
+export async function saveRequisition(
+  record: Parameters<DatabaseStore['saveRequisition']>[0],
+): Promise<void> {
+  await getStore().saveRequisition(record)
+}
 export async function loadLabelRecord(id: string) {
   return getStore().loadLabelRecord(id)
 }

@@ -11,6 +11,7 @@ import type {
 import type { WasteControlSector } from '../wasteControl/sectors.js'
 import type { AuditLogRecord } from '../audit/types.js'
 import type { IntelligenceSnapshot } from '../intelligence/types.js'
+import type { RequisitionRecord } from '../requisition/types.js'
 import type { PaginatedRecipes, RecipeListQuery, RecipeStats } from '../types.js'
 
 export interface UserRow {
@@ -36,6 +37,7 @@ export interface DatabaseFile {
   monthly_schedules: MonthlySchedule[]
   bread_control_days: BreadControlDay[]
   waste_control_days: WasteControlDay[]
+  requisitions: RequisitionRecord[]
   label_records: LabelRecord[]
   intelligence_snapshots: IntelligenceSnapshot[]
   audit_logs: AuditLogRecord[]
@@ -93,6 +95,9 @@ export interface DatabaseStore {
   ): Promise<WasteControlDay | null>
   loadWasteControlDaysInMonth(year: number, month: number): Promise<WasteControlDay[]>
   saveWasteControlDay(day: WasteControlDay): Promise<void>
+  loadAllRequisitions(): Promise<RequisitionRecord[]>
+  loadRequisition(id: string): Promise<RequisitionRecord | null>
+  saveRequisition(record: RequisitionRecord): Promise<void>
   loadLabelRecord(id: string): Promise<LabelRecord | null>
   loadAllLabelRecords(): Promise<LabelRecord[]>
   saveLabelRecord(record: LabelRecord): Promise<void>

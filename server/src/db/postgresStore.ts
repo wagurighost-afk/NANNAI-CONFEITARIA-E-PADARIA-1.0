@@ -87,6 +87,16 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_waste_control_days_date_sector
   ON waste_control_days (record_date, sector)
   WHERE sector IN ('CONFEITARIA', 'PADARIA');
 
+CREATE TABLE IF NOT EXISTS requisitions (
+  id TEXT PRIMARY KEY,
+  status TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL,
+  payload JSONB NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_requisitions_created_at
+  ON requisitions(created_at DESC);
 CREATE TABLE IF NOT EXISTS label_records (
   id TEXT PRIMARY KEY,
   printed_at TIMESTAMPTZ NOT NULL,
@@ -759,6 +769,55 @@ export function createPostgresStore(): DatabaseStore {
       }
     },
 
+    async loadAllRequisitions() {
+      const { rows } = await pool.query(
+        `SELECT payload
+         FROM requisitions
+         ORDER BY created_at DESC`,
+      )
+
+      return rows.map(
+        (row) =>
+          row.payload as Parameters<DatabaseStore['saveRequisition']>[0],
+      )
+    },
+
+    async loadRequisition(id) {
+      const { rows } = await pool.query(
+        'SELECT payload FROM requisitions WHERE id = $1',
+        [id],
+      )
+
+      return (
+        (rows[0]?.payload as
+          | Parameters<DatabaseStore['saveRequisition']>[0]
+          | undefined) ?? null
+      )
+    },
+
+    async saveRequisition(record) {
+      await pool.query(
+        `INSERT INTO requisitions (
+           id,
+           status,
+           created_at,
+           updated_at,
+           payload
+         )
+         VALUES ($1, $2, $3::timestamptz, $4::timestamptz, $5::jsonb)
+         ON CONFLICT (id) DO UPDATE SET
+           status = EXCLUDED.status,
+           updated_at = EXCLUDED.updated_at,
+           payload = EXCLUDED.payload`,
+        [
+          record.id,
+          record.status,
+          record.createdAt,
+          record.updatedAt,
+          JSON.stringify(record),
+        ],
+      )
+    },
     async loadLabelRecord(id) {
       const { rows } = await pool.query<{ payload: import('../types.js').LabelRecord }>(
         'SELECT payload FROM label_records WHERE id = $1',

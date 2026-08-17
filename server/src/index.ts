@@ -9,6 +9,7 @@ import { seedDatabase } from './seed.js'
 import { authRouter } from './routes/auth.routes.js'
 import { breadControlRouter } from './routes/breadControl.routes.js'
 import { wasteControlRouter } from './routes/wasteControl.routes.js'
+import { requisitionRouter } from './routes/requisition.routes.js'
 import { eventsRouter } from './routes/events.routes.js'
 import { productionRouter } from './routes/production.routes.js'
 import { monthlyScheduleRouter } from './routes/monthlySchedule.routes.js'
@@ -62,6 +63,7 @@ app.use('/api/recipes', recipesRouter)
 app.use('/api/monthly-schedules', monthlyScheduleRouter)
 app.use('/api/bread-control', breadControlRouter)
 app.use('/api/waste-control', wasteControlRouter)
+app.use('/api/requisitions', requisitionRouter)
 app.use('/api/intelligence', intelligenceRouter)
 app.use('/api/audit', auditRouter)
 app.use('/api/labels', labelsRouter)
