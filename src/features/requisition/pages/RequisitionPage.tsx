@@ -45,6 +45,32 @@ function getSuggestedQuantity(
   return Math.max(0, row.maximumStock - row.currentStock)
 }
 
+function hasConfiguredStockLimits(
+  row: Pick<
+    RequisitionItem,
+    'minimumStock' | 'maximumStock'
+  >,
+): boolean {
+  return (
+    row.maximumStock > 0 &&
+    row.minimumStock >= 0 &&
+    row.maximumStock >= row.minimumStock
+  )
+}
+
+function canRequestItem(
+  row: Pick<
+    RequisitionItem,
+    'currentStock' | 'minimumStock' | 'maximumStock'
+  >,
+): boolean {
+  return (
+    hasConfiguredStockLimits(row) &&
+    row.currentStock <= row.minimumStock &&
+    getSuggestedQuantity(row) > 0
+  )
+}
+
 function buildRows(ingredients: Ingredient[]): RequisitionItem[] {
   return ingredients.map((ingredient) => {
     const base: RequisitionItem = {
@@ -64,7 +90,7 @@ function buildRows(ingredients: Ingredient[]): RequisitionItem[] {
     return {
       ...base,
       suggestedQuantity,
-      requestedQuantity: suggestedQuantity,
+      requestedQuantity: 0,
     }
   })
 }
@@ -72,6 +98,7 @@ function buildRows(ingredients: Ingredient[]): RequisitionItem[] {
 export function RequisitionPage() {
   const { user } = useAuth()
   const canReview = isMasterAdmin(user)
+  const canManageStockLimits = canReview
   const [ingredients, setIngredients] = useState<Ingredient[]>([])
   const [rows, setRows] = useState<RequisitionItem[]>([])
   const [history, setHistory] = useState<RequisitionRecord[]>([])
@@ -177,9 +204,24 @@ export function RequisitionPage() {
       | 'requestedQuantity',
     value: number,
   ) => {
+    if (
+      !canManageStockLimits &&
+      (field === 'minimumStock' || field === 'maximumStock')
+    ) {
+      return
+    }
+
     setRows((current) =>
       current.map((row) => {
         if (row.ingredientId !== ingredientId) {
+          return row
+        }
+
+        if (
+          !canManageStockLimits &&
+          field === 'requestedQuantity' &&
+          !canRequestItem(row)
+        ) {
           return row
         }
 
@@ -194,6 +236,12 @@ export function RequisitionPage() {
         next.suggestedQuantity = nextSuggestion
 
         if (
+          !canManageStockLimits &&
+          field === 'currentStock' &&
+          !canRequestItem(next)
+        ) {
+          next.requestedQuantity = 0
+        } else if (
           field !== 'requestedQuantity' &&
           row.requestedQuantity === previousSuggestion
         ) {
@@ -499,9 +547,15 @@ export function RequisitionPage() {
                 <th className="px-3 py-3">Ingrediente</th>
                 <th className="px-3 py-3">Unidade</th>
                 <th className="px-3 py-3">Estoque atual</th>
-                <th className="px-3 py-3">Mínimo</th>
-                <th className="px-3 py-3">Máximo</th>
-                <th className="px-3 py-3">Sugestão</th>
+                {canManageStockLimits ? (
+                  <>
+                    <th className="px-3 py-3">Mínimo</th>
+                    <th className="px-3 py-3">Máximo</th>
+                  </>
+                ) : null}
+                {canManageStockLimits ? (
+                  <th className="px-3 py-3">Sugestão</th>
+                ) : null}
                 <th className="px-3 py-3">Solicitar</th>
               </tr>
             </thead>
@@ -531,23 +585,27 @@ export function RequisitionPage() {
                     />
                   </td>
 
-                  <td className="px-3 py-3">
-                    <NumberField
-                      value={row.minimumStock}
-                      onChange={(value) =>
-                        updateRow(row.ingredientId, 'minimumStock', value)
-                      }
-                    />
-                  </td>
+                  {canManageStockLimits ? (
+                    <>
+                      <td className="px-3 py-3">
+                        <NumberField
+                          value={row.minimumStock}
+                          onChange={(value) =>
+                            updateRow(row.ingredientId, 'minimumStock', value)
+                          }
+                        />
+                      </td>
 
-                  <td className="px-3 py-3">
-                    <NumberField
-                      value={row.maximumStock}
-                      onChange={(value) =>
-                        updateRow(row.ingredientId, 'maximumStock', value)
-                      }
-                    />
-                  </td>
+                      <td className="px-3 py-3">
+                        <NumberField
+                          value={row.maximumStock}
+                          onChange={(value) =>
+                            updateRow(row.ingredientId, 'maximumStock', value)
+                          }
+                        />
+                      </td>
+                    </>
+                  ) : null}
 
                   <td className="px-3 py-3">
                     <span
@@ -562,17 +620,25 @@ export function RequisitionPage() {
                   </td>
 
                   <td className="px-3 py-3">
-                    <NumberField
-                      value={row.requestedQuantity}
-                      emphasized={row.requestedQuantity > 0}
-                      onChange={(value) =>
-                        updateRow(
-                          row.ingredientId,
-                          'requestedQuantity',
-                          value,
-                        )
-                      }
-                    />
+                    {canManageStockLimits || canRequestItem(row) ? (
+                      <NumberField
+                        value={row.requestedQuantity}
+                        emphasized={row.requestedQuantity > 0}
+                        onChange={(value) =>
+                          updateRow(
+                            row.ingredientId,
+                            'requestedQuantity',
+                            value,
+                          )
+                        }
+                      />
+                    ) : (
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {hasConfiguredStockLimits(row)
+                          ? 'Estoque suficiente'
+                          : 'Aguardando configuração'}
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}
