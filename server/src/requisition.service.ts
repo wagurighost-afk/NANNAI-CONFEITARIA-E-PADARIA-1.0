@@ -1,10 +1,12 @@
 import { randomUUID } from 'node:crypto'
 import type { AuditActor } from './audit/types.js'
 import {
+  getMeta,
   loadAllRequisitions,
   loadRequisition,
   nextRequisitionSequence,
   saveRequisition,
+  setMeta,
 } from './db/index.js'
 import type {
   RequisitionHistoryAction,
@@ -23,6 +25,146 @@ function numberOrZero(value: unknown): number {
   }
 
   return parsed
+}
+
+const REQUISITION_STOCK_LIMITS_META_KEY =
+  'requisition.stock-limits.v1'
+
+export interface RequisitionStockLimit {
+  ingredientCode: string
+  minimumStock: number
+  maximumStock: number
+}
+
+function normalizeStockLimit(
+  value: unknown,
+): RequisitionStockLimit | null {
+  if (!value || typeof value !== 'object') {
+    return null
+  }
+
+  const data = value as Record<string, unknown>
+
+  const ingredientCode =
+    typeof data.ingredientCode === 'string'
+      ? data.ingredientCode.trim()
+      : ''
+
+  const minimumStock = Number(data.minimumStock)
+  const maximumStock = Number(data.maximumStock)
+
+  if (
+    !ingredientCode ||
+    !Number.isFinite(minimumStock) ||
+    !Number.isFinite(maximumStock) ||
+    minimumStock < 0 ||
+    maximumStock < minimumStock
+  ) {
+    return null
+  }
+
+  return {
+    ingredientCode,
+    minimumStock,
+    maximumStock,
+  }
+}
+
+export async function getRequisitionStockLimits(): Promise<
+  RequisitionStockLimit[]
+> {
+  const raw = await getMeta(REQUISITION_STOCK_LIMITS_META_KEY)
+
+  if (!raw) {
+    return []
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(raw)
+
+    if (!Array.isArray(parsed)) {
+      return []
+    }
+
+    return parsed
+      .map(normalizeStockLimit)
+      .filter(
+        (item): item is RequisitionStockLimit => item !== null,
+      )
+  } catch {
+    return []
+  }
+}
+
+export async function saveRequisitionStockLimits(
+  input: unknown,
+): Promise<RequisitionStockLimit[]> {
+  if (!Array.isArray(input)) {
+    throw new Error('Informe os limites de estoque.')
+  }
+
+  const normalized = input.map(normalizeStockLimit)
+
+  if (normalized.some((item) => item === null)) {
+    throw new Error('Existem limites de estoque inválidos.')
+  }
+
+  const limits = normalized.filter(
+    (item): item is RequisitionStockLimit => item !== null,
+  )
+
+  const seenCodes = new Set<string>()
+
+  for (const item of limits) {
+    if (seenCodes.has(item.ingredientCode)) {
+      throw new Error(
+        `Código de ingrediente duplicado: ${item.ingredientCode}.`,
+      )
+    }
+
+    seenCodes.add(item.ingredientCode)
+  }
+
+  await setMeta(
+    REQUISITION_STOCK_LIMITS_META_KEY,
+    JSON.stringify(limits),
+  )
+
+  return limits
+}
+function applyRequisitionStockLimits(
+  items: RequisitionItem[],
+  limits: RequisitionStockLimit[],
+): RequisitionItem[] {
+  const byCode = new Map(
+    limits.map((limit) => [limit.ingredientCode, limit]),
+  )
+
+  return items.map((item) => {
+    const configured = byCode.get(item.ingredientCode)
+
+    const minimumStock =
+      configured?.minimumStock ?? 0
+
+    const maximumStock =
+      configured?.maximumStock ?? 0
+
+    const suggestedQuantity =
+      maximumStock > 0 &&
+      item.currentStock <= minimumStock
+        ? Math.max(
+            0,
+            maximumStock - item.currentStock,
+          )
+        : 0
+
+    return {
+      ...item,
+      minimumStock,
+      maximumStock,
+      suggestedQuantity,
+    }
+  })
 }
 
 function parseSector(value: unknown): RequisitionSector {
@@ -192,7 +334,10 @@ export async function createRequisition(
   actor: AuditActor,
 ): Promise<RequisitionRecord> {
   const sector = parseSector(input.sector)
-  const items = validateItems(input.items)
+  const items = applyRequisitionStockLimits(
+    validateItems(input.items),
+    await getRequisitionStockLimits(),
+  )
   const now = new Date()
   const createdAt = now.toISOString()
 
@@ -261,7 +406,10 @@ export async function updateRequisition(
   const record: RequisitionRecord = {
     ...existing,
     sector: parseSector(input.sector),
-    items: validateItems(input.items),
+    items: applyRequisitionStockLimits(
+      validateItems(input.items),
+      await getRequisitionStockLimits(),
+    ),
     history: addHistory(
       existing,
       'UPDATED',
@@ -290,6 +438,12 @@ export async function submitRequisition(
   }
 
   const existing = normalizeRecord(loaded)
+
+  if (!isAdmin) {
+    throw new Error(
+      'Sem permissão para enviar esta requisição.',
+    )
+  }
 
   assertCanEdit(existing, actor, isAdmin)
 

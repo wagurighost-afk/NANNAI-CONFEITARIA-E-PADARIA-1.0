@@ -14,7 +14,10 @@ import { getErrorMessage } from '@/core/errors'
 import { useAuth } from '@/hooks/useAuth'
 import { ingredientsService } from '@/features/ingredients/services/ingredients.service'
 import type { Ingredient } from '@/features/ingredients/types/ingredient.types'
-import { requisitionService } from '@/features/requisition/services/requisition.service'
+import {
+  requisitionService,
+  type RequisitionStockLimit,
+} from '@/features/requisition/services/requisition.service'
 import {
   downloadRequisitionPdf,
   shareRequisitionPdf,
@@ -71,6 +74,33 @@ function canRequestItem(
   )
 }
 
+function applyPersistentStockLimits(
+  rows: RequisitionItem[],
+  limits: RequisitionStockLimit[],
+): RequisitionItem[] {
+  const byCode = new Map(
+    limits.map((limit) => [limit.ingredientCode, limit]),
+  )
+
+  return rows.map((row) => {
+    const configured = byCode.get(row.ingredientCode)
+
+    const next: RequisitionItem = {
+      ...row,
+      minimumStock:
+        configured?.minimumStock ?? 0,
+      maximumStock:
+        configured?.maximumStock ?? 0,
+    }
+
+    return {
+      ...next,
+      suggestedQuantity:
+        getSuggestedQuantity(next),
+    }
+  })
+}
+
 function buildRows(ingredients: Ingredient[]): RequisitionItem[] {
   return ingredients.map((ingredient) => {
     const base: RequisitionItem = {
@@ -100,6 +130,8 @@ export function RequisitionPage() {
   const canReview = isMasterAdmin(user)
   const canManageStockLimits = canReview
   const [ingredients, setIngredients] = useState<Ingredient[]>([])
+  const [stockLimits, setStockLimits] =
+    useState<RequisitionStockLimit[]>([])
   const [rows, setRows] = useState<RequisitionItem[]>([])
   const [history, setHistory] = useState<RequisitionRecord[]>([])
   const [draftId, setDraftId] = useState<string | null>(null)
@@ -116,14 +148,24 @@ export function RequisitionPage() {
       setIsLoading(true)
 
       try {
-        const ingredientData = await ingredientsService.list()
+        const [ingredientData, savedStockLimits] =
+          await Promise.all([
+            ingredientsService.list(),
+            requisitionService.getStockLimits(),
+          ])
 
         if (!active) {
           return
         }
 
         setIngredients(ingredientData)
-        setRows(buildRows(ingredientData))
+        setStockLimits(savedStockLimits)
+        setRows(
+          applyPersistentStockLimits(
+            buildRows(ingredientData),
+            savedStockLimits,
+          ),
+        )
 
         try {
           const records = await requisitionService.list()
@@ -255,6 +297,43 @@ export function RequisitionPage() {
     setMessage(null)
   }
 
+  const savePersistentStockLimits = async () => {
+    if (!canManageStockLimits) {
+      return
+    }
+
+    setIsSaving(true)
+    setMessage(null)
+
+    try {
+      const saved =
+        await requisitionService.saveStockLimits(
+          rows.map((row) => ({
+            ingredientCode: row.ingredientCode,
+            minimumStock: row.minimumStock,
+            maximumStock: row.maximumStock,
+          })),
+        )
+
+      setStockLimits(saved)
+
+      setRows((current) =>
+        applyPersistentStockLimits(
+          current,
+          saved,
+        ),
+      )
+
+      setMessage(
+        'Valores mínimo e máximo salvos no servidor.',
+      )
+    } catch (error) {
+      setMessage(getErrorMessage(error))
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   const saveDraft = async () => {
     if (rows.length === 0) {
       setMessage('Nenhum ingrediente disponível para salvar.')
@@ -322,11 +401,75 @@ export function RequisitionPage() {
       await requisitionService.submit(draft.id, { note })
 
       setDraftId(null)
-      setRows(buildRows(ingredients))
+      setRows(
+      applyPersistentStockLimits(
+        buildRows(ingredients),
+        stockLimits,
+      ),
+    )
 
       await refreshHistory()
 
       setMessage('Requisição enviada para revisão.')
+    } catch (error) {
+      setMessage(getErrorMessage(error))
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const submitSavedDraft = async (
+    record: RequisitionRecord,
+  ) => {
+    if (!canReview || record.status !== 'DRAFT') {
+      return
+    }
+
+    const pendingItems =
+      record.items.filter(
+        (item) =>
+          item.requestedQuantity > 0,
+      )
+
+    if (pendingItems.length === 0) {
+      setMessage(
+        'Esse rascunho ainda não possui itens para solicitar.',
+      )
+      return
+    }
+
+    const confirmed = window.confirm(
+      `Enviar requisição de ${record.responsible.name} com ${pendingItems.length} item(ns)?`,
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setIsSaving(true)
+    setMessage(null)
+
+    try {
+      await requisitionService.submit(
+        record.id,
+      )
+
+      if (draftId === record.id) {
+        setDraftId(null)
+
+        setRows(
+          applyPersistentStockLimits(
+            buildRows(ingredients),
+            stockLimits,
+          ),
+        )
+      }
+
+      await refreshHistory()
+
+      setMessage(
+        'Requisição enviada para revisão.',
+      )
     } catch (error) {
       setMessage(getErrorMessage(error))
     } finally {
@@ -409,7 +552,12 @@ export function RequisitionPage() {
     }
   }
   const resetFromIngredients = () => {
-    setRows(buildRows(ingredients))
+    setRows(
+      applyPersistentStockLimits(
+        buildRows(ingredients),
+        stockLimits,
+      ),
+    )
     setMessage(
       draftId
         ? 'Rascunho reiniciado. Clique em Salvar rascunho para sincronizar.'
@@ -607,6 +755,8 @@ export function RequisitionPage() {
                     </>
                   ) : null}
 
+                  {/* staff-hidden-suggestion */}
+                  {canManageStockLimits ? (
                   <td className="px-3 py-3">
                     <span
                       className={
@@ -618,6 +768,7 @@ export function RequisitionPage() {
                       {formatQuantity(row.suggestedQuantity)} {row.unit}
                     </span>
                   </td>
+                  ) : null}
 
                   <td className="px-3 py-3">
                     {canManageStockLimits || canRequestItem(row) ? (
@@ -648,6 +799,20 @@ export function RequisitionPage() {
       )}
 
       <div className="sticky bottom-3 z-10 flex flex-col gap-2 rounded-xl border border-border bg-surface-elevated p-3 shadow-lg sm:flex-row sm:justify-end">
+        {canManageStockLimits ? (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() =>
+              void savePersistentStockLimits()
+            }
+            disabled={isSaving}
+          >
+            <Save className="size-4" />
+            Salvar mínimo/máximo
+          </Button>
+        ) : null}
+
         <Button
           type="button"
           variant="outline"
@@ -658,6 +823,8 @@ export function RequisitionPage() {
           {isSaving ? 'Salvando...' : 'Salvar rascunho'}
         </Button>
 
+        {/* admin-only-submit */}
+        {canReview ? (
         <Button
           type="button"
           onClick={() => void submit()}
@@ -666,7 +833,76 @@ export function RequisitionPage() {
           <Send className="size-4" />
           Enviar requisição ({requestedItems.length})
         </Button>
+        ) : null}
       </div>
+
+      {canReview ? (
+        <section className="space-y-3">
+          <h2 className="font-display text-xl text-foreground">
+            Rascunhos aguardando envio
+          </h2>
+
+          {history.filter(
+            (record) =>
+              record.status === 'DRAFT',
+          ).length === 0 ? (
+            <div className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+              Nenhum rascunho aguardando envio.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {history
+                .filter(
+                  (record) =>
+                    record.status === 'DRAFT',
+                )
+                .map((record) => {
+                  const pendingItems =
+                    record.items.filter(
+                      (item) =>
+                        item.requestedQuantity > 0,
+                    )
+
+                  return (
+                    <div
+                      key={`pending-${record.id}`}
+                      className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-4 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div className="min-w-0">
+                        <p className="font-medium text-foreground">
+                          {record.responsible.name}
+                        </p>
+
+                        <p className="text-xs text-muted-foreground">
+                          {record.requisitionNumber ??
+                            'Requisição'}{' '}
+                          · {pendingItems.length} item(ns)
+                        </p>
+                      </div>
+
+                      <Button
+                        type="button"
+                        size="sm"
+                        disabled={
+                          isSaving ||
+                          pendingItems.length === 0
+                        }
+                        onClick={() =>
+                          void submitSavedDraft(
+                            record,
+                          )
+                        }
+                      >
+                        <Send className="size-4" />
+                        Enviar requisição
+                      </Button>
+                    </div>
+                  )
+                })}
+            </div>
+          )}
+        </section>
+      ) : null}
 
       <section className="space-y-3">
         <h2 className="font-display text-xl text-foreground">Histórico</h2>

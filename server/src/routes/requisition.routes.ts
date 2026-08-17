@@ -5,6 +5,8 @@ import { isMasterAdmin } from '../auth/roles.js'
 import type { AuthedRequest } from '../middleware.js'
 import { requireAdmin, requireAuth } from '../middleware.js'
 import {
+  getRequisitionStockLimits,
+  saveRequisitionStockLimits,
   approveRequisition,
   createRequisition,
   fulfillRequisition,
@@ -65,6 +67,35 @@ requisitionRouter.get('/', async (req: AuthedRequest, res) => {
     sendError(res, error)
   }
 })
+
+requisitionRouter.get(
+  '/stock-limits',
+  async (_req, res) => {
+    try {
+      res.json(
+        await getRequisitionStockLimits(),
+      )
+    } catch (error) {
+      sendError(res, error)
+    }
+  },
+)
+
+requisitionRouter.put(
+  '/stock-limits',
+  requireAdmin,
+  async (req, res) => {
+    try {
+      res.json(
+        await saveRequisitionStockLimits(
+          req.body?.limits ?? req.body,
+        ),
+      )
+    } catch (error) {
+      sendError(res, error)
+    }
+  },
+)
 
 requisitionRouter.get('/:id', async (req: AuthedRequest, res) => {
   try {

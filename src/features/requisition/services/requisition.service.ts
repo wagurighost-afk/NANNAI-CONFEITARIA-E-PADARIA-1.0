@@ -5,7 +5,36 @@ import type {
   SaveRequisitionInput,
 } from '@/features/requisition/types/requisition.types'
 
+export interface RequisitionStockLimit {
+  ingredientCode: string
+  minimumStock: number
+  maximumStock: number
+}
+
 export const requisitionService = {
+  async getStockLimits(): Promise<
+    RequisitionStockLimit[]
+  > {
+    const { data } = await apiClient.get<
+      RequisitionStockLimit[]
+    >('/requisitions/stock-limits')
+
+    return data
+  },
+
+  async saveStockLimits(
+    limits: RequisitionStockLimit[],
+  ): Promise<RequisitionStockLimit[]> {
+    const { data } = await apiClient.put<
+      RequisitionStockLimit[]
+    >(
+      '/requisitions/stock-limits',
+      { limits },
+    )
+
+    return data
+  },
+
   async list(): Promise<RequisitionRecord[]> {
     const { data } = await apiClient.get<RequisitionRecord[]>(
       '/requisitions',
