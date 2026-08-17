@@ -62,6 +62,7 @@ function toIngredient(
   return {
     id,
     ingredientCode,
+    sector: 'CONFEITARIA_PADARIA',
     name: input.name.trim(),
     description: input.description.trim(),
     category: input.category,

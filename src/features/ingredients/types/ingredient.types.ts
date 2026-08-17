@@ -11,9 +11,16 @@ export const INGREDIENT_CATEGORIES = [
   'Embalagens',
   'Decoração',
   'Outros',
+  'Carnes',
+  'Sorvetes',
 ] as const
 
 export type IngredientCategory = (typeof INGREDIENT_CATEGORIES)[number]
+export const INGREDIENT_SECTORS = [
+  'CONFEITARIA_PADARIA',
+] as const
+
+export type IngredientSector = (typeof INGREDIENT_SECTORS)[number]
 
 export const INGREDIENT_UNITS = [
   'kg',
@@ -24,6 +31,7 @@ export const INGREDIENT_UNITS = [
   'caixa',
   'pacote',
   'bandeja',
+  'ND',
 ] as const
 
 export type IngredientUnit = (typeof INGREDIENT_UNITS)[number]
@@ -33,6 +41,7 @@ export const INGREDIENT_STATUSES = [
   'ESTOQUE_BAIXO',
   'SEM_ESTOQUE',
   'PROXIMO_VENCIMENTO',
+  'NAO_CONFIGURADO',
 ] as const
 
 export type IngredientStatus = (typeof INGREDIENT_STATUSES)[number]
@@ -62,6 +71,7 @@ export interface IngredientMovement {
 export interface Ingredient {
   id: string
   ingredientCode: string
+  sector: IngredientSector
   name: string
   description: string
   category: IngredientCategory

@@ -16,6 +16,7 @@ export const INGREDIENT_STATUS_LABELS: Record<IngredientStatus, string> = {
   ESTOQUE_BAIXO: 'Estoque baixo',
   SEM_ESTOQUE: 'Sem estoque',
   PROXIMO_VENCIMENTO: 'Próximo vencimento',
+  NAO_CONFIGURADO: 'Não configurado',
 }
 
 export const INGREDIENT_STATUS_BADGE_VARIANT: Record<IngredientStatus, BadgeVariant> = {
@@ -23,6 +24,7 @@ export const INGREDIENT_STATUS_BADGE_VARIANT: Record<IngredientStatus, BadgeVari
   ESTOQUE_BAIXO: 'accent',
   SEM_ESTOQUE: 'danger',
   PROXIMO_VENCIMENTO: 'muted',
+  NAO_CONFIGURADO: 'muted',
 }
 
 /** Days ahead considered "near expiration". */
