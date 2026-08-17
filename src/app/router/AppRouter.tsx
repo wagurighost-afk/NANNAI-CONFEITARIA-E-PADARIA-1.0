@@ -190,7 +190,7 @@ export function AppRouter() {
             <Route element={<PermissionRoute permission="ingredients:view" />}>
               <Route path={APP_ROUTES.ingredients} element={<IngredientsPage />} />
             </Route>
-            <Route element={<PermissionRoute permission="ingredients:manage" />}>
+            <Route element={<PermissionRoute permission="requisition:view" />}>
               <Route path={APP_ROUTES.requisition} element={<RequisitionPage />} />
             </Route>
             <Route element={<PermissionRoute permission="products:view" />}>

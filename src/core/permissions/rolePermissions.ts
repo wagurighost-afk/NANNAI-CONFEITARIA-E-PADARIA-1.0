@@ -6,6 +6,7 @@ const MASTER_ADMIN_PERMISSIONS = [
   'employees:manage',
   'ingredients:view',
   'ingredients:manage',
+  'requisition:view',
   'products:view',
   'products:manage',
   'production:view',
@@ -39,6 +40,7 @@ export const ROLE_PERMISSIONS: RolePermissionsMap = {
   admin: MASTER_ADMIN_PERMISSIONS,
   manager: [
     'dashboard:view',
+    'requisition:view',
     'production:view',
     'production:own',
     'labels:view',
@@ -54,6 +56,7 @@ export const ROLE_PERMISSIONS: RolePermissionsMap = {
   ],
   staff: [
     'dashboard:view',
+    'requisition:view',
     'production:view',
     'production:own',
     'labels:view',
