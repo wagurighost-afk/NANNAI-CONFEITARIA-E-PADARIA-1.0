@@ -3,6 +3,7 @@ import type { AuditActor } from './audit/types.js'
 import {
   loadAllRequisitions,
   loadRequisition,
+  nextRequisitionSequence,
   saveRequisition,
 } from './db/index.js'
 import type {
@@ -96,24 +97,32 @@ function validateItems(items: RequisitionItem[]): RequisitionItem[] {
 }
 
 function normalizeRecord(record: RequisitionRecord): RequisitionRecord {
-  if (Array.isArray(record.history) && record.history.length > 0) {
-    return record
+  const normalized: RequisitionRecord = {
+    ...record,
+    requisitionNumber: record.requisitionNumber ?? null,
+    history: Array.isArray(record.history)
+      ? record.history
+      : [],
+  }
+
+  if (normalized.history.length > 0) {
+    return normalized
   }
 
   return {
-    ...record,
+    ...normalized,
     history: [
       {
         id: `req-history-${randomUUID()}`,
         action:
-          record.status === 'FINALIZED'
+          normalized.status === 'FINALIZED'
             ? 'APPROVED'
             : 'CREATED',
         fromStatus: null,
-        toStatus: record.status,
-        userId: record.responsible?.userId ?? 'legacy',
-        userName: record.responsible?.name ?? 'Registro anterior',
-        at: record.createdAt,
+        toStatus: normalized.status,
+        userId: normalized.responsible?.userId ?? 'legacy',
+        userName: normalized.responsible?.name ?? 'Registro anterior',
+        at: normalized.createdAt,
         note: 'Registro criado antes do histórico de workflow.',
       },
     ],
@@ -182,18 +191,33 @@ export async function createRequisition(
   input: SaveRequisitionInput,
   actor: AuditActor,
 ): Promise<RequisitionRecord> {
-  const now = new Date().toISOString()
-  const id = `req-${randomUUID()}`
+  const sector = parseSector(input.sector)
+  const items = validateItems(input.items)
+  const now = new Date()
+  const createdAt = now.toISOString()
+
+  const year = Number(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Recife',
+      year: 'numeric',
+    }).format(now),
+  )
+
+  const sequence = await nextRequisitionSequence(year)
+
+  const requisitionNumber =
+    `REQ-${year}-${String(sequence).padStart(4, '0')}`
 
   const record: RequisitionRecord = {
-    id,
+    id: `req-${randomUUID()}`,
+    requisitionNumber,
     status: 'DRAFT',
-    sector: parseSector(input.sector),
+    sector,
     responsible: {
       userId: actor.userId,
       name: actor.userName,
     },
-    items: validateItems(input.items),
+    items,
     history: [
       {
         id: `req-history-${randomUUID()}`,
@@ -202,12 +226,12 @@ export async function createRequisition(
         toStatus: 'DRAFT',
         userId: actor.userId,
         userName: actor.userName,
-        at: now,
+        at: createdAt,
         note: null,
       },
     ],
-    createdAt: now,
-    updatedAt: now,
+    createdAt,
+    updatedAt: createdAt,
     finalizedAt: null,
   }
 

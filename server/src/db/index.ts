@@ -34,6 +34,11 @@ export async function setMeta(key: string, value: string): Promise<void> {
   await getStore().setMeta(key, value)
 }
 
+export async function nextRequisitionSequence(
+  year: number,
+): Promise<number> {
+  return getStore().nextRequisitionSequence(year)
+}
 export async function countUsers(): Promise<number> {
   return getStore().countUsers()
 }

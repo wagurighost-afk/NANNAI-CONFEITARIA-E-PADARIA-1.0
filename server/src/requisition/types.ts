@@ -49,6 +49,7 @@ export interface RequisitionHistoryEntry {
 export interface RequisitionRecord {
   id: string
   status: RequisitionStatus
+  requisitionNumber: string | null
   sector: RequisitionSector
   responsible: RequisitionResponsible
   items: RequisitionItem[]

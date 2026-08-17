@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   ClipboardList,
   Cloud,
+  FileDown,
   Save,
   Search,
   Send,
@@ -13,6 +14,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { ingredientsService } from '@/features/ingredients/services/ingredients.service'
 import type { Ingredient } from '@/features/ingredients/types/ingredient.types'
 import { requisitionService } from '@/features/requisition/services/requisition.service'
+import { downloadRequisitionPdf } from '@/features/requisition/utils/requisitionPdf'
 import type {
   RequisitionHistoryEntry,
   RequisitionItem,
@@ -324,6 +326,17 @@ export function RequisitionPage() {
     }
   }
 
+  const generatePdf = async (record: RequisitionRecord) => {
+    setMessage(null)
+
+    try {
+      await downloadRequisitionPdf(record)
+    } catch (error) {
+      setMessage(
+        `Não foi possível gerar o PDF: ${getErrorMessage(error)}`,
+      )
+    }
+  }
   const resetFromIngredients = () => {
     setRows(buildRows(ingredients))
     setMessage(
@@ -586,6 +599,10 @@ export function RequisitionPage() {
               >
                 <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                   <div>
+                    <p className="text-xs font-semibold text-accent">
+                      {record.requisitionNumber ?? 'Registro legado'}
+                    </p>
+
                     <p className="font-medium text-foreground">
                       {getStatusLabel(record.status)}
                     </p>
@@ -617,6 +634,19 @@ export function RequisitionPage() {
                     Nenhum item solicitado neste rascunho.
                   </p>
                 )}
+                {record.status !== 'DRAFT' ? (
+                  <div className="mt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={isSaving}
+                      onClick={() => void generatePdf(record)}
+                    >
+                      <FileDown className="size-4" />
+                      Gerar PDF
+                    </Button>
+                  </div>
+                ) : null}
                 {record.history?.length > 0 ? (
                   <div className="mt-4 border-t border-border pt-3">
                     <p className="text-xs font-medium text-foreground">

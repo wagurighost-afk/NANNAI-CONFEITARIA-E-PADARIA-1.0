@@ -85,6 +85,7 @@ function withJsonLock<T>(queue: { current: Promise<void> }, fn: () => T): Promis
 }
 
 const wasteSaveQueue = { current: Promise.resolve() }
+const requisitionSequenceQueue = { current: Promise.resolve() }
 
 function writeDb(data: DatabaseFile): void {
   fs.mkdirSync(path.dirname(dbPath), { recursive: true })
@@ -113,6 +114,22 @@ export function createJsonStore(): DatabaseStore {
       writeDb(db)
     },
 
+    async nextRequisitionSequence(year) {
+      return withJsonLock(requisitionSequenceQueue, () => {
+        const key = `requisition.sequence.${year}`
+        const db = readDb()
+        const current = Number.parseInt(db.meta[key] ?? '0', 10)
+        const next =
+          Number.isFinite(current) && current >= 0
+            ? current + 1
+            : 1
+
+        db.meta[key] = String(next)
+        writeDb(db)
+
+        return next
+      })
+    },
     async countUsers() {
       return readDb().users.length
     },

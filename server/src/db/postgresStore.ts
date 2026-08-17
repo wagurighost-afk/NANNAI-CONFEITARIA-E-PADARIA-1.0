@@ -306,6 +306,26 @@ export function createPostgresStore(): DatabaseStore {
       )
     },
 
+    async nextRequisitionSequence(year) {
+      const key = `requisition.sequence.${year}`
+
+      const { rows } = await pool.query<{ value: string }>(
+        `INSERT INTO meta (key, value)
+         VALUES ($1, '1')
+         ON CONFLICT (key) DO UPDATE
+         SET value = (meta.value::bigint + 1)::text
+         RETURNING value`,
+        [key],
+      )
+
+      const value = Number(rows[0]?.value)
+
+      if (!Number.isInteger(value) || value < 1) {
+        throw new Error('Falha ao gerar sequência da requisição.')
+      }
+
+      return value
+    },
     async countUsers() {
       const { rows } = await pool.query<{ count: string }>('SELECT COUNT(*)::text AS count FROM users')
       return Number(rows[0]?.count ?? 0)

@@ -49,6 +49,7 @@ export interface DatabaseStore {
   init(): Promise<void>
   getMeta(key: string): Promise<string | null>
   setMeta(key: string, value: string): Promise<void>
+  nextRequisitionSequence(year: number): Promise<number>
   countUsers(): Promise<number>
   insertUser(user: UserRow): Promise<void>
   findUserByEmail(email: string): Promise<UserRow | undefined>
