@@ -10,6 +10,7 @@ export type AuditEntityType =
   | 'waste_control'
   | 'auth'
   | 'monthly_schedule'
+  | 'employee_absence'
   | 'intelligence'
   | 'label'
   | 'settings'

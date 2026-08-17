@@ -12,6 +12,7 @@ import { wasteControlRouter } from './routes/wasteControl.routes.js'
 import { eventsRouter } from './routes/events.routes.js'
 import { productionRouter } from './routes/production.routes.js'
 import { monthlyScheduleRouter } from './routes/monthlySchedule.routes.js'
+import { employeeAbsenceRouter } from './routes/employeeAbsence.routes.js'
 import { recipesRouter } from './routes/recipes.routes.js'
 import { intelligenceRouter } from './routes/intelligence.routes.js'
 import { auditRouter } from './routes/audit.routes.js'
@@ -60,6 +61,7 @@ app.use('/api/auth', authRouter)
 app.use('/api/production', productionRouter)
 app.use('/api/recipes', recipesRouter)
 app.use('/api/monthly-schedules', monthlyScheduleRouter)
+app.use('/api/employee-absences', employeeAbsenceRouter)
 app.use('/api/bread-control', breadControlRouter)
 app.use('/api/waste-control', wasteControlRouter)
 app.use('/api/intelligence', intelligenceRouter)
