@@ -2,6 +2,7 @@ import type {
   AppUser,
   BreadControlDay,
   CatalogProduct,
+  EmployeeAbsencePeriod,
   LabelRecord,
   MonthlySchedule,
   ProductionDay,
@@ -34,6 +35,7 @@ export interface DatabaseFile {
   recipes: Recipe[]
   products: CatalogProduct[]
   monthly_schedules: MonthlySchedule[]
+  employee_absences: EmployeeAbsencePeriod[]
   bread_control_days: BreadControlDay[]
   waste_control_days: WasteControlDay[]
   label_records: LabelRecord[]
@@ -83,6 +85,13 @@ export interface DatabaseStore {
   loadAllMonthlySchedules(): Promise<MonthlySchedule[]>
   loadMonthlyScheduleRecord(id: string): Promise<MonthlySchedule | null>
   saveMonthlyScheduleRecord(schedule: MonthlySchedule): Promise<void>
+  loadEmployeeAbsenceRecord(id: string): Promise<EmployeeAbsencePeriod | null>
+  loadEmployeeAbsencesByEmployee(employeeId: string): Promise<EmployeeAbsencePeriod[]>
+  loadEmployeeAbsencesOverlappingRange(
+    startDate: string,
+    endDate: string,
+  ): Promise<EmployeeAbsencePeriod[]>
+  saveEmployeeAbsenceRecord(absence: EmployeeAbsencePeriod): Promise<void>
   loadBreadControlDay(id: string): Promise<BreadControlDay | null>
   loadBreadControlDaysInMonth(year: number, month: number): Promise<BreadControlDay[]>
   saveBreadControlDay(day: BreadControlDay): Promise<void>

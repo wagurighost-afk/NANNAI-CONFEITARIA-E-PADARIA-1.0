@@ -7,6 +7,7 @@ import type { DatabaseFile, DatabaseStore } from './types.js'
 import type {
   BreadControlDay,
   CatalogProduct,
+  EmployeeAbsencePeriod,
   MonthlySchedule,
   ProductionDay,
   Recipe,
@@ -61,6 +62,21 @@ CREATE TABLE IF NOT EXISTS monthly_schedules (
   id TEXT PRIMARY KEY,
   payload JSONB NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS employee_absences (
+  id TEXT PRIMARY KEY,
+  employee_id TEXT NOT NULL,
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  payload JSONB NOT NULL,
+  CONSTRAINT employee_absences_valid_period CHECK (end_date >= start_date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_employee_absences_employee
+  ON employee_absences (employee_id);
+
+CREATE INDEX IF NOT EXISTS idx_employee_absences_period
+  ON employee_absences (start_date, end_date);
 
 CREATE TABLE IF NOT EXISTS bread_control_days (
   id TEXT PRIMARY KEY,
@@ -230,6 +246,21 @@ async function importJsonIfEmpty(pool: pg.Pool): Promise<void> {
         `INSERT INTO monthly_schedules (id, payload) VALUES ($1, $2::jsonb)
          ON CONFLICT (id) DO NOTHING`,
         [schedule.id, JSON.stringify(schedule)],
+      )
+    }
+
+    for (const absence of snapshot.employee_absences ?? []) {
+      await client.query(
+        `INSERT INTO employee_absences (id, employee_id, start_date, end_date, payload)
+         VALUES ($1, $2, $3::date, $4::date, $5::jsonb)
+         ON CONFLICT (id) DO NOTHING`,
+        [
+          absence.id,
+          absence.employeeId,
+          absence.startDate,
+          absence.endDate,
+          JSON.stringify(absence),
+        ],
       )
     }
 
@@ -670,6 +701,57 @@ export function createPostgresStore(): DatabaseStore {
         `INSERT INTO monthly_schedules (id, payload) VALUES ($1, $2::jsonb)
          ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload`,
         [schedule.id, JSON.stringify(schedule)],
+      )
+    },
+
+    async loadEmployeeAbsenceRecord(id) {
+      const { rows } = await pool.query<{ payload: EmployeeAbsencePeriod }>(
+        'SELECT payload FROM employee_absences WHERE id = $1',
+        [id],
+      )
+      return rows[0]?.payload ?? null
+    },
+
+    async loadEmployeeAbsencesByEmployee(employeeId) {
+      const { rows } = await pool.query<{ payload: EmployeeAbsencePeriod }>(
+        `SELECT payload
+         FROM employee_absences
+         WHERE employee_id = $1
+         ORDER BY start_date DESC, end_date DESC`,
+        [employeeId],
+      )
+      return rows.map((row) => row.payload)
+    },
+
+    async loadEmployeeAbsencesOverlappingRange(startDate, endDate) {
+      const { rows } = await pool.query<{ payload: EmployeeAbsencePeriod }>(
+        `SELECT payload
+         FROM employee_absences
+         WHERE start_date <= $2::date
+           AND end_date >= $1::date
+         ORDER BY start_date ASC, end_date ASC`,
+        [startDate, endDate],
+      )
+      return rows.map((row) => row.payload)
+    },
+
+    async saveEmployeeAbsenceRecord(absence) {
+      await pool.query(
+        `INSERT INTO employee_absences
+           (id, employee_id, start_date, end_date, payload)
+         VALUES ($1, $2, $3::date, $4::date, $5::jsonb)
+         ON CONFLICT (id) DO UPDATE SET
+           employee_id = EXCLUDED.employee_id,
+           start_date = EXCLUDED.start_date,
+           end_date = EXCLUDED.end_date,
+           payload = EXCLUDED.payload`,
+        [
+          absence.id,
+          absence.employeeId,
+          absence.startDate,
+          absence.endDate,
+          JSON.stringify(absence),
+        ],
       )
     },
 

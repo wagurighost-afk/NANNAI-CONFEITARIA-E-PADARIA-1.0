@@ -24,6 +24,7 @@ function emptyDb(): DatabaseFile {
     recipes: [],
     products: [],
     monthly_schedules: [],
+    employee_absences: [],
     bread_control_days: [],
     waste_control_days: [],
     label_records: [],
@@ -48,6 +49,7 @@ function normalizeDb(parsed: Partial<DatabaseFile>): DatabaseFile {
     recipes: parsed.recipes ?? [],
     products: parsed.products ?? [],
     monthly_schedules: parsed.monthly_schedules ?? [],
+    employee_absences: parsed.employee_absences ?? [],
     bread_control_days: parsed.bread_control_days ?? [],
     waste_control_days: parsed.waste_control_days ?? [],
     label_records: parsed.label_records ?? [],
@@ -350,6 +352,41 @@ export function createJsonStore(): DatabaseStore {
       } else {
         db.monthly_schedules.push(schedule)
       }
+      writeDb(db)
+    },
+
+    async loadEmployeeAbsenceRecord(id) {
+      return readDb().employee_absences.find((absence) => absence.id === id) ?? null
+    },
+
+    async loadEmployeeAbsencesByEmployee(employeeId) {
+      return readDb()
+        .employee_absences
+        .filter((absence) => absence.employeeId === employeeId)
+        .sort((a, b) => b.startDate.localeCompare(a.startDate))
+    },
+
+    async loadEmployeeAbsencesOverlappingRange(startDate, endDate) {
+      return readDb()
+        .employee_absences
+        .filter(
+          (absence) =>
+            absence.startDate <= endDate &&
+            absence.endDate >= startDate,
+        )
+        .sort((a, b) => a.startDate.localeCompare(b.startDate))
+    },
+
+    async saveEmployeeAbsenceRecord(absence) {
+      const db = readDb()
+      const index = db.employee_absences.findIndex((item) => item.id === absence.id)
+
+      if (index >= 0) {
+        db.employee_absences[index] = absence
+      } else {
+        db.employee_absences.push(absence)
+      }
+
       writeDb(db)
     },
 

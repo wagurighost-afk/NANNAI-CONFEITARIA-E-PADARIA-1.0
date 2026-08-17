@@ -425,6 +425,27 @@ export interface RecipeFilters {
   status?: string
 }
 
+export type EmployeeAbsenceType =
+  | 'VACATION'
+  | 'LEAVE'
+  | 'SICK_LEAVE'
+  | 'OTHER'
+
+export interface EmployeeAbsencePeriod {
+  id: string
+  employeeId: string
+  type: EmployeeAbsenceType
+  startDate: string
+  endDate: string
+  notes: string
+  createdBy: string
+  createdAt: string
+  updatedAt: string
+  cancelledAt: string | null
+  cancelledBy: string | null
+  cancellationReason: string | null
+}
+
 export type MonthlyDayStatus = 'work' | 'off' | 'vacation' | 'leave' | 'other'
 
 export interface MonthlyScheduleDay {

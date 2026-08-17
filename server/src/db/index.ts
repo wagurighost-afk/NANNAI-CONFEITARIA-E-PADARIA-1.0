@@ -164,6 +164,27 @@ export async function saveMonthlyScheduleRecord(schedule: Parameters<DatabaseSto
   await getStore().saveMonthlyScheduleRecord(schedule)
 }
 
+export async function loadEmployeeAbsenceRecord(id: string) {
+  return getStore().loadEmployeeAbsenceRecord(id)
+}
+
+export async function loadEmployeeAbsencesByEmployee(employeeId: string) {
+  return getStore().loadEmployeeAbsencesByEmployee(employeeId)
+}
+
+export async function loadEmployeeAbsencesOverlappingRange(
+  startDate: string,
+  endDate: string,
+) {
+  return getStore().loadEmployeeAbsencesOverlappingRange(startDate, endDate)
+}
+
+export async function saveEmployeeAbsenceRecord(
+  absence: Parameters<DatabaseStore['saveEmployeeAbsenceRecord']>[0],
+): Promise<void> {
+  await getStore().saveEmployeeAbsenceRecord(absence)
+}
+
 export async function countProducts(): Promise<number> {
   return getStore().countProducts()
 }
